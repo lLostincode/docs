@@ -1,11 +1,11 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
-  "name": "Mint Starter Kit",
+  "name": "Atthene Documentation",
   "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
+    "primary": "#6366F1",
+    "light": "#818CF8",
+    "dark": "#4F46E5"
   },
   "favicon": "/favicon.svg",
   "navigation": {
@@ -18,51 +18,140 @@
             "pages": [
               "index",
               "quickstart",
-              "development"
+              "platform-overview"
             ]
           },
           {
-            "group": "Customization",
+            "group": "Platform Setup",
             "pages": [
-              "essentials/settings",
-              "essentials/navigation"
+              "guides/account-setup",
+              "guides/authentication",
+              "guides/dashboard-navigation"
             ]
           },
           {
-            "group": "Writing content",
+            "group": "Agent Configuration",
             "pages": [
-              "essentials/markdown",
-              "essentials/code",
-              "essentials/images",
-              "essentials/reusable-snippets"
+              "guides/yaml-configuration",
+              "guides/agent-types",
+              "guides/agent-capabilities",
+              "guides/knowledge-base-setup"
             ]
           },
           {
-            "group": "AI tools",
+            "group": "Integration",
             "pages": [
-              "ai-tools/cursor",
-              "ai-tools/claude-code",
-              "ai-tools/windsurf"
+              "guides/connecting-services",
+              "guides/embedding-agents",
+              "guides/chatbot-integration",
+              "guides/custom-tools"
+            ]
+          },
+          {
+            "group": "Advanced Features",
+            "pages": [
+              "guides/multi-agent-workflows",
+              "guides/monitoring-analytics",
+              "guides/compliance-security"
             ]
           }
         ]
       },
       {
-        "tab": "API reference",
+        "tab": "Agent Systems Theory",
         "groups": [
           {
-            "group": "API documentation",
+            "group": "Fundamentals",
             "pages": [
-              "api-reference/introduction"
+              "theory/introduction-to-agents",
+              "theory/agent-architecture",
+              "theory/agent-capabilities"
             ]
           },
           {
-            "group": "Endpoint examples",
+            "group": "Prompt Engineering",
             "pages": [
-              "api-reference/endpoint/get",
-              "api-reference/endpoint/create",
-              "api-reference/endpoint/delete",
-              "api-reference/endpoint/webhook"
+              "theory/prompt-engineering-basics",
+              "theory/advanced-prompting",
+              "theory/system-messages",
+              "theory/few-shot-learning"
+            ]
+          },
+          {
+            "group": "Multi-Agent Systems",
+            "pages": [
+              "theory/agent-composition",
+              "theory/agent-communication",
+              "theory/orchestration-patterns",
+              "theory/emergent-behaviors"
+            ]
+          },
+          {
+            "group": "Evaluation & Optimization",
+            "pages": [
+              "theory/evaluation-metrics",
+              "theory/testing-frameworks",
+              "theory/performance-optimization",
+              "theory/continuous-improvement"
+            ]
+          },
+          {
+            "group": "Best Practices",
+            "pages": [
+              "theory/design-patterns",
+              "theory/safety-guardrails",
+              "theory/ethical-considerations",
+              "theory/case-studies"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "API Overview",
+            "pages": [
+              "api-reference/introduction",
+              "api-reference/authentication",
+              "api-reference/rate-limits",
+              "api-reference/error-handling"
+            ]
+          },
+          {
+            "group": "HTTP Endpoints",
+            "pages": [
+              "api-reference/agents/create",
+              "api-reference/agents/update",
+              "api-reference/agents/delete",
+              "api-reference/agents/list",
+              "api-reference/agents/execute"
+            ]
+          },
+          {
+            "group": "File Operations",
+            "pages": [
+              "api-reference/files/upload",
+              "api-reference/files/download",
+              "api-reference/files/list",
+              "api-reference/files/delete"
+            ]
+          },
+          {
+            "group": "WebSocket Connections",
+            "pages": [
+              "api-reference/websocket/overview",
+              "api-reference/websocket/authentication",
+              "api-reference/websocket/events",
+              "api-reference/websocket/examples"
+            ]
+          },
+          {
+            "group": "Webhooks",
+            "pages": [
+              "api-reference/webhooks/setup",
+              "api-reference/webhooks/events",
+              "api-reference/webhooks/security"
             ]
           }
         ]
@@ -72,18 +161,18 @@
       "anchors": [
         {
           "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
+          "href": "https://docs.atthene.com",
           "icon": "book-open-cover"
         },
         {
-          "anchor": "Community",
-          "href": "https://mintlify.com/community",
-          "icon": "slack"
+          "anchor": "Use Cases",
+          "href": "https://atthene.com/use-cases",
+          "icon": "lightbulb"
         },
         {
-          "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
-          "icon": "newspaper"
+          "anchor": "Pricing",
+          "href": "https://atthene.com/pricing",
+          "icon": "tag"
         }
       ]
     }
@@ -96,32 +185,31 @@
     "links": [
       {
         "label": "Support",
-        "href": "mailto:hi@mintlify.com"
+        "href": "mailto:support@atthene.com"
       }
     ],
     "primary": {
       "type": "button",
-      "label": "Dashboard",
-      "href": "https://dashboard.mintlify.com"
+      "label": "Login",
+      "href": "https://app.atthene.com"
     }
   },
   "contextual": {
     "options": [
-     "copy",
-     "view",
-     "chatgpt",
-     "claude",
-     "perplexity",
-     "mcp",
-     "cursor",
-     "vscode"
-   ]
+      "copy",
+      "view",
+      "chatgpt",
+      "claude",
+      "perplexity",
+      "mcp",
+      "cursor",
+      "vscode"
+    ]
   },
   "footer": {
     "socials": {
-      "x": "https://x.com/mintlify",
-      "github": "https://github.com/mintlify",
-      "linkedin": "https://linkedin.com/company/mintlify"
+      "linkedin": "https://www.linkedin.com/company/arttacsolutions",
+      "twitter": "https://twitter.com/atthene_ai"
     }
   }
 }

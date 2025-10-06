@@ -1,0 +1,360 @@
+---
+title: 'Validate Agent Configuration'
+description: 'Validate an agent configuration without executing it'
+api: 'POST /v1/agents/validate'
+---
+
+# Validate Agent Configuration
+
+The Validate Agent Configuration endpoint allows you to check if an agent configuration is valid without actually executing it. This is useful for testing configurations before deploying them.
+
+## Request
+
+<RequestExample>
+```bash cURL
+curl -X POST https://api.yourdomain.com/v1/agents/validate \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "config": {
+      "name": "My Agent",
+      "model": "gpt-4",
+      "instructions": "You are a helpful assistant...",
+      "tools": ["web_search", "code_interpreter"],
+      "parameters": {
+        "temperature": 0.7,
+        "max_tokens": 1000
+      }
+    }
+  }'
+```
+
+```javascript Node.js
+const axios = require('axios');
+
+const apiKey = 'YOUR_API_KEY';
+
+axios.post('https://api.yourdomain.com/v1/agents/validate', {
+  config: {
+    name: 'My Agent',
+    model: 'gpt-4',
+    instructions: 'You are a helpful assistant...',
+    tools: ['web_search', 'code_interpreter'],
+    parameters: {
+      temperature: 0.7,
+      max_tokens: 1000
+    }
+  }
+}, {
+  headers: {
+    'Authorization': `Bearer ${apiKey}`,
+    'Content-Type': 'application/json'
+  }
+})
+.then(response => console.log(response.data))
+.catch(error => console.error(error.response.data));
+```
+
+```python Python
+import requests
+
+api_key = 'YOUR_API_KEY'
+headers = {
+    'Authorization': f'Bearer {api_key}',
+    'Content-Type': 'application/json'
+}
+
+data = {
+    'config': {
+        'name': 'My Agent',
+        'model': 'gpt-4',
+        'instructions': 'You are a helpful assistant...',
+        'tools': ['web_search', 'code_interpreter'],
+        'parameters': {
+            'temperature': 0.7,
+            'max_tokens': 1000
+        }
+    }
+}
+
+response = requests.post(
+    'https://api.yourdomain.com/v1/agents/validate',
+    json=data,
+    headers=headers
+)
+
+print(response.json())
+```
+</RequestExample>
+
+### Request Body
+
+<ParamField body="config" type="object" required>
+  The agent configuration to validate.
+  
+  <Expandable title="Config Object Properties">
+    <ParamField body="name" type="string" required>
+      A name for the agent. This is used for identification purposes.
+    </ParamField>
+    
+    <ParamField body="model" type="string" required>
+      The model to use for the agent. Must be one of the supported models.
+      
+      Supported values: `gpt-4`, `gpt-4-turbo`, `gpt-3.5-turbo`, `claude-3-opus`, `claude-3-sonnet`, `claude-3-haiku`
+    </ParamField>
+    
+    <ParamField body="instructions" type="string" required>
+      The system instructions for the agent. This defines the agent's behavior and capabilities.
+    </ParamField>
+    
+    <ParamField body="tools" type="array">
+      An array of tool identifiers that the agent can use.
+      
+      Supported values: `web_search`, `code_interpreter`, `knowledge_base`, `file_search`, `function_calling`
+    </ParamField>
+    
+    <ParamField body="parameters" type="object">
+      Model-specific parameters for the agent.
+      
+      <Expandable title="Parameters Object Properties">
+        <ParamField body="temperature" type="number">
+          Controls randomness in the model's responses. Higher values (e.g., 0.8) make output more random, while lower values (e.g., 0.2) make it more deterministic.
+          
+          Range: 0.0 - 1.0
+          Default: 0.7
+        </ParamField>
+        
+        <ParamField body="max_tokens" type="integer">
+          The maximum number of tokens to generate in the response.
+          
+          Range: 1 - 4096
+          Default: 1000
+        </ParamField>
+        
+        <ParamField body="top_p" type="number">
+          Controls diversity via nucleus sampling. A lower value (e.g., 0.5) considers only the most likely tokens, while a higher value (e.g., 0.9) considers more options.
+          
+          Range: 0.0 - 1.0
+          Default: 1.0
+        </ParamField>
+      </Expandable>
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+## Response
+
+<ResponseExample>
+```json Success
+{
+  "valid": true,
+  "message": "Configuration is valid",
+  "warnings": []
+}
+```
+
+```json Warning
+{
+  "valid": true,
+  "message": "Configuration is valid with warnings",
+  "warnings": [
+    {
+      "field": "temperature",
+      "message": "Temperature above recommended range"
+    }
+  ]
+}
+```
+
+```json Error
+{
+  "valid": false,
+  "message": "Invalid configuration",
+  "errors": [
+    {
+      "field": "model",
+      "message": "Unsupported model specified"
+    }
+  ],
+  "warnings": [
+    {
+      "field": "temperature",
+      "message": "Temperature above recommended range"
+    }
+  ]
+}
+```
+</ResponseExample>
+
+### Response Fields
+
+<ResponseField name="valid" type="boolean">
+  Indicates whether the configuration is valid.
+</ResponseField>
+
+<ResponseField name="message" type="string">
+  A human-readable message describing the validation result.
+</ResponseField>
+
+<ResponseField name="errors" type="array">
+  An array of error objects. Only present if `valid` is `false`.
+  
+  <Expandable title="Error Object Properties">
+    <ResponseField name="field" type="string">
+      The field in the configuration that caused the error.
+    </ResponseField>
+    
+    <ResponseField name="message" type="string">
+      A human-readable message describing the error.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="warnings" type="array">
+  An array of warning objects. May be present even if `valid` is `true`.
+  
+  <Expandable title="Warning Object Properties">
+    <ResponseField name="field" type="string">
+      The field in the configuration that triggered the warning.
+    </ResponseField>
+    
+    <ResponseField name="message" type="string">
+      A human-readable message describing the warning.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+## Error Codes
+
+<AccordionGroup>
+  <Accordion title="400: Bad Request">
+    Returned when the request body is malformed or missing required fields.
+    
+    ```json
+    {
+      "error": {
+        "type": "validation_error",
+        "message": "Invalid request body",
+        "param": "config"
+      }
+    }
+    ```
+  </Accordion>
+  
+  <Accordion title="401: Unauthorized">
+    Returned when the API key is missing or invalid.
+    
+    ```json
+    {
+      "error": {
+        "type": "authentication_error",
+        "message": "Invalid API key provided"
+      }
+    }
+    ```
+  </Accordion>
+  
+  <Accordion title="429: Too Many Requests">
+    Returned when you've exceeded the rate limit for this endpoint.
+    
+    ```json
+    {
+      "error": {
+        "type": "rate_limit_exceeded",
+        "message": "Rate limit exceeded. Please retry after 2023-11-10T00:01:00Z",
+        "retry_after": 45
+      }
+    }
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Usage Examples
+
+### Validating a Basic Agent
+
+<CodeGroup>
+```javascript
+const config = {
+  name: "Customer Support Agent",
+  model: "gpt-4",
+  instructions: "You are a helpful customer support agent for a software company.",
+  parameters: {
+    temperature: 0.5
+  }
+};
+
+// Validate the configuration
+const response = await fetch('https://api.yourdomain.com/v1/agents/validate', {
+  method: 'POST',
+  headers: {
+    'Authorization': `Bearer ${apiKey}`,
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({ config })
+});
+
+const data = await response.json();
+
+if (data.valid) {
+  console.log('Configuration is valid!');
+  
+  if (data.warnings.length > 0) {
+    console.log('Warnings:');
+    data.warnings.forEach(warning => {
+      console.log(`- ${warning.field}: ${warning.message}`);
+    });
+  }
+} else {
+  console.error('Configuration is invalid:');
+  data.errors.forEach(error => {
+    console.error(`- ${error.field}: ${error.message}`);
+  });
+}
+```
+</CodeGroup>
+
+### Validating an Agent with Tools
+
+<CodeGroup>
+```javascript
+const config = {
+  name: "Research Assistant",
+  model: "gpt-4",
+  instructions: "You are a research assistant that helps users find information.",
+  tools: ["web_search", "knowledge_base"],
+  parameters: {
+    temperature: 0.3,
+    max_tokens: 2000
+  }
+};
+
+// Validate the configuration
+const response = await fetch('https://api.yourdomain.com/v1/agents/validate', {
+  method: 'POST',
+  headers: {
+    'Authorization': `Bearer ${apiKey}`,
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({ config })
+});
+
+const data = await response.json();
+
+// Process the response
+```
+</CodeGroup>
+
+## Notes and Best Practices
+
+<Tip>
+Always validate your agent configurations before deploying them to production. This helps catch configuration errors early.
+</Tip>
+
+<Warning>
+The validation endpoint only checks the syntax and basic semantics of your configuration. It doesn't guarantee that the agent will behave exactly as expected when executed.
+</Warning>
+
+<Info>
+This endpoint has a higher rate limit than most other endpoints, making it suitable for frequent validation during development.
+</Info>

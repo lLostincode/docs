@@ -1,33 +1,102 @@
 ---
-title: 'Introduction'
-description: 'Example section for showcasing API endpoints'
+title: 'API Reference'
+description: 'Complete reference documentation for the Multi-Agentic Workforce Platform API'
 ---
 
-<Note>
-  If you're not looking to build API reference documentation, you can delete
-  this section by removing the api-reference folder.
-</Note>
+# Multi-Agentic Workforce Platform API
 
-## Welcome
+Welcome to the API reference documentation for the Multi-Agentic Workforce Platform. This API allows you to programmatically create, configure, and execute intelligent agents for a wide range of tasks and workflows.
 
-There are two ways to build API documentation: [OpenAPI](https://mintlify.com/docs/api-playground/openapi/setup) and [MDX components](https://mintlify.com/docs/api-playground/mdx/configuration). For the starter kit, we are using the following OpenAPI specification.
+## API Overview
 
-<Card
-  title="Plant Store Endpoints"
-  icon="leaf"
-  href="https://github.com/mintlify/starter/blob/main/api-reference/openapi.json"
->
-  View the OpenAPI specification file
-</Card>
+The Multi-Agentic Workforce Platform API is organized around REST principles. It accepts JSON-encoded request bodies, returns JSON-encoded responses, and uses standard HTTP response codes, authentication, and verbs.
 
-## Authentication
+<CardGroup cols={2}>
+  <Card title="Base URL" icon="server" color="#16A34A">
+    All API requests should be made to:
+    ```
+    https://api.yourdomain.com/v1
+    ```
+  </Card>
+  
+  <Card title="API Versioning" icon="code-branch" color="#16A34A">
+    The current API version is `v1`. Future versions will be accessible at different endpoints.
+  </Card>
+</CardGroup>
 
-All API endpoints are authenticated using Bearer tokens and picked up from the specification file.
+## Key Concepts
 
-```json
-"security": [
-  {
-    "bearerAuth": []
-  }
-]
-```
+<AccordionGroup>
+  <Accordion title="Agents">
+    Agents are the core entities in the platform. Each agent has a configuration that defines its capabilities, instructions, and behavior. Agents can be created on-the-fly or saved for repeated use.
+  </Accordion>
+  
+  <Accordion title="Runs">
+    A run represents a single execution instance of an agent. Each run maintains its own conversation history and state. Runs can be short-lived for simple tasks or long-running for complex workflows.
+  </Accordion>
+  
+  <Accordion title="Tools">
+    Tools are capabilities that agents can use to interact with external systems or perform specific functions. Examples include web search, code interpretation, and knowledge base access.
+  </Accordion>
+  
+  <Accordion title="Messages">
+    Messages represent the conversation between users and agents. Each message has a role (user or assistant) and content.
+  </Accordion>
+</AccordionGroup>
+
+## Getting Started
+
+<Steps>
+  <Step title="Get your API key">
+    Sign up for an account and generate an API key from the [dashboard](https://dashboard.yourdomain.com).
+    
+    <Warning>
+    Keep your API keys secure! Do not expose them in client-side code or public repositories.
+    </Warning>
+  </Step>
+  
+  <Step title="Make your first API call">
+    Try validating a simple agent configuration:
+    
+    <CodeGroup>
+    ```bash
+    curl -X POST https://api.yourdomain.com/v1/agents/validate \
+      -H "Authorization: Bearer YOUR_API_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "config": {
+          "name": "My First Agent",
+          "model": "gpt-4",
+          "instructions": "You are a helpful assistant."
+        }
+      }'
+    ```
+    </CodeGroup>
+  </Step>
+  
+  <Step title="Create and execute a run">
+    Once your configuration is valid, create and execute a run to start interacting with your agent.
+  </Step>
+</Steps>
+
+## What's Next
+
+Explore the full API documentation to learn about all available endpoints and features:
+
+<CardGroup cols={2}>
+  <Card title="Authentication" icon="key" href="/api-reference/authentication">
+    Learn how to authenticate your API requests
+  </Card>
+  
+  <Card title="Rate Limits" icon="gauge-high" href="/api-reference/rate-limits">
+    Understand API rate limits and best practices
+  </Card>
+  
+  <Card title="Error Handling" icon="triangle-exclamation" href="/api-reference/error-handling">
+    Learn about error codes and troubleshooting
+  </Card>
+  
+  <Card title="Agent Endpoints" icon="robot" href="/api-reference/agents/create">
+    Explore agent-related API endpoints
+  </Card>
+</CardGroup>

@@ -1,0 +1,493 @@
+---
+title: 'Execute Agent'
+description: 'Execute an agent directly with a single API call'
+api: 'POST /v1/agents/execute'
+---
+
+# Execute Agent
+
+The Execute Agent endpoint allows you to run an agent with a single API call, combining the creation and execution steps. This is useful for simple, one-off interactions where you don't need to maintain conversation state.
+
+## Request
+
+<RequestExample>
+```bash cURL
+curl -X POST https://api.yourdomain.com/v1/agents/execute \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "config": {
+      "name": "Quick Answer Agent",
+      "model": "gpt-4",
+      "instructions": "You provide concise, accurate answers to questions.",
+      "parameters": {
+        "temperature": 0.3
+      }
+    },
+    "message": "What is the capital of France?",
+    "stream": false
+  }'
+```
+
+```javascript Node.js
+const axios = require('axios');
+
+const apiKey = 'YOUR_API_KEY';
+
+axios.post('https://api.yourdomain.com/v1/agents/execute', {
+  config: {
+    name: 'Quick Answer Agent',
+    model: 'gpt-4',
+    instructions: 'You provide concise, accurate answers to questions.',
+    parameters: {
+      temperature: 0.3
+    }
+  },
+  message: 'What is the capital of France?',
+  stream: false
+}, {
+  headers: {
+    'Authorization': `Bearer ${apiKey}`,
+    'Content-Type': 'application/json'
+  }
+})
+.then(response => console.log(response.data))
+.catch(error => console.error(error.response.data));
+```
+
+```python Python
+import requests
+
+api_key = 'YOUR_API_KEY'
+headers = {
+    'Authorization': f'Bearer {api_key}',
+    'Content-Type': 'application/json'
+}
+
+data = {
+    'config': {
+        'name': 'Quick Answer Agent',
+        'model': 'gpt-4',
+        'instructions': 'You provide concise, accurate answers to questions.',
+        'parameters': {
+            'temperature': 0.3
+        }
+    },
+    'message': 'What is the capital of France?',
+    'stream': False
+}
+
+response = requests.post(
+    'https://api.yourdomain.com/v1/agents/execute',
+    json=data,
+    headers=headers
+)
+
+print(response.json())
+```
+</RequestExample>
+
+### Request Body
+
+<ParamField body="config" type="object" required>
+  The agent configuration to use for this execution.
+  
+  <Expandable title="Config Object Properties">
+    <ParamField body="name" type="string" required>
+      A name for the agent. This is used for identification purposes.
+    </ParamField>
+    
+    <ParamField body="model" type="string" required>
+      The model to use for the agent. Must be one of the supported models.
+      
+      Supported values: `gpt-4`, `gpt-4-turbo`, `gpt-3.5-turbo`, `claude-3-opus`, `claude-3-sonnet`, `claude-3-haiku`
+    </ParamField>
+    
+    <ParamField body="instructions" type="string" required>
+      The system instructions for the agent. This defines the agent's behavior and capabilities.
+    </ParamField>
+    
+    <ParamField body="tools" type="array">
+      An array of tool identifiers that the agent can use.
+      
+      Supported values: `web_search`, `code_interpreter`, `knowledge_base`, `file_search`, `function_calling`
+    </ParamField>
+    
+    <ParamField body="parameters" type="object">
+      Model-specific parameters for the agent.
+      
+      <Expandable title="Parameters Object Properties">
+        <ParamField body="temperature" type="number">
+          Controls randomness in the model's responses.
+          
+          Range: 0.0 - 1.0
+          Default: 0.7
+        </ParamField>
+        
+        <ParamField body="max_tokens" type="integer">
+          The maximum number of tokens to generate in the response.
+          
+          Range: 1 - 4096
+          Default: 1000
+        </ParamField>
+      </Expandable>
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField body="agent_id" type="string">
+  The ID of a saved agent to use. If provided, the `config` parameter is ignored.
+</ParamField>
+
+<ParamField body="message" type="string" required>
+  The user message to send to the agent.
+</ParamField>
+
+<ParamField body="stream" type="boolean" default={false}>
+  If true, the response will be streamed as a series of server-sent events. If false, the response will be returned as a single JSON object.
+</ParamField>
+
+<ParamField body="metadata" type="object">
+  Optional metadata to attach to the execution. This can be any JSON object with string, number, boolean, or array values.
+</ParamField>
+
+## Response
+
+<ResponseExample>
+```json Success
+{
+  "id": "exec_def456ghi789",
+  "object": "agent.execution",
+  "created_at": 1699564800,
+  "completed_at": 1699564802,
+  "message": {
+    "role": "assistant",
+    "content": "The capital of France is Paris."
+  },
+  "usage": {
+    "prompt_tokens": 45,
+    "completion_tokens": 8,
+    "total_tokens": 53
+  }
+}
+```
+
+```json Error
+{
+  "error": {
+    "type": "validation_error",
+    "message": "Invalid configuration",
+    "param": "config.model",
+    "details": "Unsupported model specified"
+  }
+}
+```
+</ResponseExample>
+
+### Response Fields
+
+<ResponseField name="id" type="string">
+  A unique identifier for the execution.
+</ResponseField>
+
+<ResponseField name="object" type="string">
+  The type of object. Always `agent.execution` for direct executions.
+</ResponseField>
+
+<ResponseField name="created_at" type="integer">
+  Unix timestamp (in seconds) when the execution was created.
+</ResponseField>
+
+<ResponseField name="completed_at" type="integer">
+  Unix timestamp (in seconds) when the execution was completed.
+</ResponseField>
+
+<ResponseField name="message" type="object">
+  The response message from the agent.
+  
+  <Expandable title="Message Object Properties">
+    <ResponseField name="role" type="string">
+      The role of the message sender. Always `assistant` for the response message.
+    </ResponseField>
+    
+    <ResponseField name="content" type="string">
+      The content of the message.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="usage" type="object">
+  Token usage statistics for the execution.
+  
+  <Expandable title="Usage Object Properties">
+    <ResponseField name="prompt_tokens" type="integer">
+      The number of tokens in the prompt.
+    </ResponseField>
+    
+    <ResponseField name="completion_tokens" type="integer">
+      The number of tokens in the completion.
+    </ResponseField>
+    
+    <ResponseField name="total_tokens" type="integer">
+      The total number of tokens used.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+## Streaming Response
+
+When `stream` is set to `true`, the response will be streamed as a series of server-sent events. Each event will be a JSON object with the following structure:
+
+```json
+{
+  "type": "message_start",
+  "message": {
+    "role": "assistant",
+    "created_at": 1699564800
+  }
+}
+```
+
+```json
+{
+  "type": "message_delta",
+  "delta": {
+    "content": "The capital "
+  }
+}
+```
+
+```json
+{
+  "type": "message_delta",
+  "delta": {
+    "content": "of France "
+  }
+}
+```
+
+```json
+{
+  "type": "message_delta",
+  "delta": {
+    "content": "is Paris."
+  }
+}
+```
+
+```json
+{
+  "type": "message_complete",
+  "message": {
+    "role": "assistant",
+    "content": "The capital of France is Paris.",
+    "created_at": 1699564802
+  }
+}
+```
+
+```json
+{
+  "type": "execution_complete",
+  "execution": {
+    "id": "exec_def456ghi789",
+    "usage": {
+      "prompt_tokens": 45,
+      "completion_tokens": 8,
+      "total_tokens": 53
+    }
+  }
+}
+```
+
+## Error Codes
+
+<AccordionGroup>
+  <Accordion title="400: Bad Request">
+    Returned when the request body is malformed or missing required fields.
+    
+    ```json
+    {
+      "error": {
+        "type": "validation_error",
+        "message": "Invalid request body",
+        "param": "message"
+      }
+    }
+    ```
+  </Accordion>
+  
+  <Accordion title="401: Unauthorized">
+    Returned when the API key is missing or invalid.
+    
+    ```json
+    {
+      "error": {
+        "type": "authentication_error",
+        "message": "Invalid API key provided"
+      }
+    }
+    ```
+  </Accordion>
+  
+  <Accordion title="404: Not Found">
+    Returned when the specified agent does not exist (when using `agent_id`).
+    
+    ```json
+    {
+      "error": {
+        "type": "not_found",
+        "message": "Agent with ID 'my-agent' not found"
+      }
+    }
+    ```
+  </Accordion>
+  
+  <Accordion title="429: Too Many Requests">
+    Returned when you've exceeded the rate limit for this endpoint.
+    
+    ```json
+    {
+      "error": {
+        "type": "rate_limit_exceeded",
+        "message": "Rate limit exceeded. Please retry after 2023-11-10T00:01:00Z",
+        "retry_after": 45
+      }
+    }
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Usage Examples
+
+### Quick Question Answering
+
+<CodeGroup>
+```javascript
+// Execute an agent for a simple question
+const response = await fetch('https://api.yourdomain.com/v1/agents/execute', {
+  method: 'POST',
+  headers: {
+    'Authorization': `Bearer ${apiKey}`,
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    config: {
+      name: 'Quick Answer Agent',
+      model: 'gpt-4',
+      instructions: 'You provide concise, accurate answers to questions.'
+    },
+    message: 'What is the distance from Earth to the Moon?'
+  })
+});
+
+const result = await response.json();
+console.log(result.message.content);
+```
+</CodeGroup>
+
+### Using a Saved Agent
+
+<CodeGroup>
+```javascript
+// Execute a saved agent
+const response = await fetch('https://api.yourdomain.com/v1/agents/execute', {
+  method: 'POST',
+  headers: {
+    'Authorization': `Bearer ${apiKey}`,
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    agent_id: 'math-tutor-agent',
+    message: 'Can you help me solve this equation: 2x + 5 = 15?',
+    metadata: {
+      user_id: 'student_123',
+      difficulty_level: 'beginner'
+    }
+  })
+});
+
+const result = await response.json();
+console.log(result.message.content);
+```
+</CodeGroup>
+
+### Streaming Response
+
+<CodeGroup>
+```javascript
+// Set up event source for streaming
+const eventSource = new EventSource(
+  'https://api.yourdomain.com/v1/agents/execute?stream=true',
+  {
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json'
+    },
+    method: 'POST',
+    body: JSON.stringify({
+      config: {
+        name: 'Story Generator',
+        model: 'gpt-4',
+        instructions: 'You create short, engaging stories based on prompts.'
+      },
+      message: 'Write a short story about a robot learning to paint.',
+      stream: true
+    })
+  }
+);
+
+let currentMessage = '';
+
+eventSource.onmessage = (event) => {
+  const data = JSON.parse(event.data);
+  
+  switch (data.type) {
+    case 'message_start':
+      console.log('Assistant is typing...');
+      currentMessage = '';
+      break;
+      
+    case 'message_delta':
+      currentMessage += data.delta.content || '';
+      console.log('Received chunk:', data.delta.content);
+      break;
+      
+    case 'message_complete':
+      console.log('Complete message:', data.message.content);
+      break;
+      
+    case 'execution_complete':
+      console.log('Execution completed');
+      eventSource.close();
+      break;
+      
+    default:
+      console.log('Unknown event type:', data.type);
+  }
+};
+
+eventSource.onerror = (error) => {
+  console.error('EventSource error:', error);
+  eventSource.close();
+};
+```
+</CodeGroup>
+
+## Notes and Best Practices
+
+<Tip>
+Use this endpoint for simple, one-off interactions where you don't need to maintain conversation state.
+</Tip>
+
+<Warning>
+This endpoint is not suitable for multi-turn conversations. For those, use the [Create Agent Run](/api-reference/agents/update) and [Execute Agent Run](/api-reference/agents/delete) endpoints.
+</Warning>
+
+<Info>
+The execution is stateless and doesn't persist any conversation history. Each call is treated as a new interaction.
+</Info>
+
+<Check>
+For frequently used agent configurations, consider creating a saved agent and using the `agent_id` parameter instead of specifying the configuration each time.
+</Check>

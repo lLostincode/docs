@@ -1,0 +1,321 @@
+---
+title: 'Error Handling'
+description: 'Understanding and handling errors in the Multi-Agentic Workforce Platform API'
+---
+
+# Error Handling
+
+The Multi-Agentic Workforce Platform API uses conventional HTTP response codes to indicate the success or failure of an API request. In general, codes in the `2xx` range indicate success, codes in the `4xx` range indicate an error that resulted from the provided information (e.g., a required parameter was missing), and codes in the `5xx` range indicate an error with our servers.
+
+## Error Response Format
+
+All error responses include a JSON object with the following structure:
+
+```json
+{
+  "error": {
+    "type": "error_type",
+    "message": "A human-readable message providing more details about the error",
+    "param": "The parameter that caused the error (if applicable)",
+    "code": "A specific error code (if applicable)"
+  }
+}
+```
+
+<ResponseField name="error.type" type="string">
+  A machine-readable identifier for the error type.
+</ResponseField>
+
+<ResponseField name="error.message" type="string">
+  A human-readable explanation of what went wrong.
+</ResponseField>
+
+<ResponseField name="error.param" type="string" optional>
+  If the error is parameter-specific, the parameter name that caused the error.
+</ResponseField>
+
+<ResponseField name="error.code" type="string" optional>
+  A specific error code that can be used to obtain more information.
+</ResponseField>
+
+## HTTP Status Codes
+
+<AccordionGroup>
+  <Accordion title="2xx - Success">
+    <Table>
+      <Thead>
+        <Tr>
+          <Th>Status Code</Th>
+          <Th>Description</Th>
+        </Tr>
+      </Thead>
+      <Tbody>
+        <Tr>
+          <Td>200 OK</Td>
+          <Td>The request was successful.</Td>
+        </Tr>
+        <Tr>
+          <Td>201 Created</Td>
+          <Td>The resource was successfully created.</Td>
+        </Tr>
+        <Tr>
+          <Td>204 No Content</Td>
+          <Td>The request was successful but returns no content.</Td>
+        </Tr>
+      </Tbody>
+    </Table>
+  </Accordion>
+  
+  <Accordion title="4xx - Client Errors">
+    <Table>
+      <Thead>
+        <Tr>
+          <Th>Status Code</Th>
+          <Th>Description</Th>
+        </Tr>
+      </Thead>
+      <Tbody>
+        <Tr>
+          <Td>400 Bad Request</Td>
+          <Td>The request was unacceptable, often due to missing or invalid parameters.</Td>
+        </Tr>
+        <Tr>
+          <Td>401 Unauthorized</Td>
+          <Td>No valid API key provided.</Td>
+        </Tr>
+        <Tr>
+          <Td>403 Forbidden</Td>
+          <Td>The API key doesn't have permissions to perform the request.</Td>
+        </Tr>
+        <Tr>
+          <Td>404 Not Found</Td>
+          <Td>The requested resource doesn't exist.</Td>
+        </Tr>
+        <Tr>
+          <Td>409 Conflict</Td>
+          <Td>The request conflicts with another request or with the current state of the resource.</Td>
+        </Tr>
+        <Tr>
+          <Td>422 Unprocessable Entity</Td>
+          <Td>The request was well-formed but contains semantic errors.</Td>
+        </Tr>
+        <Tr>
+          <Td>429 Too Many Requests</Td>
+          <Td>Too many requests hit the API too quickly. See <a href="/api-reference/rate-limits">Rate Limits</a>.</Td>
+        </Tr>
+      </Tbody>
+    </Table>
+  </Accordion>
+  
+  <Accordion title="5xx - Server Errors">
+    <Table>
+      <Thead>
+        <Tr>
+          <Th>Status Code</Th>
+          <Th>Description</Th>
+        </Tr>
+      </Thead>
+      <Tbody>
+        <Tr>
+          <Td>500 Internal Server Error</Td>
+          <Td>Something went wrong on our end.</Td>
+        </Tr>
+        <Tr>
+          <Td>502 Bad Gateway</Td>
+          <Td>The server received an invalid response from an upstream server.</Td>
+        </Tr>
+        <Tr>
+          <Td>503 Service Unavailable</Td>
+          <Td>The server is temporarily unable to handle the request.</Td>
+        </Tr>
+        <Tr>
+          <Td>504 Gateway Timeout</Td>
+          <Td>The server timed out waiting for a response from an upstream server.</Td>
+        </Tr>
+      </Tbody>
+    </Table>
+  </Accordion>
+</AccordionGroup>
+
+## Common Error Types
+
+<CardGroup cols={2}>
+  <Card title="validation_error" icon="triangle-exclamation">
+    Occurs when the request data fails validation. Check the `param` field to see which parameter caused the error.
+    
+    ```json
+    {
+      "error": {
+        "type": "validation_error",
+        "message": "Invalid value for parameter 'model'",
+        "param": "model"
+      }
+    }
+    ```
+  </Card>
+  
+  <Card title="authentication_error" icon="key">
+    Occurs when authentication fails, typically due to an invalid API key.
+    
+    ```json
+    {
+      "error": {
+        "type": "authentication_error",
+        "message": "Invalid API key provided"
+      }
+    }
+    ```
+  </Card>
+  
+  <Card title="permission_error" icon="lock">
+    Occurs when your API key doesn't have permission to perform the requested action.
+    
+    ```json
+    {
+      "error": {
+        "type": "permission_error",
+        "message": "API key doesn't have permission to access this resource"
+      }
+    }
+    ```
+  </Card>
+  
+  <Card title="not_found" icon="magnifying-glass">
+    Occurs when the requested resource doesn't exist.
+    
+    ```json
+    {
+      "error": {
+        "type": "not_found",
+        "message": "Agent with ID 'agent_123' not found"
+      }
+    }
+    ```
+  </Card>
+  
+  <Card title="rate_limit_exceeded" icon="gauge-high">
+    Occurs when you've exceeded your rate limit. See the [Rate Limits](/api-reference/rate-limits) page.
+    
+    ```json
+    {
+      "error": {
+        "type": "rate_limit_exceeded",
+        "message": "Rate limit exceeded. Please retry after 2023-11-10T00:01:00Z",
+        "retry_after": 45
+      }
+    }
+    ```
+  </Card>
+  
+  <Card title="server_error" icon="server">
+    Occurs when something goes wrong on our end.
+    
+    ```json
+    {
+      "error": {
+        "type": "server_error",
+        "message": "An unexpected error occurred",
+        "code": "internal_error"
+      }
+    }
+    ```
+  </Card>
+</CardGroup>
+
+## Error Handling Best Practices
+
+<Steps>
+  <Step title="Check status codes first">
+    Always check the HTTP status code before attempting to parse the response body.
+  </Step>
+  
+  <Step title="Handle specific error types">
+    Implement specific handling for common error types like `validation_error` or `rate_limit_exceeded`.
+    
+    ```javascript
+    async function makeApiRequest(url, options) {
+      const response = await fetch(url, options);
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        
+        switch (errorData.error.type) {
+          case 'rate_limit_exceeded':
+            const retryAfter = errorData.error.retry_after || 1;
+            // Implement retry logic
+            break;
+            
+          case 'validation_error':
+            // Handle validation errors
+            console.error(`Validation error in field: ${errorData.error.param}`);
+            break;
+            
+          case 'authentication_error':
+            // Handle authentication errors
+            console.error('API key is invalid or expired');
+            break;
+            
+          default:
+            // Handle other errors
+            console.error(`API error: ${errorData.error.message}`);
+        }
+        
+        throw new Error(errorData.error.message);
+      }
+      
+      return response.json();
+    }
+    ```
+  </Step>
+  
+  <Step title="Implement retry logic">
+    Implement retry logic with exponential backoff for transient errors like rate limits or server errors.
+    
+    <Warning>
+    Don't retry requests for client errors (4xx) except for 429 Too Many Requests.
+    </Warning>
+  </Step>
+  
+  <Step title="Log errors for debugging">
+    Log detailed error information for debugging purposes, but be careful not to log sensitive information.
+  </Step>
+</Steps>
+
+## Idempotency
+
+To avoid duplicate operations in case of network errors, many of our POST endpoints support idempotency keys:
+
+<CodeGroup>
+```bash
+curl -X POST https://api.yourdomain.com/v1/agents/runs \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -H "Idempotency-Key: a-unique-identifier" \
+  -d '{
+    "config": {
+      "name": "My Agent"
+    }
+  }'
+```
+</CodeGroup>
+
+<ParamField header="Idempotency-Key" type="string" optional>
+  A unique key that identifies this specific request. If you retry a request with the same idempotency key, we'll ensure that the operation is only performed once.
+</ParamField>
+
+<Tip>
+Use a UUID or another unique identifier as your idempotency key. The key should be unique for each distinct operation.
+</Tip>
+
+## Getting Help
+
+If you're encountering persistent errors or need help troubleshooting an issue:
+
+1. Check our [status page](https://status.yourdomain.com) for any ongoing incidents
+2. Review the [API documentation](/api-reference/introduction) for the specific endpoint
+3. Search our [knowledge base](https://help.yourdomain.com) for similar issues
+4. Contact [support](mailto:support@yourdomain.com) with the following information:
+   - The specific API endpoint you're calling
+   - The complete error response
+   - Your request headers (excluding your API key)
+   - The request payload (with any sensitive information removed)
