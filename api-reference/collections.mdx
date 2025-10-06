@@ -1,0 +1,621 @@
+---
+title: "Collections API"
+description: "Organize files into collections for knowledge bases"
+---
+
+The Collections API allows you to create and manage collections of files. Collections group related data sources for organized knowledge management.
+
+## Authentication
+
+All endpoints require authentication using your API key:
+- **API Key**: `x-api-key: <key>`
+
+---
+
+## List Collections
+
+<ParamField query="GET" path="/api/v1/collections/">
+  Retrieve all collections created by the authenticated user
+</ParamField>
+
+### Query Parameters
+
+<ParamField query="status" type="string">
+  Filter by status: `pending`, `running`, `completed`, `failed`
+</ParamField>
+
+<ParamField query="search" type="string">
+  Search collections by name or description
+</ParamField>
+
+### Response
+
+```json
+[
+  {
+    "id": "coll_123",
+    "name": "Product Documentation",
+    "description": "All product manuals and guides",
+    "status": "completed",
+    "progress": 100,
+    "data_source_count": 15,
+    "total_size": 52428800,
+    "datasources": [
+      {
+        "id": "cds_1",
+        "data_source": "file_123",
+        "data_source_name": "manual.pdf",
+        "data_source_type": "document",
+        "data_source_size": 3495253,
+        "created_at": "2024-01-15T10:30:00Z",
+        "updated_at": "2024-01-15T10:30:00Z"
+      }
+    ],
+    "created_by": "user_123",
+    "created_by_name": "John Doe",
+    "company": "company_456",
+    "company_name": "Acme Corp",
+    "created_at": "2024-01-15T10:30:00Z",
+    "updated_at": "2024-01-15T10:35:00Z"
+  }
+]
+```
+
+### Example
+
+<CodeGroup>
+```bash cURL
+curl -X GET "https://api-be.atthene.com/api/v1/collections/?status=completed" \
+  -H "x-api-key: YOUR_API_KEY"
+```
+
+```python Python
+import requests
+
+response = requests.get(
+    "https://api-be.atthene.com/api/v1/collections/",
+    headers={"x-api-key": "YOUR_API_KEY"},
+    params={"status": "completed"}
+)
+collections = response.json()
+```
+</CodeGroup>
+
+---
+
+## Create Collection
+
+<ParamField query="POST" path="/api/v1/collections/">
+  Create a new collection to organize data sources
+</ParamField>
+
+### Request Body
+
+<ParamField body="name" type="string" required>
+  Collection name (must be unique per user)
+</ParamField>
+
+<ParamField body="description" type="string">
+  Optional description of the collection
+</ParamField>
+
+```json
+{
+  "name": "Support Documentation",
+  "description": "Customer support guides and FAQs"
+}
+```
+
+<Note>
+To add files to a collection, use the "Add File to Collection" endpoint after creation.
+</Note>
+
+### Response
+
+```json
+{
+  "id": "coll_789",
+  "name": "Support Documentation",
+  "description": "Customer support guides and FAQs",
+  "status": "pending",
+  "progress": 0,
+  "data_source_count": 0,
+  "total_size": 0,
+  "datasources": [],
+  "created_by": "user_123",
+  "created_by_name": "John Doe",
+  "company": "company_456",
+  "company_name": "Acme Corp",
+  "created_at": "2024-01-15T10:40:00Z",
+  "updated_at": "2024-01-15T10:40:00Z"
+}
+```
+
+### Example
+
+<CodeGroup>
+```bash cURL
+curl -X POST https://api-be.atthene.com/api/v1/collections/ \
+  -H "x-api-key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Support Documentation",
+    "description": "Customer support guides and FAQs"
+  }'
+```
+
+```python Python
+import requests
+
+data = {
+    "name": "Support Documentation",
+    "description": "Customer support guides and FAQs"
+}
+
+response = requests.post(
+    "https://api-be.atthene.com/api/v1/collections/",
+    headers={"x-api-key": "YOUR_API_KEY"},
+    json=data
+)
+collection = response.json()
+print(f"Collection created: {collection['id']}")
+```
+</CodeGroup>
+
+---
+
+## Get Collection Details
+
+<ParamField query="GET" path="/api/v1/collections/{id}/">
+  Retrieve detailed information about a specific collection
+</ParamField>
+
+### Path Parameters
+
+<ParamField path="id" type="string" required>
+  The collection ID
+</ParamField>
+
+### Response
+
+```json
+{
+  "id": "coll_123",
+  "name": "Product Documentation",
+  "description": "All product manuals and guides",
+  "status": "completed",
+  "progress": 100,
+  "data_source_count": 15,
+  "total_size": 52428800,
+  "datasources": [
+    {
+      "id": "cds_1",
+      "data_source": "file_123",
+      "data_source_name": "product_manual.pdf",
+      "data_source_type": "document",
+      "data_source_size": 2048576,
+      "created_at": "2024-01-15T10:30:00Z",
+      "updated_at": "2024-01-15T10:30:00Z"
+    }
+  ],
+  "created_by": "user_123",
+  "created_by_name": "John Doe",
+  "company": "company_456",
+  "company_name": "Acme Corp",
+  "created_at": "2024-01-15T10:30:00Z",
+  "updated_at": "2024-01-15T10:35:00Z"
+}
+```
+
+---
+
+## Update Collection
+
+<ParamField query="PUT/PATCH" path="/api/v1/collections/{id}/">
+  Update collection details
+</ParamField>
+
+### Path Parameters
+
+<ParamField path="id" type="string" required>
+  The collection ID
+</ParamField>
+
+### Request Body
+
+```json
+{
+  "name": "Updated Collection Name",
+  "description": "Updated description"
+}
+```
+
+### Response
+
+Returns the updated collection object.
+
+### Example
+
+<CodeGroup>
+```bash cURL
+curl -X PATCH https://api-be.atthene.com/api/v1/collections/coll_123/ \
+  -H "x-api-key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "description": "Updated description"
+  }'
+```
+
+```python Python
+import requests
+
+data = {
+    "description": "Updated description"
+}
+
+response = requests.patch(
+    "https://api-be.atthene.com/api/v1/collections/coll_123/",
+    headers={"x-api-key": "YOUR_API_KEY"},
+    json=data
+)
+```
+</CodeGroup>
+
+---
+
+## Delete Collection
+
+<ParamField query="DELETE" path="/api/v1/collections/{id}/">
+  Delete a collection (files are not deleted, only the collection)
+</ParamField>
+
+### Path Parameters
+
+<ParamField path="id" type="string" required>
+  The collection ID
+</ParamField>
+
+### Response
+
+```json
+{
+  "success": true,
+  "message": "Collection 'Product Documentation' deleted successfully"
+}
+```
+
+### Example
+
+<CodeGroup>
+```bash cURL
+curl -X DELETE https://api-be.atthene.com/api/v1/collections/coll_123/ \
+  -H "x-api-key: YOUR_API_KEY"
+```
+
+```python Python
+import requests
+
+response = requests.delete(
+    "https://api-be.atthene.com/api/v1/collections/coll_123/",
+    headers={"x-api-key": "YOUR_API_KEY"}
+)
+```
+</CodeGroup>
+
+<Note>
+Deleting a collection does not delete the files within it. Files remain available and can be added to other collections.
+</Note>
+
+---
+
+## Add File to Collection
+
+<ParamField query="POST" path="/api/v1/collections/{id}/add_data_source/">
+  Add a file to an existing collection
+</ParamField>
+
+### Path Parameters
+
+<ParamField path="id" type="string" required>
+  The collection ID
+</ParamField>
+
+### Request Body
+
+<ParamField body="data_source_id" type="string" required>
+  The file ID to add to the collection
+</ParamField>
+
+```json
+{
+  "data_source_id": "file_789"
+}
+```
+
+### Response
+
+```json
+{
+  "success": true,
+  "message": "Data source 'document.pdf' added to collection",
+  "collection": {
+    "id": "coll_123",
+    "name": "Product Documentation",
+    "description": "All product manuals and guides",
+    "status": "completed",
+    "progress": 100,
+    "data_source_count": 16,
+    "total_size": 55924053,
+    "datasources": [
+      {
+        "id": "cds_1",
+        "data_source": "file_123",
+        "data_source_name": "manual.pdf",
+        "data_source_type": "document",
+        "data_source_size": 3495253,
+        "created_at": "2024-01-15T10:30:00Z",
+        "updated_at": "2024-01-15T10:30:00Z"
+      },
+      {
+        "id": "cds_2",
+        "data_source": "file_789",
+        "data_source_name": "document.pdf",
+        "data_source_type": "document",
+        "data_source_size": 2500000,
+        "created_at": "2024-01-15T10:35:00Z",
+        "updated_at": "2024-01-15T10:35:00Z"
+      }
+    ],
+    "created_by": "user_123",
+    "created_by_name": "John Doe",
+    "company": "company_456",
+    "company_name": "Acme Corp",
+    "created_at": "2024-01-15T10:30:00Z",
+    "updated_at": "2024-01-15T10:35:00Z"
+  }
+}
+```
+
+### Example
+
+<CodeGroup>
+```bash cURL
+curl -X POST https://api-be.atthene.com/api/v1/collections/coll_123/add_data_source/ \
+  -H "x-api-key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "data_source_id": "file_789"
+  }'
+```
+
+```python Python
+import requests
+
+data = {
+    "data_source_id": "file_789"
+}
+
+response = requests.post(
+    "https://api-be.atthene.com/api/v1/collections/coll_123/add_data_source/",
+    headers={"x-api-key": "YOUR_API_KEY"},
+    json=data
+)
+result = response.json()
+print(f"File added. New file count: {result['collection']['data_source_count']}")
+```
+</CodeGroup>
+
+---
+
+## Remove File from Collection
+
+<ParamField query="POST" path="/api/v1/collections/{id}/remove_data_source/">
+  Remove a file from a collection
+</ParamField>
+
+### Path Parameters
+
+<ParamField path="id" type="string" required>
+  The collection ID
+</ParamField>
+
+### Request Body
+
+<ParamField body="data_source_id" type="string" required>
+  The file ID to remove from the collection
+</ParamField>
+
+```json
+{
+  "data_source_id": "file_789"
+}
+```
+
+### Response
+
+```json
+{
+  "success": true,
+  "message": "Data source 'document.pdf' removed from collection",
+  "collection": {
+    "id": "coll_123",
+    "name": "Product Documentation",
+    "description": "All product manuals and guides",
+    "status": "completed",
+    "progress": 100,
+    "data_source_count": 15,
+    "total_size": 52428800,
+    "datasources": [
+      {
+        "id": "cds_1",
+        "data_source": "file_123",
+        "data_source_name": "manual.pdf",
+        "data_source_type": "document",
+        "data_source_size": 3495253,
+        "created_at": "2024-01-15T10:30:00Z",
+        "updated_at": "2024-01-15T10:30:00Z"
+      }
+    ],
+    "created_by": "user_123",
+    "created_by_name": "John Doe",
+    "company": "company_456",
+    "company_name": "Acme Corp",
+    "created_at": "2024-01-15T10:30:00Z",
+    "updated_at": "2024-01-15T10:35:00Z"
+  }
+}
+```
+
+### Example
+
+<CodeGroup>
+```bash cURL
+curl -X POST https://api-be.atthene.com/api/v1/collections/coll_123/remove_data_source/ \
+  -H "x-api-key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "data_source_id": "file_789"
+  }'
+```
+
+```python Python
+import requests
+
+data = {
+    "data_source_id": "file_789"
+}
+
+response = requests.post(
+    "https://api-be.atthene.com/api/v1/collections/coll_123/remove_data_source/",
+    headers={"x-api-key": "YOUR_API_KEY"},
+    json=data
+)
+```
+</CodeGroup>
+
+---
+
+## Bulk Collection Operations
+
+<ParamField query="POST" path="/api/v1/collections/bulk_action/">
+  Perform bulk operations on multiple collections
+</ParamField>
+
+### Request Body
+
+<ParamField body="action" type="string" required>
+  The action to perform: `delete`, `retry`, `complete`
+</ParamField>
+
+<ParamField body="collection_ids" type="array" required>
+  Array of collection IDs to perform the action on
+</ParamField>
+
+### Example: Bulk Delete
+
+```json
+{
+  "action": "delete",
+  "collection_ids": ["coll_123", "coll_456", "coll_789"]
+}
+```
+
+### Response
+
+```json
+{
+  "success": true,
+  "updated_count": 3,
+  "errors": [],
+  "message": "Bulk action 'delete' completed on 3 collections"
+}
+```
+
+### Example
+
+<CodeGroup>
+```bash cURL
+curl -X POST https://api-be.atthene.com/api/v1/collections/bulk_action/ \
+  -H "x-api-key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "action": "delete",
+    "collection_ids": ["coll_123", "coll_456"]
+  }'
+```
+
+```python Python
+import requests
+
+data = {
+    "action": "delete",
+    "collection_ids": ["coll_123", "coll_456"]
+}
+
+response = requests.post(
+    "https://api-be.atthene.com/api/v1/collections/bulk_action/",
+    headers={"x-api-key": "YOUR_API_KEY"},
+    json=data
+)
+result = response.json()
+print(f"Updated: {result['updated_count']}, Errors: {len(result['errors'])}")
+```
+</CodeGroup>
+
+---
+
+## Collection Status
+
+<ResponseField name="status" type="string">
+  Current collection status:
+  
+  - `pending` - Collection is being created
+  - `running` - Collection is being processed
+  - `completed` - Collection is ready for use
+  - `failed` - Collection creation/processing failed
+</ResponseField>
+
+---
+
+## Error Responses
+
+<AccordionGroup>
+  <Accordion title="400 Bad Request">
+    Invalid request or duplicate collection name
+    
+    ```json
+    {
+      "error": {
+        "type": "validation_error",
+        "message": "Collection with this name already exists"
+      }
+    }
+    ```
+  </Accordion>
+  
+  <Accordion title="403 Forbidden">
+    Permission denied (not the creator)
+    
+    ```json
+    {
+      "error": {
+        "type": "permission_error",
+        "message": "Only the collection creator can update it"
+      }
+    }
+    ```
+  </Accordion>
+  
+  <Accordion title="404 Not Found">
+    Collection or file not found
+    
+    ```json
+    {
+      "error": {
+        "type": "not_found",
+        "message": "Collection not found"
+      }
+    }
+    ```
+  </Accordion>
+</AccordionGroup>

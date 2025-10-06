@@ -1,0 +1,346 @@
+---
+title: "Sessions API"
+description: "Create and manage agent sessions"
+---
+
+The Sessions API allows you to create and manage agent sessions. Sessions represent individual conversation instances with agents.
+
+## Authentication
+
+All endpoints require authentication using your API key:
+- **API Key**: `x-api-key: <key>`
+
+---
+
+## Create Session
+
+<ParamField query="POST" path="/api/v1/sessions/">
+  Create a new session with a complete YAML agent configuration
+</ParamField>
+
+### Request Body
+
+Send the complete agent configuration in YAML or JSON format.
+
+```yaml
+name: "Support Session"
+agent_type: "llm_agent"
+system_prompt: "You are a helpful customer support agent."
+llm_config:
+  model: "gpt-4o"
+  temperature: 0.7
+tools:
+  - "tavily_search"
+```
+
+### Response
+
+```json
+{
+  "success": true,
+  "session_id": "session_abc123",
+  "config_hash": "a1b2c3d4e5f6"
+}
+```
+
+### Example
+
+<CodeGroup>
+```bash cURL
+curl -X POST https://api-be.atthene.com/api/v1/sessions/ \
+  -H "x-api-key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Support Session",
+    "agent_type": "llm_agent",
+    "system_prompt": "You are a helpful customer support agent.",
+    "llm_config": {
+      "model": "gpt-4o",
+      "temperature": 0.7
+    }
+  }'
+```
+
+```python Python
+import requests
+
+config = {
+    "name": "Support Session",
+    "agent_type": "llm_agent",
+    "system_prompt": "You are a helpful customer support agent.",
+    "llm_config": {
+        "model": "gpt-4o",
+        "temperature": 0.7
+    }
+}
+
+response = requests.post(
+    "https://api-be.atthene.com/api/v1/sessions/",
+    headers={"x-api-key": "YOUR_API_KEY"},
+    json=config
+)
+session = response.json()
+print(f"Session created: {session['session_id']}")
+```
+
+```javascript JavaScript
+const config = {
+  name: "Support Session",
+  agent_type: "llm_agent",
+  system_prompt: "You are a helpful customer support agent.",
+  llm_config: {
+    model: "gpt-4o",
+    temperature: 0.7
+  }
+};
+
+const response = await fetch('https://api-be.atthene.com/api/v1/sessions/', {
+  method: 'POST',
+  headers: {
+    'x-api-key': 'YOUR_API_KEY',
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify(config)
+});
+
+const session = await response.json();
+console.log(`Session created: ${session.session_id}`);
+```
+</CodeGroup>
+
+---
+
+## List Sessions
+
+<ParamField query="GET" path="/api/v1/sessions/">
+  Retrieve all sessions for the authenticated user
+</ParamField>
+
+### Response
+
+```json
+[
+  {
+    "session_id": "session_abc123",
+    "title": "Support Session",
+    "status": "active",
+    "config_hash": "a1b2c3d4e5f6",
+    "started_at": "2024-01-15T10:30:00Z",
+    "completed_at": null,
+    "created_at": "2024-01-15T10:30:00Z"
+  },
+  {
+    "session_id": "session_def456",
+    "title": "Research Session",
+    "status": "completed",
+    "config_hash": "f6e5d4c3b2a1",
+    "started_at": "2024-01-14T09:20:00Z",
+    "completed_at": "2024-01-14T09:45:00Z",
+    "created_at": "2024-01-14T09:20:00Z"
+  }
+]
+```
+
+### Example
+
+<CodeGroup>
+```bash cURL
+curl -X GET https://api-be.atthene.com/api/v1/sessions/ \
+  -H "x-api-key: YOUR_API_KEY"
+```
+
+```python Python
+import requests
+
+response = requests.get(
+    "https://api-be.atthene.com/api/v1/sessions/",
+    headers={"x-api-key": "YOUR_API_KEY"}
+)
+sessions = response.json()
+```
+</CodeGroup>
+
+---
+
+## Get Session Details
+
+<ParamField query="GET" path="/api/v1/sessions/{session_id}/">
+  Retrieve details of a specific session
+</ParamField>
+
+### Path Parameters
+
+<ParamField path="session_id" type="string" required>
+  The session ID
+</ParamField>
+
+### Response
+
+```json
+{
+  "id": "session_abc123",
+  "object": "agent.session",
+  "status": "active",
+  "created_at": "2024-01-15T10:30:00Z",
+  "config": {
+    "name": "Support Session",
+    "agent_type": "llm_agent",
+    "system_prompt": "You are a helpful customer support agent.",
+    "llm_config": {
+      "model": "gpt-4o",
+      "temperature": 0.7
+    }
+  },
+  "messages": [],
+  "metadata": {}
+}
+```
+
+### Example
+
+<CodeGroup>
+```bash cURL
+curl -X GET https://api-be.atthene.com/api/v1/sessions/session_abc123/ \
+  -H "x-api-key: YOUR_API_KEY"
+```
+
+```python Python
+import requests
+
+response = requests.get(
+    "https://api-be.atthene.com/api/v1/sessions/session_abc123/",
+    headers={"x-api-key": "YOUR_API_KEY"}
+)
+session = response.json()
+```
+</CodeGroup>
+
+---
+
+## Create Session from Saved Agent
+
+<ParamField query="GET" path="/api/v1/sessions/from-agent">
+  Create a new session using a saved agent configuration
+</ParamField>
+
+### Query Parameters
+
+<ParamField query="agent_key" type="string" required>
+  The key/ID of the saved agent to use
+</ParamField>
+
+### Response
+
+```json
+{
+  "success": true,
+  "session_id": "session_xyz789",
+  "config_hash": "a1b2c3d4e5f6",
+  "agent_id": "agent_123",
+  "agent_name": "Support Agent"
+}
+```
+
+### Example
+
+<CodeGroup>
+```bash cURL
+curl -X GET "https://api-be.atthene.com/api/v1/sessions/from-agent?agent_key=agent_123" \
+  -H "x-api-key: YOUR_API_KEY"
+```
+
+```python Python
+import requests
+
+response = requests.get(
+    "https://api-be.atthene.com/api/v1/sessions/from-agent",
+    headers={"x-api-key": "YOUR_API_KEY"},
+    params={"agent_key": "agent_123"}
+)
+session = response.json()
+```
+
+```javascript JavaScript
+const response = await fetch(
+  'https://api-be.atthene.com/api/v1/sessions/from-agent?agent_key=agent_123',
+  {
+    headers: {
+      'x-api-key': 'YOUR_API_KEY'
+    }
+  }
+);
+const session = await response.json();
+```
+</CodeGroup>
+
+---
+
+## Session Status Values
+
+<ResponseField name="status" type="string">
+  The current status of the session:
+  
+  - `active` - Session is ready for execution
+  - `running` - Session is currently processing
+  - `completed` - Session has finished successfully
+  - `error` - Session encountered an error
+</ResponseField>
+
+---
+
+## Error Responses
+
+<AccordionGroup>
+  <Accordion title="400 Bad Request">
+    Invalid configuration or request data
+    
+    ```json
+    {
+      "error": {
+        "type": "validation_error",
+        "message": "Invalid agent configuration",
+        "details": {...}
+      }
+    }
+    ```
+  </Accordion>
+  
+  <Accordion title="401 Unauthorized">
+    Missing or invalid authentication
+    
+    ```json
+    {
+      "error": {
+        "type": "authentication_error",
+        "message": "Invalid or missing authentication credentials"
+      }
+    }
+    ```
+  </Accordion>
+  
+  <Accordion title="404 Not Found">
+    Session or agent not found
+    
+    ```json
+    {
+      "error": {
+        "type": "not_found",
+        "message": "Session not found"
+      }
+    }
+    ```
+  </Accordion>
+  
+  <Accordion title="500 Internal Server Error">
+    Server error during session creation
+    
+    ```json
+    {
+      "error": {
+        "type": "internal_error",
+        "message": "Failed to create session"
+      }
+    }
+    ```
+  </Accordion>
+</AccordionGroup>
