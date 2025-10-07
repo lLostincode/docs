@@ -181,9 +181,9 @@ response = requests.post(
     headers={"x-api-key": "YOUR_API_KEY"},
     json=data
 )
-kb = response.json()
-print(f"Knowledge base created: {kb['id']}")
-print(f"Ingestion status: {kb['status']}")
+result = response.json()
+print(f"Knowledge base created: {result['knowledge_base']['id']}")
+print(f"Ingestion status: {result['knowledge_base']['status']}")
 ```
 </CodeGroup>
 
@@ -475,8 +475,8 @@ response = requests.get(
     "https://api-be.atthene.com/api/v1/knowledge-bases/available_collections/",
     headers={"x-api-key": "YOUR_API_KEY"}
 )
-collections = response.json()
-print(f"Available collections: {len(collections)}")
+result = response.json()
+print(f"Available collections: {result['count']}")
 ```
 </CodeGroup>
 

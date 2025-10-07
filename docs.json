@@ -113,9 +113,7 @@
             "group": "API Overview",
             "pages": [
               "api-reference/introduction",
-              "api-reference/authentication",
-              "api-reference/rate-limits",
-              "api-reference/error-handling"
+              "api-reference/authentication"
             ]
           },
           {

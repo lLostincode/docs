@@ -114,20 +114,24 @@ To add files to a collection, use the "Add File to Collection" endpoint after cr
 
 ```json
 {
-  "id": "coll_789",
-  "name": "Support Documentation",
-  "description": "Customer support guides and FAQs",
-  "status": "pending",
-  "progress": 0,
-  "data_source_count": 0,
-  "total_size": 0,
-  "datasources": [],
-  "created_by": "user_123",
-  "created_by_name": "John Doe",
-  "company": "company_456",
-  "company_name": "Acme Corp",
-  "created_at": "2024-01-15T10:40:00Z",
-  "updated_at": "2024-01-15T10:40:00Z"
+  "success": true,
+  "message": "Collection created successfully",
+  "collection": {
+    "id": "coll_789",
+    "name": "Support Documentation",
+    "description": "Customer support guides and FAQs",
+    "status": "pending",
+    "progress": 0,
+    "data_source_count": 0,
+    "total_size": 0,
+    "datasources": [],
+    "created_by": "user_123",
+    "created_by_name": "John Doe",
+    "company": "company_456",
+    "company_name": "Acme Corp",
+    "created_at": "2024-01-15T10:40:00Z",
+    "updated_at": "2024-01-15T10:40:00Z"
+  }
 }
 ```
 
@@ -157,8 +161,8 @@ response = requests.post(
     headers={"x-api-key": "YOUR_API_KEY"},
     json=data
 )
-collection = response.json()
-print(f"Collection created: {collection['id']}")
+result = response.json()
+print(f"Collection created: {result['collection']['id']}")
 ```
 </CodeGroup>
 
@@ -232,7 +236,28 @@ print(f"Collection created: {collection['id']}")
 
 ### Response
 
-Returns the updated collection object.
+```json
+{
+  "success": true,
+  "message": "Collection updated successfully",
+  "collection": {
+    "id": "coll_123",
+    "name": "Updated Collection Name",
+    "description": "Updated description",
+    "status": "completed",
+    "progress": 100,
+    "data_source_count": 15,
+    "total_size": 52428800,
+    "datasources": [...],
+    "created_by": "user_123",
+    "created_by_name": "John Doe",
+    "company": "company_456",
+    "company_name": "Acme Corp",
+    "created_at": "2024-01-15T10:30:00Z",
+    "updated_at": "2024-01-15T10:45:00Z"
+  }
+}
+```
 
 ### Example
 

@@ -37,8 +37,8 @@ For a comprehensive interactive API reference, visit the [Swagger Documentation]
     A session represents a conversation instance with an agent. Each session maintains its own message history and state. Sessions are created with a complete agent configuration in YAML or JSON format.
   </Accordion>
   
-  <Accordion title="Tools">
-    Tools extend agent capabilities by providing access to external systems. Examples include web search (Tavily), calculators, and custom integrations. Only ReAct agents support tool calling.
+  <Accordion title="Runtime">
+    The Runtime API allows you to execute messages in sessions and interact with agents in real-time. Send user messages, retrieve agent responses, access conversation history, and monitor execution status with detailed metadata and usage statistics.
   </Accordion>
   
   <Accordion title="Knowledge Bases">
@@ -117,14 +117,6 @@ Explore the full API documentation to learn about all available endpoints and fe
     Learn how to authenticate your API requests
   </Card>
   
-  <Card title="Rate Limits" icon="gauge-high" href="/api-reference/rate-limits">
-    Understand API rate limits and best practices
-  </Card>
-  
-  <Card title="Error Handling" icon="triangle-exclamation" href="/api-reference/error-handling">
-    Learn about error codes and troubleshooting
-  </Card>
-  
   <Card title="Agent Configuration" icon="robot" href="/api-reference/agents">
     Create and manage agent configurations
   </Card>
@@ -135,5 +127,9 @@ Explore the full API documentation to learn about all available endpoints and fe
   
   <Card title="Knowledge Bases" icon="database" href="/api-reference/knowledge-bases">
     Set up knowledge bases for agent retrieval
+  </Card>
+  
+  <Card title="Files & Collections" icon="folder" href="/api-reference/files">
+    Upload and organize files for knowledge bases
   </Card>
 </CardGroup>
