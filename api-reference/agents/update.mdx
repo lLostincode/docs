@@ -1,417 +1,75 @@
 ---
-title: 'Create Agent Run'
-description: 'Create a new agent run and initialize the conversation'
-api: 'POST /v1/agents/runs'
+title: 'Update Agent'
+openapi: 'PATCH /api/v1/agent/{id}/'
 ---
 
-# Create Agent Run
+Update an existing agent configuration. You can modify any part of the agent's settings within the `system_config` object.
 
-The Create Agent Run endpoint initializes a new agent execution instance and starts the conversation. This creates a new run with the specified configuration and optional initial message.
+<ParamField path="id" type="string" required>
+  The agent ID
+</ParamField>
 
-## Request
+## Request Body
 
-<RequestExample>
+<ParamField body="system_config" type="object" required>
+  Updated agent configuration fields
+</ParamField>
+
+<CodeGroup>
 ```bash cURL
-curl -X POST https://api.yourdomain.com/v1/agents/runs \
-  -H "Authorization: Bearer YOUR_API_KEY" \
+curl -X PATCH https://api-be.atthene.com/api/v1/agent/550e8400-e29b-41d4-a716-446655440000/ \
+  -H "x-api-key: YOUR_API_KEY" \
   -H "Content-Type: application/json" \
-  -H "Idempotency-Key: a-unique-identifier" \
   -d '{
-    "config": {
-      "name": "My Agent",
-      "model": "gpt-4",
-      "instructions": "You are a helpful assistant...",
-      "tools": ["web_search"],
-      "parameters": {
-        "temperature": 0.7,
-        "max_tokens": 1000
+    "system_config": {
+      "system_prompt": "Updated system prompt...",
+      "llm_config": {
+        "temperature": 0.8
       }
-    },
-    "initial_message": "Hello, I need help with...",
-    "metadata": {
-      "user_id": "user_123",
-      "session_type": "chat"
     }
   }'
 ```
 
-```javascript Node.js
-const axios = require('axios');
-
-const apiKey = 'YOUR_API_KEY';
-
-axios.post('https://api.yourdomain.com/v1/agents/runs', {
-  config: {
-    name: 'My Agent',
-    model: 'gpt-4',
-    instructions: 'You are a helpful assistant...',
-    tools: ['web_search'],
-    parameters: {
-      temperature: 0.7,
-      max_tokens: 1000
-    }
-  },
-  initial_message: 'Hello, I need help with...',
-  metadata: {
-    user_id: 'user_123',
-    session_type: 'chat'
-  }
-}, {
-  headers: {
-    'Authorization': `Bearer ${apiKey}`,
-    'Content-Type': 'application/json',
-    'Idempotency-Key': 'a-unique-identifier'
-  }
-})
-.then(response => console.log(response.data))
-.catch(error => console.error(error.response.data));
-```
-
 ```python Python
 import requests
-import uuid
-
-api_key = 'YOUR_API_KEY'
-headers = {
-    'Authorization': f'Bearer {api_key}',
-    'Content-Type': 'application/json',
-    'Idempotency-Key': str(uuid.uuid4())
-}
 
 data = {
-    'config': {
-        'name': 'My Agent',
-        'model': 'gpt-4',
-        'instructions': 'You are a helpful assistant...',
-        'tools': ['web_search'],
-        'parameters': {
-            'temperature': 0.7,
-            'max_tokens': 1000
+    "system_config": {
+        "system_prompt": "Updated system prompt...",
+        "llm_config": {
+            "temperature": 0.8
         }
-    },
-    'initial_message': 'Hello, I need help with...',
-    'metadata': {
-        'user_id': 'user_123',
-        'session_type': 'chat'
     }
 }
 
-response = requests.post(
-    'https://api.yourdomain.com/v1/agents/runs',
-    json=data,
-    headers=headers
+response = requests.patch(
+    "https://api-be.atthene.com/api/v1/agent/550e8400-e29b-41d4-a716-446655440000/",
+    headers={"x-api-key": "YOUR_API_KEY"},
+    json=data
 )
-
-print(response.json())
 ```
-</RequestExample>
 
-### Request Body
+```javascript JavaScript
+const data = {
+  system_config: {
+    system_prompt: "Updated system prompt...",
+    llm_config: {
+      temperature: 0.8
+    }
+  }
+};
 
-<ParamField body="config" type="object" required>
-  The agent configuration for this run.
-  
-  <Expandable title="Config Object Properties">
-    <ParamField body="name" type="string" required>
-      A name for the agent. This is used for identification purposes.
-    </ParamField>
-    
-    <ParamField body="model" type="string" required>
-      The model to use for the agent. Must be one of the supported models.
-      
-      Supported values: `gpt-4`, `gpt-4-turbo`, `gpt-3.5-turbo`, `claude-3-opus`, `claude-3-sonnet`, `claude-3-haiku`
-    </ParamField>
-    
-    <ParamField body="instructions" type="string" required>
-      The system instructions for the agent. This defines the agent's behavior and capabilities.
-    </ParamField>
-    
-    <ParamField body="tools" type="array">
-      An array of tool identifiers that the agent can use.
-      
-      Supported values: `web_search`, `code_interpreter`, `knowledge_base`, `file_search`, `function_calling`
-    </ParamField>
-    
-    <ParamField body="parameters" type="object">
-      Model-specific parameters for the agent.
-      
-      <Expandable title="Parameters Object Properties">
-        <ParamField body="temperature" type="number">
-          Controls randomness in the model's responses. Higher values make output more random, while lower values make it more deterministic.
-          
-          Range: 0.0 - 1.0
-          Default: 0.7
-        </ParamField>
-        
-        <ParamField body="max_tokens" type="integer">
-          The maximum number of tokens to generate in the response.
-          
-          Range: 1 - 4096
-          Default: 1000
-        </ParamField>
-        
-        <ParamField body="top_p" type="number">
-          Controls diversity via nucleus sampling.
-          
-          Range: 0.0 - 1.0
-          Default: 1.0
-        </ParamField>
-      </Expandable>
-    </ParamField>
-  </Expandable>
-</ParamField>
-
-<ParamField body="initial_message" type="string">
-  An optional initial message from the user to start the conversation.
-</ParamField>
-
-<ParamField body="metadata" type="object">
-  Optional metadata to attach to the run. This can be any JSON object with string, number, boolean, or array values.
-</ParamField>
-
-<ParamField header="Idempotency-Key" type="string">
-  A unique key that identifies this specific request. If you retry a request with the same idempotency key, we'll ensure that the operation is only performed once.
-</ParamField>
+const response = await fetch('https://api-be.atthene.com/api/v1/agent/550e8400-e29b-41d4-a716-446655440000/', {
+  method: 'PATCH',
+  headers: {
+    'x-api-key': 'YOUR_API_KEY',
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify(data)
+});
+```
+</CodeGroup>
 
 ## Response
 
-<ResponseExample>
-```json Success
-{
-  "id": "run_abc123def456",
-  "object": "agent.run",
-  "status": "queued",
-  "created_at": 1699564800,
-  "config": {
-    "name": "My Agent",
-    "model": "gpt-4",
-    "instructions": "You are a helpful assistant...",
-    "tools": ["web_search"],
-    "parameters": {
-      "temperature": 0.7,
-      "max_tokens": 1000
-    }
-  },
-  "metadata": {
-    "user_id": "user_123",
-    "session_type": "chat"
-  },
-  "messages": [
-    {
-      "id": "msg_001",
-      "role": "user",
-      "content": "Hello, I need help with...",
-      "created_at": 1699564800
-    }
-  ]
-}
-```
-
-```json Error
-{
-  "error": {
-    "type": "validation_error",
-    "message": "Invalid configuration",
-    "param": "config.model",
-    "details": "Unsupported model specified"
-  }
-}
-```
-</ResponseExample>
-
-### Response Fields
-
-<ResponseField name="id" type="string">
-  A unique identifier for the run. Use this ID for subsequent operations on this run.
-</ResponseField>
-
-<ResponseField name="object" type="string">
-  The type of object. Always `agent.run` for run objects.
-</ResponseField>
-
-<ResponseField name="status" type="string">
-  The current status of the run.
-  
-  Possible values:
-  - `queued`: Run created, waiting to start
-  - `in_progress`: Currently executing
-  - `completed`: Finished successfully
-  - `failed`: Execution failed
-  - `cancelled`: Manually cancelled
-</ResponseField>
-
-<ResponseField name="created_at" type="integer">
-  Unix timestamp (in seconds) when the run was created.
-</ResponseField>
-
-<ResponseField name="config" type="object">
-  The agent configuration used for this run. This is the same as the config provided in the request.
-</ResponseField>
-
-<ResponseField name="metadata" type="object">
-  The metadata attached to this run. This is the same as the metadata provided in the request.
-</ResponseField>
-
-<ResponseField name="messages" type="array">
-  An array of message objects representing the conversation history.
-  
-  <Expandable title="Message Object Properties">
-    <ResponseField name="id" type="string">
-      A unique identifier for the message.
-    </ResponseField>
-    
-    <ResponseField name="role" type="string">
-      The role of the message sender. Either `user` or `assistant`.
-    </ResponseField>
-    
-    <ResponseField name="content" type="string">
-      The content of the message.
-    </ResponseField>
-    
-    <ResponseField name="created_at" type="integer">
-      Unix timestamp (in seconds) when the message was created.
-    </ResponseField>
-  </Expandable>
-</ResponseField>
-
-## Error Codes
-
-<AccordionGroup>
-  <Accordion title="400: Bad Request">
-    Returned when the request body is malformed or missing required fields.
-    
-    ```json
-    {
-      "error": {
-        "type": "validation_error",
-        "message": "Invalid request body",
-        "param": "config"
-      }
-    }
-    ```
-  </Accordion>
-  
-  <Accordion title="401: Unauthorized">
-    Returned when the API key is missing or invalid.
-    
-    ```json
-    {
-      "error": {
-        "type": "authentication_error",
-        "message": "Invalid API key provided"
-      }
-    }
-    ```
-  </Accordion>
-  
-  <Accordion title="429: Too Many Requests">
-    Returned when you've exceeded the rate limit for this endpoint.
-    
-    ```json
-    {
-      "error": {
-        "type": "rate_limit_exceeded",
-        "message": "Rate limit exceeded. Please retry after 2023-11-10T00:01:00Z",
-        "retry_after": 45
-      }
-    }
-    ```
-  </Accordion>
-</AccordionGroup>
-
-## Usage Examples
-
-### Creating a Basic Agent Run
-
-<CodeGroup>
-```javascript
-const config = {
-  name: "Customer Support Agent",
-  model: "gpt-4",
-  instructions: "You are a helpful customer support agent for a software company.",
-  parameters: {
-    temperature: 0.5
-  }
-};
-
-// Create a new run
-const response = await fetch('https://api.yourdomain.com/v1/agents/runs', {
-  method: 'POST',
-  headers: {
-    'Authorization': `Bearer ${apiKey}`,
-    'Content-Type': 'application/json',
-    'Idempotency-Key': crypto.randomUUID()
-  },
-  body: JSON.stringify({
-    config,
-    initial_message: "I'm having trouble with my account login."
-  })
-});
-
-const run = await response.json();
-console.log(`Run created with ID: ${run.id}`);
-console.log(`Status: ${run.status}`);
-
-// Store the run ID for later use
-const runId = run.id;
-```
-</CodeGroup>
-
-### Creating an Agent Run with Tools and Metadata
-
-<CodeGroup>
-```javascript
-const config = {
-  name: "Research Assistant",
-  model: "gpt-4",
-  instructions: "You are a research assistant that helps users find information.",
-  tools: ["web_search", "knowledge_base"],
-  parameters: {
-    temperature: 0.3,
-    max_tokens: 2000
-  }
-};
-
-const metadata = {
-  user_id: "user_456",
-  session_type: "research",
-  topic: "artificial intelligence",
-  priority: "high"
-};
-
-// Create a new run
-const response = await fetch('https://api.yourdomain.com/v1/agents/runs', {
-  method: 'POST',
-  headers: {
-    'Authorization': `Bearer ${apiKey}`,
-    'Content-Type': 'application/json',
-    'Idempotency-Key': crypto.randomUUID()
-  },
-  body: JSON.stringify({
-    config,
-    initial_message: "I need to research recent advancements in AI for my thesis.",
-    metadata
-  })
-});
-
-const run = await response.json();
-```
-</CodeGroup>
-
-## Notes and Best Practices
-
-<Tip>
-Always use an idempotency key when creating runs to prevent duplicate runs in case of network issues or retries.
-</Tip>
-
-<Warning>
-The run is initially created with a status of `queued`. You need to call the [Execute Agent Run](/api-reference/agents/execute) endpoint to start processing the run.
-</Warning>
-
-<Info>
-Runs have a maximum lifetime of 24 hours. After this period, they will automatically be marked as `completed` and can no longer be executed.
-</Info>
-
-<Check>
-You can include an initial message to start the conversation immediately, or you can leave it empty and add messages later using the Execute Agent Run endpoint.
-</Check>
+Returns the updated agent configuration with new `config_hash` and `updated_at` timestamp.

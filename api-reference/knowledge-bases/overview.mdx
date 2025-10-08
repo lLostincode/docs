@@ -1,0 +1,188 @@
+---
+title: "Knowledge Bases API Overview"
+description: "Create and manage knowledge bases for agent retrieval"
+---
+
+The Knowledge Bases API allows you to create and manage knowledge bases that agents can query for information. Knowledge bases organize collections and data sources for AI-powered retrieval and augmented generation.
+
+## Key Features
+
+- **AI-Powered Retrieval**: Vector-based semantic search
+- **Multiple Processing Engines**: Milvus and Cognee support
+- **Collection Integration**: Build from organized file collections
+- **Status Monitoring**: Track processing and health
+- **Agent Integration**: Direct use in agent configurations
+
+## Authentication
+
+All endpoints require authentication using your API key:
+- **API Key**: `x-api-key: <key>`
+
+## Available Endpoints
+
+<CardGroup cols={2}>
+  <Card title="List Knowledge Bases" icon="list" href="/api-reference/knowledge-bases/list">
+    Retrieve all knowledge bases
+  </Card>
+  <Card title="Create Knowledge Base" icon="plus" href="/api-reference/knowledge-bases/create">
+    Create a new knowledge base
+  </Card>
+  <Card title="Get Knowledge Base" icon="eye" href="/api-reference/knowledge-bases/get">
+    Retrieve knowledge base details
+  </Card>
+  <Card title="Update Knowledge Base" icon="pen" href="/api-reference/knowledge-bases/update">
+    Modify knowledge base settings
+  </Card>
+  <Card title="Delete Knowledge Base" icon="trash" href="/api-reference/knowledge-bases/delete">
+    Remove a knowledge base
+  </Card>
+  <Card title="Check Status" icon="activity" href="/api-reference/knowledge-bases/check-status">
+    Monitor processing status
+  </Card>
+  <Card title="Available Collections" icon="folder" href="/api-reference/knowledge-bases/available-collections">
+    List collections ready for use
+  </Card>
+</CardGroup>
+
+## Processing Engines
+
+<Tabs>
+  <Tab title="Milvus">
+    **Vector Database Engine**
+    - High-performance vector similarity search
+    - Scalable for large document collections
+    - Advanced indexing algorithms
+    - Real-time updates and queries
+    
+    Best for: Large-scale deployments, high-performance requirements
+  </Tab>
+  <Tab title="Cognee">
+    **Graph-Based Engine**
+    - Knowledge graph construction
+    - Relationship extraction
+    - Contextual understanding
+    - Multi-hop reasoning
+    
+    Best for: Complex reasoning, relationship-heavy content
+  </Tab>
+</Tabs>
+
+## Knowledge Base Lifecycle
+
+### 1. Creation
+Define knowledge base with collections and processing engine:
+```json
+{
+  "name": "Product Knowledge Base",
+  "description": "Product documentation and guides",
+  "processing_engine": "milvus",
+  "collections": ["coll_123", "coll_456"]
+}
+```
+
+### 2. Processing
+Knowledge base processes collection content:
+- **Text extraction**: Extract and chunk content
+- **Embedding generation**: Create vector representations
+- **Index building**: Optimize for search performance
+- **Validation**: Ensure data quality
+
+### 3. Completion
+Ready knowledge bases can be used by agents for retrieval.
+
+## Knowledge Base Status
+
+<AccordionGroup>
+  <Accordion title="pending">
+    Knowledge base created but processing not started
+  </Accordion>
+  <Accordion title="running">
+    Collections are being processed and indexed
+  </Accordion>
+  <Accordion title="completed">
+    All collections processed and ready for queries
+  </Accordion>
+  <Accordion title="failed">
+    Processing failed - check error details and logs
+  </Accordion>
+</AccordionGroup>
+
+## Data Sources and Collections
+
+Knowledge bases track their data sources:
+
+<ResponseField name="ingested_datasources" type="array">
+  Successfully processed data sources with metadata
+</ResponseField>
+
+<ResponseField name="failed_datasources" type="array">
+  Data sources that failed processing with error details
+</ResponseField>
+
+<ResponseField name="success_rate" type="number">
+  Percentage of successfully processed data sources
+</ResponseField>
+
+<ResponseField name="collection_count" type="integer">
+  Number of collections included in the knowledge base
+</ResponseField>
+
+## Agent Integration
+
+Use knowledge bases in agent configurations:
+
+```yaml
+name: "Support Agent"
+agent_type: "llm_agent"
+system_prompt: "You are a helpful support agent..."
+knowledge_bases:
+  - name: "product_kb"
+    knowledge_base_type: "milvus"
+    knowledge_base_id: "kb_123"
+```
+
+### Retrieval Configuration
+- **Search parameters**: Control relevance and results
+- **Context integration**: How retrieved content is used
+- **Fallback behavior**: When no relevant content is found
+
+<Tip>
+Test knowledge base queries before deploying agents to ensure relevant results.
+</Tip>
+
+## Performance Considerations
+
+### Indexing Time
+- **Collection size**: Larger collections take longer to process
+- **Content complexity**: Rich documents require more processing
+- **Engine choice**: Different engines have varying performance characteristics
+
+### Query Performance
+- **Index optimization**: Proper indexing improves search speed
+- **Result filtering**: Limit results for faster responses
+- **Caching**: Frequently accessed content is cached
+
+### Scalability
+- **Concurrent queries**: Multiple agents can query simultaneously
+- **Update frequency**: How often content changes
+- **Storage requirements**: Vector storage grows with content
+
+<Warning>
+Large knowledge bases may require significant processing time. Plan for appropriate indexing windows.
+</Warning>
+
+## Monitoring and Troubleshooting
+
+### Health Checks
+- **Processing progress**: Track completion percentage
+- **Error rates**: Monitor failed data sources
+- **Query performance**: Response times and accuracy
+
+### Common Issues
+- **Collection dependencies**: Ensure collections are completed
+- **Processing failures**: Check data source formats and content
+- **Memory limits**: Large knowledge bases may hit resource limits
+
+<Info>
+Use the status endpoint to monitor knowledge base health and processing progress.
+</Info>

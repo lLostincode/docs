@@ -1,0 +1,38 @@
+---
+title: 'Remove File from Collection'
+openapi: 'DELETE /api/v1/collections/{collection_id}/files/{file_id}/'
+---
+
+Remove a specific file from a collection.
+
+<ParamField path="collection_id" type="string" required>
+  The collection ID
+</ParamField>
+
+<ParamField path="file_id" type="string" required>
+  The file ID to remove
+</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl -X DELETE https://api-be.atthene.com/api/v1/collections/coll_123/files/file_456/ \
+  -H "x-api-key: YOUR_API_KEY"
+```
+
+```python Python
+import requests
+
+response = requests.delete(
+    "https://api-be.atthene.com/api/v1/collections/coll_123/files/file_456/",
+    headers={"x-api-key": "YOUR_API_KEY"}
+)
+```
+</CodeGroup>
+
+## Response
+
+Returns `204 No Content` on success.
+
+<Note>
+Removing a file from a collection does not delete the file itself, only the association.
+</Note>

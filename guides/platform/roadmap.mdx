@@ -1,209 +1,349 @@
 ---
 title: "Roadmap"
 description: "What we're building next and how you can shape it"
+icon: "map"
 ---
+
+<Info>
+  **Atthene Agents Studio is in closed alpha.** Your feedback directly shapes what we build next.
+</Info>
 
 ## Your Input Shapes This
 
-Atthene Agents Studio is in **closed alpha**. That means **you influence what we build**.
+This roadmap shows our direction, but **we prioritize based on what you need**. If something here doesn't work for your use case, or if we're missing something critical—tell us.
 
-This roadmap shows our direction, but we prioritize based on what you need. If something here doesn't work for your use case, or if we're missing something critical—tell us.
-
-<Card title="Give Feedback" icon="comment" href="mailto:lorenz.stirnweis@arttacsolutions.de">
-  **Email us at lorenz.stirnweis@arttacsolutions.de** with feature requests, timeline concerns, or integration needs.
+<Card title="Shape the Future" icon="comments" iconType="duotone" color="#ca8a04">
+  Have ideas? Email us at **lorenz.stirnweis@arttacsolutions.de** with feature requests, timeline concerns, or integration needs.
 </Card>
 
 ---
 
-## Current Version: v0.1
-
-**Status**: Live in closed alpha  
-**Released**: October 2025
-
-### What's Available Now
-
-- **YAML Configuration**: Declarative agent definitions
-- **Playground**: Real-time testing with Agent Preview
-- **Knowledge Base**: File upload and document retrieval
-- **Prompt Library**: Versioned, reusable prompts
-- **Multi-Agent Workflows**: Coordinated agent orchestration
-- **REST API & WebSocket**: Integration endpoints with streaming
-- **Public Chatbot Embedding**: JavaScript widget for websites
-- **Execution Tracing**: Monitor agent behavior and performance
-- **Built-in Tools**: Pre-configured capabilities
-
-### What's Missing (We Know)
-
-- Custom tools (coming in v0.2)
-- Third-party app integrations (coming in v0.2)
-- Advanced orchestration patterns (coming in v0.2)
-- More model providers (coming in v0.2)
-- Cloud storage connectors (coming in v0.2)
+## <Icon icon="rocket" iconType="duotone" /> Current Version: v0.1
 
 <Note>
-**Experiencing issues?** Report bugs or problems at **lorenz.stirnweis@arttacsolutions.de** — we're actively fixing issues based on alpha feedback.
+  **Status**: Live in closed alpha | **Released**: October 2025
 </Note>
 
----
+### <Icon icon="circle-check" iconType="duotone" /> What's Available Now
 
-## v0.2: Extensions & Intelligence
+<AccordionGroup>
+  <Accordion title="Core Configuration" icon="gear" defaultOpen>
+    - **YAML Configuration**: Declarative agent definitions
+    - **Playground**: Real-time testing with Agent Preview
+    - **Prompt Library**: Versioned, reusable prompts
+    - **Built-in Tools**: Pre-configured capabilities
+  </Accordion>
 
-**Expected**: November 2024  
-**Focus**: Advanced configuration, model flexibility, and enterprise integrations
+  <Accordion title="Knowledge & Multi-Agent" icon="brain">
+    - **Knowledge Base**: File upload and document retrieval
+    - **Multi-Agent Workflows**: Coordinated agent orchestration
+  </Accordion>
 
-### Model Provider Support
+  <Accordion title="Integration & Deployment" icon="plug">
+    - **REST API & WebSocket**: Integration endpoints with streaming
+    - **Public Chatbot Embedding**: JavaScript widget for websites
+    - **Execution Tracing**: Monitor agent behavior and performance
+  </Accordion>
+</AccordionGroup>
 
-Choose your LLM provider per agent:
-- OpenAI
-- Anthropic (Claude)
-- Mistral
-- Qwen
-- Additional providers based on demand
+<Warning>
+  **Known Limitations**: Custom tools, third-party integrations, advanced orchestration, additional model providers, and cloud storage connectors are coming in v0.2.
+</Warning>
 
-<Tip>
-**Need a specific model provider?** Let us know which ones matter for your use case.
-</Tip>
-
-### Advanced YAML Features
-
-**Config Reference System**: Use variables and reference configs across agents
-
-```yaml
-variables:
-  api_endpoint: "https://api.example.com"
-  
-agents:
-  - name: "agent1"
-    config_ref: "{{ variables.api_endpoint }}"
-```
-
-**Input/Output System**: Pass data between agents explicitly
-
-```yaml
-agents:
-  - name: "analyzer"
-    outputs: ["analysis_result"]
-  
-  - name: "responder"
-    inputs: ["analysis_result"]
-```
-
-**Conditional Edges**: Dynamic routing based on agent outputs
-
-```yaml
-edges:
-  - from: "classifier"
-    to: "urgent_handler"
-    condition: "output.priority == 'high'"
-  
-  - from: "classifier"
-    to: "standard_handler"
-    condition: "output.priority == 'normal'"
-```
-
-**Structured Output**: Enforce JSON schemas for agent responses
-
-```yaml
-agents:
-  - name: "data_extractor"
-    structured_output:
-      type: "json_schema"
-      schema:
-        type: "object"
-        properties:
-          name: {type: "string"}
-          age: {type: "number"}
-```
-
-### Live Avatar Chatbots
-
-New embedded chatbot format with talking avatars:
-- Default avatar library included
-- Custom avatars available (enterprise requests)
-- Speech-to-text user input
-- Text-to-speech agent responses
-- Real-time lip-sync and expressions
-
-Perfect for customer-facing applications where visual presence matters.
-
-<Tip>
-**Interested in custom avatars?** Reach out to discuss your branding needs.
-</Tip>
-
-### Model Context Protocol (MCP)
-
-Integration with the Model Context Protocol standard for:
-- Standardized tool definitions
-- Cross-platform agent compatibility
-- Community tool sharing
-- Easier custom tool creation
-
-### Cloud Knowledge Base Connectors
-
-Connect cloud storage as knowledge sources:
-- Google Drive
-- Dropbox
-- OneDrive
-- SharePoint Online
-- AWS S3
-- Azure Blob Storage
-
-Real-time sync and permission-aware retrieval included.
-
-<Card title="Which cloud provider matters most?" icon="question">
-  We're prioritizing based on demand. **Email us** your top 3 cloud integrations.
+<Card title="Experiencing Issues?" icon="bug" iconType="duotone" color="#dc2626" href="mailto:lorenz.stirnweis@arttacsolutions.de">
+  Report bugs at **lorenz.stirnweis@arttacsolutions.de** — we're actively fixing issues based on alpha feedback.
 </Card>
 
-### Microsoft & Atlassian Tools
+---
 
-OAuth-enabled integrations with:
-- **Microsoft**: Teams, SharePoint, Outlook, OneDrive
-- **Atlassian**: Jira, Confluence, Trello
+## <Icon icon="puzzle-piece" iconType="duotone" /> v0.2: Extensions & Intelligence
 
-Agents can read, create, and update content in these platforms.
+<CardGroup cols={2}>
+  <Card>
+    **Timeline**: November 2024
+  </Card>
+  <Card>
+    **Focus**: Advanced configuration, model flexibility, enterprise integrations
+  </Card>
+</CardGroup>
 
-**What actions do you need?** (Create tickets, search docs, send messages, etc.)  
-→ Tell us at **lorenz.stirnweis@arttacsolutions.de**
+### <Icon icon="microchip" /> Model Provider Support
 
-### Sophisticated Orchestration Examples
+Choose your LLM provider per agent:
 
-Pre-built templates for advanced patterns:
-- Map-reduce workflows
-- Parallel processing with aggregation
-- Multi-stage research pipelines
-- Approval chains with fallbacks
-- Recursive agent loops
+<CardGroup cols={3}>
+  <Card title="Mistral" icon="wind" iconType="duotone" />
+  <Card title="Qwen" icon="brain" iconType="duotone" />
+  <Card title="More..." icon="plus" iconType="duotone" />
+</CardGroup>
 
-### Deep Research Agent
+<Tip>
+  **Need a specific model provider?** Let us know which ones matter for your use case.
+</Tip>
 
-Specialized agent template for comprehensive research tasks:
-- Multi-source information gathering
-- Iterative query refinement
-- Source verification and citation
-- Report generation with structured findings
+### <Icon icon="code" /> Advanced YAML Features
+
+<Tabs>
+  <Tab title="Config Reference">
+    Use variables and reference configs across agents:
+    
+    ```yaml
+    variables:
+      api_endpoint: "https://api.example.com"
+      
+    agents:
+      - name: "agent1"
+        config_ref: "{{ variables.api_endpoint }}"
+    ```
+  </Tab>
+
+  <Tab title="Input/Output System">
+    Pass data between agents explicitly:
+    
+    ```yaml
+    agents:
+      - name: "analyzer"
+        outputs: ["analysis_result"]
+      
+      - name: "responder"
+        inputs: ["analysis_result"]
+    ```
+  </Tab>
+
+  <Tab title="Conditional Edges">
+    Dynamic routing based on agent outputs:
+    
+    ```yaml
+    edges:
+      - from: "classifier"
+        to: "urgent_handler"
+        condition: "output.priority == 'high'"
+      
+      - from: "classifier"
+        to: "standard_handler"
+        condition: "output.priority == 'normal'"
+    ```
+  </Tab>
+
+  <Tab title="Structured Output">
+    Enforce JSON schemas for agent responses:
+    
+    ```yaml
+    agents:
+      - name: "data_extractor"
+        structured_output:
+          type: "json_schema"
+          schema:
+            type: "object"
+            properties:
+              name: {type: "string"}
+              age: {type: "number"}
+    ```
+  </Tab>
+</Tabs>
+
+### <Icon icon="user-robot" /> Live Avatar Chatbots
+
+New embedded chatbot format with talking avatars:
+
+<CardGroup cols={2}>
+  <Card title="Visual Features" icon="sparkles" iconType="duotone">
+    - Default avatar library included
+    - Custom avatars available
+    - Real-time lip-sync
+    - Dynamic expressions
+  </Card>
+  
+  <Card title="Audio Features" icon="microphone" iconType="duotone">
+    - Speech-to-text input
+    - Text-to-speech responses
+    - Natural conversation flow
+    - Multiple voice options
+  </Card>
+</CardGroup>
+
+<Info>
+  Perfect for customer-facing applications where visual presence matters.
+</Info>
+
+<Card title="Want Custom Avatars?" icon="palette" iconType="duotone" color="#8b5cf6" href="mailto:lorenz.stirnweis@arttacsolutions.de">
+  Reach out to discuss your branding needs.
+</Card>
+
+### <Icon icon="screwdriver-wrench" /> Model Context Protocol (MCP)
+
+Integration with the MCP standard for:
+
+<Steps>
+  <Step title="Standardized Tool Definitions">
+    Use industry-standard tool formats
+  </Step>
+  <Step title="Cross-Platform Compatibility">
+    Work seamlessly across different AI platforms
+  </Step>
+  <Step title="Community Tool Sharing">
+    Access and share tools with the community
+  </Step>
+  <Step title="Easier Custom Tool Creation">
+    Build tools faster with standard templates
+  </Step>
+</Steps>
+
+### <Icon icon="cloud" /> Cloud Knowledge Base Connectors
+
+Connect cloud storage as knowledge sources:
+
+<CardGroup cols={3}>
+  <Card title="Google Drive" icon="google" iconType="duotone" />
+  <Card title="Dropbox" icon="dropbox" iconType="duotone" />
+  <Card title="OneDrive" icon="microsoft" iconType="duotone" />
+  <Card title="SharePoint" icon="sharepoint" iconType="duotone" />
+  <Card title="AWS S3" icon="aws" iconType="duotone" />
+  <Card title="Azure Blob" icon="microsoft" iconType="duotone" />
+</CardGroup>
+
+<Check>
+  Real-time sync and permission-aware retrieval included.
+</Check>
+<Card title="Which Cloud Provider Matters Most?" icon="ranking-star" iconType="duotone" color="#0ea5e9">
+  We're prioritizing based on demand. Email us your **top 3 cloud integrations**.
+</Card>
+
+### <Icon icon="puzzle" /> Tool Library Integration
+
+Comprehensive tool ecosystem for agent capabilities:
+
+<CardGroup cols={2}>
+  <Card title="Pre-built Tools" icon="toolbox" iconType="duotone">
+    - Communication platforms
+    - Project management systems
+    - Document repositories
+    - Cloud storage services
+    - CRM and sales tools
+    - Development platforms
+  </Card>
+  
+  <Card title="Integration Features" icon="plug" iconType="duotone">
+    - OAuth authentication flows
+    - Full CRUD operations
+    - Real-time data sync
+    - Permission-aware access
+    - Rate limiting compliance
+    - Error handling & retries
+  </Card>
+</CardGroup>
+
+<Info>
+  Agents can seamlessly interact with your existing tool stack through standardized integrations.
+</Info>
+
+<Card title="What Tools Do You Need?" icon="list-check" href="mailto:lorenz.stirnweis@arttacsolutions.de">
+  Tell us which tools are essential for your workflow at **lorenz.stirnweis@arttacsolutions.de**
+</Card>
+
 
 ---
 
-## v0.3: Production Readiness
+## <Icon icon="gauge-high" iconType="duotone" /> v0.3: Production Readiness
 
-**Expected**: Q1 2025  
-**Focus**: Evaluation, control, and advanced orchestration
+<CardGroup cols={2}>
+  <Card>
+    **Timeline**: Dec 2025
+  </Card>
+  <Card>
+    **Focus**: Evaluation, control, advanced orchestration
+  </Card>
+</CardGroup>
 
-### Evaluation Framework
+### <Icon icon="diagram-project" /> Sophisticated Orchestration Examples
 
-- Agent response quality scoring
-- A/B testing for prompt variations
-- Performance benchmarking
-- Cost tracking per agent and conversation
+Pre-built templates for advanced patterns:
 
-### Human-in-the-Loop (HITL)
+<AccordionGroup>
+  <Accordion title="Map-Reduce Workflows" icon="sitemap">
+    Distribute work across agents and aggregate results
+  </Accordion>
+  
+  <Accordion title="Parallel Processing" icon="layer-group">
+    Run multiple operations simultaneously with intelligent aggregation
+  </Accordion>
+  
+  <Accordion title="Multi-Stage Research" icon="magnifying-glass">
+    Iterative information gathering and analysis pipelines
+  </Accordion>
+  
+  <Accordion title="Approval Chains" icon="user-check">
+    Sequential decision-making with fallback mechanisms
+  </Accordion>
+  
+  <Accordion title="Recursive Loops" icon="rotate">
+    Self-improving agent processes
+  </Accordion>
+</AccordionGroup>
 
-- Approval workflows for sensitive actions
-- Interactive decision points in agent flows
-- User feedback collection during execution
-- Manual override capabilities
+### <Icon icon="book-open-reader" /> Deep Research Agent
 
-### Parallel Agent Workflows
+Specialized agent template for comprehensive research tasks:
+
+<Steps>
+  <Step title="Multi-Source Gathering" icon="database">
+    Pull information from diverse sources automatically
+  </Step>
+  <Step title="Iterative Refinement" icon="arrows-rotate">
+    Continuously improve query quality based on results
+  </Step>
+  <Step title="Source Verification" icon="shield-check">
+    Validate information and maintain citation trails
+  </Step>
+  <Step title="Report Generation" icon="file-lines">
+    Create structured findings with actionable insights
+  </Step>
+</Steps>
+
+
+### <Icon icon="chart-line" /> Evaluation Framework
+
+<CardGroup cols={2}>
+  <Card title="Quality Scoring" icon="star" iconType="duotone">
+    Automated agent response quality assessment
+  </Card>
+  
+  <Card title="A/B Testing" icon="flask" iconType="duotone">
+    Compare prompt variations for optimization
+  </Card>
+  
+  <Card title="Benchmarking" icon="trophy" iconType="duotone">
+    Track performance metrics over time
+  </Card>
+  
+  <Card title="Cost Tracking" icon="dollar-sign" iconType="duotone">
+    Monitor spending per agent and conversation
+  </Card>
+</CardGroup>
+
+### <Icon icon="user-check" /> Human-in-the-Loop (HITL)
+
+Enable human oversight for critical decisions:
+
+<AccordionGroup>
+  <Accordion title="Approval Workflows" icon="circle-check" defaultOpen>
+    Require human approval for sensitive actions before execution
+  </Accordion>
+  
+  <Accordion title="Interactive Decision Points" icon="code-branch">
+    Pause workflows for user input at key moments
+  </Accordion>
+  
+  <Accordion title="Feedback Collection" icon="comment-dots">
+    Gather user insights during agent execution
+  </Accordion>
+  
+  <Accordion title="Manual Overrides" icon="hand">
+    Take control and redirect agents when needed
+  </Accordion>
+</AccordionGroup>
+
+### <Icon icon="arrows-split-up-and-left" /> Parallel Agent Workflows
 
 Run multiple agents simultaneously:
 
@@ -224,33 +364,69 @@ edges:
     mode: "collect"
 ```
 
-### Context Engineering
+<Check>
+  Dramatically reduce total workflow execution time
+</Check>
 
-- Automatic context window optimization
-- Intelligent conversation summarization
-- Priority-based context inclusion
-- Token usage optimization
+### <Icon icon="brain-circuit" /> Context Engineering
+
+Intelligent context management:
+
+<Steps>
+  <Step title="Automatic Optimization">
+    Smart context window management without manual intervention
+  </Step>
+  <Step title="Conversation Summarization">
+    Maintain context while reducing token usage
+  </Step>
+  <Step title="Priority-Based Inclusion">
+    Keep the most relevant information in context
+  </Step>
+  <Step title="Token Usage Optimization">
+    Minimize costs while maximizing effectiveness
+  </Step>
+</Steps>
 
 <Note>
-**v0.3 feature priorities will shift** based on what v0.2 alpha users need most. Stay vocal about what matters.
+  **v0.3 feature priorities will shift** based on what v0.2 alpha users need most. Stay vocal about what matters.
 </Note>
 
 ---
 
-## v0.4: Autonomy & Scale
+## <Icon icon="wand-magic-sparkles" iconType="duotone" /> v0.4: Autonomy & Scale
 
-**Expected**: Q2 2025  
-**Focus**: Goal-oriented agents and automation
+<CardGroup cols={2}>
+  <Card>
+    **Timeline**: Jan 2026
+  </Card>
+  <Card>
+    **Focus**: Goal-oriented agents and automation
+  </Card>
+</CardGroup>
 
-### Planning Agent
+### <Icon icon="chess" /> Planning Agent
 
-New agent type that:
-- Breaks down complex goals into steps
-- Creates execution plans dynamically
-- Adapts plans based on outcomes
-- Coordinates sub-agents to achieve objectives
+New agent type with advanced capabilities:
 
-### Goal-Based Workflows
+<CardGroup cols={2}>
+  <Card title="Goal Decomposition" icon="sitemap" iconType="duotone">
+    Break complex objectives into actionable steps
+  </Card>
+  
+  <Card title="Dynamic Planning" icon="diagram-project" iconType="duotone">
+    Create execution plans on the fly
+  </Card>
+  
+  <Card title="Adaptive Execution" icon="arrows-rotate" iconType="duotone">
+    Adjust plans based on outcomes
+  </Card>
+  
+  <Card title="Sub-Agent Coordination" icon="users-gear" iconType="duotone">
+    Orchestrate multiple agents toward goals
+  </Card>
+</CardGroup>
+
+### <Icon icon="bullseye" /> Goal-Based Workflows
 
 Agents work toward defined objectives with incentive structures:
 
@@ -264,110 +440,151 @@ agents:
         priority: "medium"
 ```
 
-### Intelligent Agent Collaboration
+### <Icon icon="handshake" /> Intelligent Agent Collaboration
 
 Advanced coordination methods:
-- Negotiation between agents
-- Consensus building
-- Resource sharing
-- Conflict resolution
 
-### CronJobs & Trigger Events
+<Tabs>
+  <Tab title="Negotiation" icon="comments">
+    Agents discuss and reach agreements on approach
+  </Tab>
+  
+  <Tab title="Consensus Building" icon="users">
+    Multiple agents align on decisions
+  </Tab>
+  
+  <Tab title="Resource Sharing" icon="share-nodes">
+    Efficient allocation of computational resources
+  </Tab>
+  
+  <Tab title="Conflict Resolution" icon="scale-balanced">
+    Automated handling of competing objectives
+  </Tab>
+</Tabs>
 
-- Schedule-based agent execution
-- Webhook triggers from external systems
-- Event-driven workflows (new email, new ticket, etc.)
-- Monitoring and alerting automation
+### <Icon icon="clock" /> CronJobs & Trigger Events
+
+Automation capabilities:
+
+<CardGroup cols={2}>
+  <Card title="Schedule-Based" icon="calendar-clock" iconType="duotone">
+    Execute agents on defined schedules
+  </Card>
+  
+  <Card title="Webhook Triggers" icon="webhook" iconType="duotone">
+    React to external system events
+  </Card>
+  
+  <Card title="Event-Driven" icon="bolt" iconType="duotone">
+    Respond to emails, tickets, and more
+  </Card>
+  
+  <Card title="Monitoring" icon="bell" iconType="duotone">
+    Automated alerts and notifications
+  </Card>
+</CardGroup>
 
 ---
 
-## Beyond v0.4
+## <Icon icon="telescope" /> Beyond v0.4
 
-We're thinking about:
-- **Agent Marketplace**: Community-shared agents and workflows
-- **Self-Improving Agents**: Learn from past interactions
-- **Multimodal Support**: Process images, audio, video
-- **On-Premise Deployment**: Self-hosted for maximum control
-- **Enterprise SSO**: SAML/OAuth integration
+<AccordionGroup>
+  <Accordion title="Agent Marketplace" icon="store">
+    Community-shared agents and workflows
+  </Accordion>
+  
+  <Accordion title="Self-Improving Agents" icon="arrow-trend-up">
+    Learn from past interactions and optimize over time
+  </Accordion>
+  
+  <Accordion title="Multimodal Support" icon="photo-film">
+    Process images, audio, and video
+  </Accordion>
+  
+  <Accordion title="On-Premise Deployment" icon="server">
+    Self-hosted for maximum control and security
+  </Accordion>
+  
+  <Accordion title="Enterprise SSO" icon="shield-halved">
+    SAML/OAuth integration for enterprise authentication
+  </Accordion>
+</AccordionGroup>
 
-**But we're not committing yet.** These depend on how v0.2 and v0.3 land with alpha users.
+<Warning>
+  **These are ideas, not commitments.** Features depend on how v0.2 and v0.3 land with alpha users.
+</Warning>
 
 ---
 
-## How to Influence the Roadmap
+## <Icon icon="megaphone" /> How to Influence the Roadmap
 
 <Steps>
-  <Step title="Use the Platform">
-    The more you build, the more we learn what's needed.
+  <Step title="Use the Platform" icon="play">
+    The more you build, the more we learn what's needed
   </Step>
   
-  <Step title="Report What's Blocking You">
-    If a missing feature stops your project, tell us immediately.
+  <Step title="Report What's Blocking You" icon="circle-exclamation">
+    If a missing feature stops your project, tell us immediately
   </Step>
   
-  <Step title="Describe Your Use Case">
+  <Step title="Describe Your Use Case" icon="lightbulb">
     Context helps us prioritize. What are you building? Who's it for?
   </Step>
   
-  <Step title="Vote on Features">
+  <Step title="Vote on Features" icon="check-to-slot">
     When we ask "which integration matters most?", respond. We listen.
   </Step>
 </Steps>
 
 ---
 
-## Feedback Channels
+## <Icon icon="paper-plane" /> Feedback Channels
 
 <CardGroup cols={2}>
-  <Card title="Feature Requests" icon="lightbulb" href="mailto:lorenz.stirnweis@arttacsolutions.de">
-    Email: **lorenz.stirnweis@arttacsolutions.de**  
-    Subject: "Feature Request: [Your Idea]"
+  <Card title="Feature Requests" icon="lightbulb" iconType="duotone" color="#f59e0b" href="mailto:lorenz.stirnweis@arttacsolutions.de">
+    **Email**: lorenz.stirnweis@arttacsolutions.de  
+    **Subject**: "Feature Request: [Your Idea]"
   </Card>
   
-  <Card title="Bug Reports" icon="bug" href="mailto:lorenz.stirnweis@arttacsolutions.de">
-    Email: **lorenz.stirnweis@arttacsolutions.de**  
-    Subject: "Bug: [What's broken]"
+  <Card title="Bug Reports" icon="bug" iconType="duotone" color="#dc2626" href="mailto:lorenz.stirnweis@arttacsolutions.de">
+    **Email**: lorenz.stirnweis@arttacsolutions.de  
+    **Subject**: "Bug: [What's broken]"
   </Card>
   
-  <Card title="Integration Needs" icon="plug" href="mailto:lorenz.stirnweis@arttacsolutions.de">
-    Email: **lorenz.stirnweis@arttacsolutions.de**  
-    Subject: "Need Integration: [Tool/Service]"
+  <Card title="Integration Needs" icon="plug" iconType="duotone" color="#8b5cf6" href="mailto:lorenz.stirnweis@arttacsolutions.de">
+    **Email**: lorenz.stirnweis@arttacsolutions.de  
+    **Subject**: "Need Integration: [Tool/Service]"
   </Card>
   
-  <Card title="In-Platform Feedback" icon="comment">
+  <Card title="In-Platform Feedback" icon="comment" iconType="duotone" color="#0ea5e9">
     Click **"Give Feedback"** in the top right of the platform
   </Card>
 </CardGroup>
 
 ---
 
-## Transparency Commitment
+## <Icon icon="transparency" /> Transparency Commitment
 
 We'll update this roadmap monthly as priorities shift. If something gets delayed or dropped, we'll explain why.
 
-**Last Updated**: October 2024  
-**Next Update**: November 2024 (post v0.2 release)
+<CardGroup cols={2}>
+  <Card title="Last Updated" icon="calendar">
+    October 2024
+  </Card>
+  
+  <Card title="Next Update" icon="calendar-plus">
+    November 2024 (post v0.2 release)
+  </Card>
+</CardGroup>
 
 <Warning>
-**Alpha Disclaimer**: Timelines are estimates. Features may change or be postponed based on technical complexity and user feedback. We prioritize building the right thing over hitting exact dates.
+  **Alpha Disclaimer**: Timelines are estimates. Features may change or be postponed based on technical complexity and user feedback. We prioritize building the right thing over hitting exact dates.
 </Warning>
 
 ---
 
-## What You've Told Us So Far
-
-Early alpha feedback themes:
-- ✅ "Need more model provider options" → **Coming in v0.2**
-- ✅ "Custom tools are essential" → **Prioritized for v0.2**
-- ✅ "Want better agent-to-agent data passing" → **I/O system in v0.2**
-- ✅ "Cloud storage integration critical" → **Added to v0.2**
-- 🔄 "SSE would be useful" → **Still evaluating demand**
-
-Keep the feedback coming. This list grows based on what you tell us.
-
----
-
-<Card title="Have 5 Minutes?" icon="clock">
-  **Quick Survey**: What's the #1 feature that would make AMAS indispensable for your project?  
+<Card title="Have 5 Minutes?" icon="clock" iconType="duotone" color="#ca8a04" href="mailto:lorenz.stirnweis@arttacsolutions.de">
+  **Quick Survey**: What's the #1 feature that would make AMAS indispensable for your project?
+  
   → **lorenz.stirnweis@arttacsolutions.de**
 </Card>

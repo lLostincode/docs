@@ -30,7 +30,20 @@ edges: []
 
 ## Core Fields
 
+The following sections detail all configuration parameters available in your YAML file.
+
 ### System Configuration
+
+These parameters are defined at the root level of your YAML configuration:
+
+```yaml
+name: "System Name"           # ← System configuration
+description: "Description"    # ← parameters are defined
+architecture: "workflow"      # ← at the root level
+save_messages: true
+persistent_state: true
+entry_point: "agent_name"
+```
 
 <ParamField path="name" type="string" required>
   Name of your multi-agent system
@@ -57,12 +70,23 @@ edges: []
 </ParamField>
 
 <ParamField path="persistent_state" type="boolean" default="true">
-  Enable LangGraph checkpointing for state persistence across executions
+  Enable checkpointing for state persistence across executions
 </ParamField>
 
 ## Agent Configuration
 
-Each agent in the `agents` list requires these fields:
+Each agent in the `agents` list requires these fields. These parameters are defined within individual agent objects:
+
+```yaml
+agents:
+  - name: "agent_name"         # ← Agent configuration
+    agent_type: "llm_agent"    # ← parameters are defined
+    description: "..."         # ← within each agent object
+    system_prompt: "..."
+    # ... additional agent config
+```
+
+### Basic Agent Fields
 
 <ParamField path="name" type="string" required>
   Unique identifier for the agent within the system
@@ -87,6 +111,17 @@ Each agent in the `agents` list requires these fields:
 
 ### LLM Configuration
 
+Configure the language model for your agents. This is nested within each agent's configuration:
+
+```yaml
+agents:
+  - name: "my_agent"
+    llm_config:              # ← LLM configuration
+      model: "gpt-4o"        # ← is nested within
+      temperature: 0.7       # ← each agent
+      max_tokens: 1000
+```
+
 <ParamField path="llm_config" type="object">
   Configuration for the language model
   
@@ -108,6 +143,17 @@ Each agent in the `agents` list requires these fields:
 </ParamField>
 
 ### Streaming Configuration
+
+Control real-time event streaming for each agent. This is nested within each agent's configuration:
+
+```yaml
+agents:
+  - name: "my_agent"
+    streaming_config:              # ← Streaming configuration
+      enable_streaming: true       # ← is nested within
+      show_output_to_user: true    # ← each agent
+      show_tool_to_user: true
+```
 
 <ParamField path="streaming_config" type="object">
   Controls real-time event streaming behavior
@@ -133,9 +179,22 @@ Each agent in the `agents` list requires these fields:
 
 ### Tool Configuration
 
-Tools can be configured at two levels:
+Tools can be configured at two levels. Choose the approach that best fits your use case:
 
-**Agent-Level (Recommended)**: Configure tools for individual agents
+---
+
+#### **Agent-Level Tools (Recommended)**
+
+Configure tools directly within each agent's configuration:
+
+```yaml
+agents:
+  - name: "my_agent"
+    agent_type: "react_agent"
+    tools:                    # ← Agent-level tools
+      - "tavily_search"       # ← are defined within
+      - "calculator"          # ← each agent object
+```
 
 <ParamField path="agents[].tools" type="array">
   List of tool identifiers for this agent. **Only applicable for `react_agent` type.**
@@ -152,7 +211,17 @@ Tools can be configured at two levels:
   ```
 </ParamField>
 
-**System-Level (Advanced)**: Define tools globally for reuse
+#### **System-Level Tools (Advanced)**
+
+Define tools at the root level for reuse across multiple agents:
+
+```yaml
+tools: []                     # ← System-level tools
+                              # ← are defined at root level
+agents:
+  - name: "agent1"
+    # ... agent config
+```
 
 <ParamField path="tools" type="array">
   Optional system-level tool definitions. This is for advanced configurations where you want to define tool configurations once and reference them across multiple agents.
@@ -161,6 +230,18 @@ Tools can be configured at two levels:
   Most users should configure tools at the agent level. System-level tools are for advanced use cases.
   </Note>
 </ParamField>
+
+#### **Tool Calling Behavior**
+
+Configure how agents interact with tools. This is nested within each agent's configuration:
+
+```yaml
+agents:
+  - name: "my_agent"
+    tool_calling:             # ← Tool calling config
+      enabled: true           # ← is nested within
+      max_iterations: 10      # ← each agent
+```
 
 <ParamField path="tool_calling" type="object">
   Tool calling behavior configuration
@@ -176,9 +257,19 @@ Tools can be configured at two levels:
   </Expandable>
 </ParamField>
 
-### Supervisor Configuration (Supervisor Agents Only)
+### Supervisor Configuration
 
-These fields are configured **inside the supervisor agent's configuration**.
+**For supervisor agents only.** These parameters are configured within the supervisor agent's configuration object:
+
+```yaml
+agents:
+  - name: "supervisor"
+    agent_type: "supervisor"
+    supervised_agents: [...]      # ← Supervisor-specific
+    return_to_supervisor: false   # ← parameters are defined
+    max_handoffs: 15              # ← within the supervisor agent
+    supervisor_prompt: "..."
+```
 
 <ParamField path="supervised_agents" type="array">
   **Required for supervisor agents.** List of agent names that this supervisor coordinates.
@@ -205,12 +296,15 @@ These fields are configured **inside the supervisor agent's configuration**.
 
 ## Workflow Edges
 
-For `workflow` architecture, define edges to connect agents:
+**For `workflow` architecture only.** Define edges at the root level to connect agents in your workflow:
 
 ```yaml
-edges:
-  - from: "__start__"
-    to: "first_agent"
+# Root-level configuration
+architecture: "workflow"
+
+edges:                        # ← Edges are defined
+  - from: "__start__"          # ← at the root level
+    to: "first_agent"          # ← for workflow architecture
   - from: "first_agent"
     to: "second_agent"
   - from: "second_agent"

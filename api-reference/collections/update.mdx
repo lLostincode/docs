@@ -1,0 +1,51 @@
+---
+title: 'Update Collection'
+openapi: 'PATCH /api/v1/collections/{collection_id}/'
+---
+
+Modify collection metadata (name and description).
+
+<ParamField path="collection_id" type="string" required>
+  The collection ID
+</ParamField>
+
+## Request Body
+
+<ParamField body="name" type="string">
+  Updated collection name
+</ParamField>
+
+<ParamField body="description" type="string">
+  Updated description
+</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl -X PATCH https://api-be.atthene.com/api/v1/collections/coll_123/ \
+  -H "x-api-key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Updated Product Documentation",
+    "description": "Comprehensive product manuals and user guides"
+  }'
+```
+
+```python Python
+import requests
+
+data = {
+    "name": "Updated Product Documentation",
+    "description": "Comprehensive product manuals and user guides"
+}
+
+response = requests.patch(
+    "https://api-be.atthene.com/api/v1/collections/coll_123/",
+    headers={"x-api-key": "YOUR_API_KEY"},
+    json=data
+)
+```
+</CodeGroup>
+
+## Response
+
+Returns the updated collection object with new `updated_at` timestamp.

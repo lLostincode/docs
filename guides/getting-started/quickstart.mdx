@@ -1,57 +1,31 @@
 ---
 title: "Quickstart"
-description: "Build, test, and deploy an agent in 10 minutes"
+description: "Build and test your first agent"
 ---
 
-## What You'll Build
+## Overview
 
-In this guide, you'll create a simple conversational agent that can:
-- Answer questions using an LLM
-- Access knowledge from uploaded documents
-- Be tested in real-time
-- Be saved for future use
+This guide covers the essentials: create an agent, test it in the playground, add knowledge retrieval, and configure access. Expected time: 10 minutes.
 
-**Time Required**: ~10 minutes
-
----
-
-## Prerequisites
-
-- Access to Atthene Agents Studio (closed alpha)
-- Login credentials for [amas.atthene.com](https://amas.atthene.com)
-- Basic familiarity with YAML syntax
+<Info>
+**Prerequisites**: Atthene Agents Studio account, basic YAML familiarity
+</Info>
 
 ---
 
-## Step 1: Login to the Platform
+## Create Your First Agent
 
-Navigate to **amas.atthene.com** and sign in with your Atthene credentials.
+### Access the Playground
 
-You'll land on the **Agent Overview** dashboard.
+Navigate to **Playground** in the sidebar. You'll see:
+- Left panel: YAML configuration editor
+- Right panel: Agent Preview for testing
 
----
+### Load a Template
 
-## Step 2: Open the Playground
+Click **"Load Config"** and select **"Basic Dynamic Agent Test"** to start with a working configuration.
 
-Click **Playground** in the left sidebar.
-
-You'll see two panels:
-- **Left**: YAML configuration editor
-- **Right**: Agent Preview (testing interface)
-
----
-
-## Step 3: Load a Template
-
-Instead of starting from scratch, let's load a working template:
-
-1. Click the **"Load Config"** button at the bottom of the left panel
-2. Look for the **"Basic Dynamic Agent Test"** template
-3. Click to load it into the editor
-
-You should see a YAML configuration appear in the editor.
-
-<Accordion title="What's in this template?">
+<Accordion title="Template structure">
 ```yaml
 name: "Basic Dynamic Agent Test"
 description: "Test configuration for basic dynamic agent loading"
@@ -79,191 +53,106 @@ edges:
 
 entry_point: "test_basic_agent"
 ```
-
-This defines a single agent with basic LLM capabilities and a simple workflow.
 </Accordion>
 
----
+### Test the Agent
 
-## Step 4: Test Your Agent
+Click on `Load Configuration`.
 
-Now let's see it in action:
-
-1. Look at the **Agent Preview** panel on the right
-2. Check that it shows **"Connected"** status
-3. Type a message in the chat input at the bottom
-4. Example: "What can you help me with?"
-
-The agent should respond using the system prompt and configuration you loaded.
-
-<Tip>
-Try different messages to see how the agent responds. You're testing in a live environment—changes to the YAML will affect the next test.
-</Tip>
+Verify the Agent Preview shows **"Connected"**, then send a test message. The agent uses the loaded configuration to respond.
 
 ---
 
-## Step 5: Add Knowledge Base Context
+## Add Knowledge Retrieval
 
-Let's make your agent smarter by adding some knowledge:
+Knowledge retrieval requires creating a chain of entities: Data Source → Collection → Knowledge Base → Retrieval Method.
 
-### Upload a Document
+### Create Data Source
 
-1. Click **Knowledge Base** in the left sidebar
-2. Navigate to the **"Data Sources"** tab
-3. Click **"+ Add Data Source"**
-4. Upload a PDF or text file (company docs, product info, etc.)
-5. Wait for the upload and processing to complete
+Navigate to **Knowledge Base** → **Data Sources** tab.
 
-### Connect it to Your Agent
+Click **"+ Add Data Source"** and upload your files. Wait for processing to complete.
 
-Go back to the **Playground** and modify your YAML:
+### Create Collection
 
+Go to **Collections** tab.
+
+Click **"+ Create Collection"** and add your data source(s) to it. Collections group related documents.
+
+### Create Knowledge Base
+
+Navigate to **Knowledge Bases** tab.
+
+Click **"+ Create Knowledge Base"** and select your collection. This creates a searchable index.
+
+### Configure Retrieval Method
+
+In **Retrieval Methods** tab:
+
+1. Click **"+ Create Retrieval Method"**
+2. Select your knowledge base
+3. Configure search parameters (similarity threshold, max results, etc.)
+4. Copy the generated configuration string
+
+### Connect to Agent
+
+Paste the copied configuration into your YAML:
 ```yaml
 agents:
   - name: "test_basic_agent"
-    agent_type: "llm_agent"
-    description: "A simple sessional agent for testing dynamic loading"
-    system_prompt: "You are a helpful AI assistant with access to knowledge bases."
-    llm_config:
-      temperature: 1.0
-      max_tokens: 500
-    memory_config: {}
-    knowledge_bases: ["your-knowledge-base-name"]  # Add this line
-    streaming_config:
-      show_output_to_user: true
+    knowledge_bases: ["kb_uuid_from_copied_config"]  # Paste here
 ```
 
-Replace `"your-knowledge-base-name"` with the name you gave your uploaded data source.
-
-### Test Knowledge Retrieval
-
-In the Agent Preview, ask a question about the content you uploaded:
-
-- "What information do you have about [topic in your document]?"
-
-The agent should now retrieve and reference your uploaded content.
+Load the new configuration and test with questions about your uploaded content. The agent retrieves and references relevant information based on your retrieval method settings.
 
 ---
 
-## Step 6: Save Your Agent
+## Save and Deploy
 
-Once you're happy with the configuration:
+### Persist Your Agent
 
-1. Click **"Save as Agent"** at the bottom of the YAML editor
-2. Give your agent a name (e.g., "My First Agent")
-3. Optionally add a description
-4. Click **Save**
+Click **"Save as Agent"** in the editor, provide a name.
 
-Your agent is now persisted and can be accessed from the **Agent Overview**.
+<Check>
+Saved agents appear in **Agent Overview** and can be accessed via API or embedded.
+</Check>
 
----
+### Deploy a Version
 
-## Step 7: Configure Public Access (Optional)
+Saving creates a new version. To make it active for API/connections:
 
-If you want to share your agent or embed it on a website:
+**Agent Overview** → Select agent → **Settings** → **Versions** → Click **Deploy** on desired version
 
-### Enable Public Access
+<Info>
+The version with the **"current"** banner is actively deployed and handles all API requests and connections.
+</Info>
 
-1. Go to **Agent Overview**
-2. Find your saved agent and click on it
-3. Click the **settings icon** to open Agent Settings
-4. Navigate to the **"General"** tab
-5. Under **"Public Access"**, toggle it to **"Enabled"**
+### Access Your Agent from Software or Websites
 
-### Set Allowed Origin
-
-For security, specify which domains can access your agent:
-
-1. In the **"Allowed Origin URL"** field, enter your domain
-   - Example: `https://your-website.com`
-2. Click **"Save URL"**
-
-<Warning>
-Without an allowed origin URL configured, external clients won't be able to connect to your agent even with public access enabled.
-</Warning>
-
----
-
-## What You've Accomplished
-
-<Steps>
-  <Step title="Loaded a Template">
-    Started with a working configuration instead of from scratch
-  </Step>
-  <Step title="Tested in Real-Time">
-    Used Agent Preview to see immediate results
-  </Step>
-  <Step title="Added Knowledge">
-    Uploaded documents and connected them to your agent
-  </Step>
-  <Step title="Saved Your Work">
-    Persisted your agent for future use and deployment
-  </Step>
-  <Step title="Configured Access">
-    Made your agent accessible for integration
-  </Step>
-</Steps>
-
----
-
-## Give Us Feedback
-
-You just completed your first agent! We'd love to know:
-
-- Was anything confusing?
-- What would make this easier?
-- What features would you want next?
-
-Click **"Give Feedback"** in the top right corner of the platform.
+Ready to integrate your agent into your applications? You can access your deployed agents through REST APIs, WebSocket connections, or embed them directly into websites and SharePoint. This enables seamless integration with existing software systems and user interfaces.
 
 ---
 
 ## Next Steps
 
 <CardGroup cols={2}>
+  <Card title="Connecting Your Agent" icon="plug" href="/guides/getting-started/connecting-your-agent">
+    Learn how to access your agent from software or websites using REST API, WebSocket, and embedding
+  </Card>
+  
   <Card title="YAML Configuration" icon="code" href="/guides/yaml-configuration">
-    Learn the full YAML structure and available options
+    Dive deeper into the agent framework with full configuration options and syntax
   </Card>
-  <Card title="Connect Your Agent" icon="plug" href="/guides/connecting-agents">
-    Integrate via REST API, WebSocket, or embed as a chatbot
-  </Card>
+  
   <Card title="Multi-Agent Workflows" icon="diagram-project" href="/guides/multi-agent-workflows">
-    Build complex systems with multiple agents working together
+    Build complex agent systems with multiple interconnected agents
   </Card>
-  <Card title="Monitoring & Tracing" icon="chart-line" href="/guides/monitoring-analytics">
-    Track performance and debug your agents in production
+  
+  <Card title="Monitoring & Analytics" icon="chart-line" href="/guides/monitoring-analytics">
+    Track performance, debug issues, and analyze agent usage
   </Card>
 </CardGroup>
 
----
-
-## Common Issues
-
-<AccordionGroup>
-  <Accordion title="Agent Preview shows 'Disconnected'">
-    This usually means:
-    - Your YAML has syntax errors (check with "Validate YAML")
-    - The agent configuration is incomplete
-    - WebSocket connection issues
-    
-    Try reloading the page or checking the browser console for errors.
-  </Accordion>
-  
-  <Accordion title="Knowledge base not working">
-    Make sure:
-    - The data source upload is complete (check status)
-    - You spelled the knowledge base name correctly in YAML
-    - The knowledge base is referenced in the `knowledge_bases: []` array
-  </Accordion>
-  
-  <Accordion title="Can't save my agent">
-    Ensure:
-    - Your YAML passes validation
-    - You have a unique agent name
-    - All required fields are filled
-  </Accordion>
-</AccordionGroup>
-
-<Tip>
-If you're stuck, use the feedback button to reach out. We're actively supporting alpha users and respond quickly.
-</Tip>
+<Card title="Feedback" icon="comment" iconType="duotone" color="#8b5cf6">
+  Questions or suggestions? Click **"Give Feedback"** in the platform or email **lorenz.stirnweis@arttacsolutions.de**
+</Card>

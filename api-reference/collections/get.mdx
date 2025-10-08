@@ -1,0 +1,53 @@
+---
+title: 'Get Collection'
+openapi: 'GET /api/v1/collections/{collection_id}/'
+---
+
+Retrieve collection details including all data sources.
+
+<ParamField path="collection_id" type="string" required>
+  The collection ID
+</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl -X GET https://api-be.atthene.com/api/v1/collections/coll_123/ \
+  -H "x-api-key: YOUR_API_KEY"
+```
+
+```python Python
+import requests
+
+response = requests.get(
+    "https://api-be.atthene.com/api/v1/collections/coll_123/",
+    headers={"x-api-key": "YOUR_API_KEY"}
+)
+collection = response.json()
+```
+</CodeGroup>
+
+## Response
+
+```json
+{
+  "id": "coll_123",
+  "name": "Product Documentation",
+  "description": "All product manuals and guides",
+  "status": "completed",
+  "progress": 100,
+  "data_source_count": 15,
+  "total_size": 52428800,
+  "datasources": [
+    {
+      "id": "cds_1",
+      "data_source": "file_123",
+      "data_source_name": "manual.pdf",
+      "data_source_type": "document",
+      "data_source_size": 3495253,
+      "created_at": "2025-01-15T10:30:00Z"
+    }
+  ],
+  "created_at": "2025-01-15T10:30:00Z",
+  "updated_at": "2025-01-15T10:35:00Z"
+}
+```

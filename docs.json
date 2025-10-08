@@ -7,34 +7,25 @@
     "light": "#818CF8",
     "dark": "#4F46E5"
   },
-  "favicon": "/favicon.ico",
+  "favicon": "/logo/atthene_white.svg",
   "css": ["styles.css"],
   "navigation": {
     "tabs": [
       {
-        "tab": "Guides",
+        "tab": "Documentation",
         "groups": [
           {
             "group": "Getting started",
+            "icon": "rocket",
             "pages": [
               "index",
               "guides/getting-started/quickstart",
-              "guides/getting-started/platform-overview",
-              "guides/getting-started/yaml-configuration",
               "guides/getting-started/connecting-your-agent"
             ]
           },
           {
-            "group": "Platform",
-            "pages": [
-              "guides/platform/prompts",
-              "guides/platform/tools",
-              "guides/platform/knowledge-bases",
-              "guides/platform/roadmap"
-            ]
-          },
-          {
             "group": "Agent Configuration",
+            "icon": "gear",
             "pages": [
               "guides/yaml-configuration",
               "guides/agent-types",
@@ -43,20 +34,19 @@
             ]
           },
           {
-            "group": "Integration",
-            "pages": [
-              "guides/connecting-services",
-              "guides/embedding-agents",
-              "guides/chatbot-integration",
-              "guides/custom-tools"
-            ]
+            "group": "Platform",
+            "icon": "cube",
+            "pages": ["guides/platform/roadmap"]
           },
+
           {
-            "group": "Advanced Features",
+            "group": "Integration",
+            "icon": "plug",
             "pages": [
-              "guides/multi-agent-workflows",
-              "guides/monitoring-analytics",
-              "guides/compliance-security"
+              "guides/integration/connecting-services",
+              "guides/integration/embedding-agents",
+              "guides/integration/chatbot-integration",
+              "guides/integration/custom-tools"
             ]
           }
         ]
@@ -72,29 +62,101 @@
             ]
           },
           {
-            "group": "Endpoints",
+            "group": "Agents",
             "pages": [
-              "api-reference/agents",
-              "api-reference/sessions",
-              "api-reference/runtime",
-              "api-reference/files",
-              "api-reference/collections",
-              "api-reference/knowledge-bases"
+              "api-reference/agents/overview",
+              "api-reference/agents/list",
+              "api-reference/agents/create",
+              "api-reference/agents/get",
+              "api-reference/agents/update",
+              "api-reference/agents/delete",
+              "api-reference/agents/validate"
+            ]
+          },
+          {
+            "group": "Sessions",
+            "pages": [
+              "api-reference/sessions/overview",
+              "api-reference/sessions/create",
+              "api-reference/sessions/list",
+              "api-reference/sessions/get",
+              "api-reference/sessions/from-agent"
+            ]
+          },
+          {
+            "group": "Runtime",
+            "pages": [
+              "api-reference/runtime/overview",
+              "api-reference/runtime/execute",
+              "api-reference/runtime/messages",
+              "api-reference/runtime/status"
+            ]
+          },
+          {
+            "group": "Files",
+            "pages": [
+              "api-reference/files/overview",
+              "api-reference/files/list",
+              "api-reference/files/upload",
+              "api-reference/files/get",
+              "api-reference/files/delete",
+              "api-reference/files/bulk-operations"
+            ]
+          },
+          {
+            "group": "Collections",
+            "pages": [
+              "api-reference/collections/overview",
+              "api-reference/collections/list",
+              "api-reference/collections/create",
+              "api-reference/collections/get",
+              "api-reference/collections/update",
+              "api-reference/collections/delete",
+              "api-reference/collections/add-file",
+              "api-reference/collections/remove-file",
+              "api-reference/collections/bulk-operations"
+            ]
+          },
+          {
+            "group": "Knowledge Bases",
+            "pages": [
+              "api-reference/knowledge-bases/overview",
+              "api-reference/knowledge-bases/list",
+              "api-reference/knowledge-bases/create",
+              "api-reference/knowledge-bases/get",
+              "api-reference/knowledge-bases/update",
+              "api-reference/knowledge-bases/delete",
+              "api-reference/knowledge-bases/check-status",
+              "api-reference/knowledge-bases/available-collections"
             ]
           }
         ]
       }
-    ]
+    ],
+    "global": {
+      "anchors": [
+        {
+          "anchor": "Atthene Website",
+          "href": "https://atthene.ai",
+          "icon": "globe"
+        },
+        {
+          "anchor": "Atthene Agent Studio",
+          "href": "https://amas.atthene.com",
+          "icon": "window"
+        }
+      ]
+    }
   },
   "logo": {
-    "light": "/images/hero-light.png",
-    "dark": "/images/hero-dark.png"
+    "light": "/logo/atthene_black.svg",
+    "dark": "/logo/atthene_white.svg"
   },
   "navbar": {
     "links": [
       {
         "label": "Support",
-        "href": "mailto:support@atthene.com"
+        "href": "mailto:lorenz.stirnweis@arttacsolutions.de"
       }
     ],
     "primary": {
@@ -104,21 +166,11 @@
     }
   },
   "contextual": {
-    "options": [
-      "copy",
-      "view",
-      "chatgpt",
-      "claude",
-      "perplexity",
-      "mcp",
-      "cursor",
-      "vscode"
-    ]
+    "options": ["copy", "view", "chatgpt", "claude", "perplexity"]
   },
   "footer": {
     "socials": {
-      "linkedin": "https://www.linkedin.com/company/arttacsolutions",
-      "twitter": "https://twitter.com/atthene_ai"
+      "linkedin": "https://www.linkedin.com/company/arttacsolutions"
     }
   }
 }

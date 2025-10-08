@@ -1,0 +1,66 @@
+---
+title: 'Add File to Collection'
+openapi: 'POST /api/v1/collections/{collection_id}/files/'
+---
+
+Add files to a collection for processing.
+
+<ParamField path="collection_id" type="string" required>
+  The collection ID
+</ParamField>
+
+## Request Body
+
+<ParamField body="file_ids" type="array" required>
+  Array of file IDs to add to the collection
+</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl -X POST https://api-be.atthene.com/api/v1/collections/coll_123/files/ \
+  -H "x-api-key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "file_ids": ["file_123", "file_456", "file_789"]
+  }'
+```
+
+```python Python
+import requests
+
+data = {
+    "file_ids": ["file_123", "file_456", "file_789"]
+}
+
+response = requests.post(
+    "https://api-be.atthene.com/api/v1/collections/coll_123/files/",
+    headers={"x-api-key": "YOUR_API_KEY"},
+    json=data
+)
+result = response.json()
+```
+</CodeGroup>
+
+## Response
+
+```json
+{
+  "success": true,
+  "added": 3,
+  "failed": 0,
+  "results": [
+    {
+      "file_id": "file_123",
+      "status": "added"
+    },
+    {
+      "file_id": "file_456", 
+      "status": "added"
+    },
+    {
+      "file_id": "file_789",
+      "status": "added"
+    }
+  ]
+}
+```

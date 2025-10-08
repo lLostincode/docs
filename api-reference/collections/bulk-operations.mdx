@@ -1,0 +1,82 @@
+---
+title: 'Collection Bulk Operations'
+openapi: 'POST /api/v1/collections/{collection_id}/bulk/'
+---
+
+Perform bulk operations on collection files.
+
+<ParamField path="collection_id" type="string" required>
+  The collection ID
+</ParamField>
+
+## Request Body
+
+<ParamField body="operation" type="string" required>
+  The operation: `add_files`, `remove_files`
+</ParamField>
+
+<ParamField body="file_ids" type="array" required>
+  Array of file IDs to operate on
+</ParamField>
+
+### Bulk Add Files
+
+<CodeGroup>
+```bash cURL
+curl -X POST https://api-be.atthene.com/api/v1/collections/coll_123/bulk/ \
+  -H "x-api-key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "operation": "add_files",
+    "file_ids": ["file_123", "file_456", "file_789"]
+  }'
+```
+
+```python Python
+import requests
+
+data = {
+    "operation": "add_files",
+    "file_ids": ["file_123", "file_456", "file_789"]
+}
+
+response = requests.post(
+    "https://api-be.atthene.com/api/v1/collections/coll_123/bulk/",
+    headers={"x-api-key": "YOUR_API_KEY"},
+    json=data
+)
+```
+</CodeGroup>
+
+### Bulk Remove Files
+
+```json
+{
+  "operation": "remove_files",
+  "file_ids": ["file_456", "file_789"]
+}
+```
+
+## Response
+
+```json
+{
+  "success": true,
+  "processed": 3,
+  "failed": 0,
+  "results": [
+    {
+      "file_id": "file_123",
+      "status": "success"
+    },
+    {
+      "file_id": "file_456",
+      "status": "success" 
+    },
+    {
+      "file_id": "file_789",
+      "status": "success"
+    }
+  ]
+}
+```

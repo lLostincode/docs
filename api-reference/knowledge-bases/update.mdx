@@ -1,0 +1,67 @@
+---
+title: 'Update Knowledge Base'
+openapi: 'PATCH /api/v1/knowledge-bases/{kb_id}/'
+---
+
+Modify knowledge base settings (name and description).
+
+<ParamField path="kb_id" type="string" required>
+  The knowledge base ID
+</ParamField>
+
+## Request Body
+
+<ParamField body="name" type="string">
+  Updated knowledge base name
+</ParamField>
+
+<ParamField body="description" type="string">
+  Updated description
+</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl -X PATCH https://api-be.atthene.com/api/v1/knowledge-bases/kb_123/ \
+  -H "x-api-key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Updated Product Knowledge Base",
+    "description": "Comprehensive product documentation and user guides"
+  }'
+```
+
+```python Python
+import requests
+
+data = {
+    "name": "Updated Product Knowledge Base",
+    "description": "Comprehensive product documentation and user guides"
+}
+
+response = requests.patch(
+    "https://api-be.atthene.com/api/v1/knowledge-bases/kb_123/",
+    headers={"x-api-key": "YOUR_API_KEY"},
+    json=data
+)
+```
+
+```javascript JavaScript
+const data = {
+  name: "Updated Product Knowledge Base",
+  description: "Comprehensive product documentation and user guides"
+};
+
+const response = await fetch('https://api-be.atthene.com/api/v1/knowledge-bases/kb_123/', {
+  method: 'PATCH',
+  headers: {
+    'x-api-key': 'YOUR_API_KEY',
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify(data)
+});
+```
+</CodeGroup>
+
+## Response
+
+Returns the updated knowledge base object with new `updated_at` timestamp.
