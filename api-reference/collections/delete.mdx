@@ -1,0 +1,34 @@
+---
+title: 'Delete Collection'
+openapi: 'DELETE /api/v1/collections/{collection_id}/'
+---
+
+Remove a collection and all its data sources.
+
+<ParamField path="collection_id" type="string" required>
+  The collection ID
+</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl -X DELETE https://api-be.atthene.com/api/v1/collections/coll_123/ \
+  -H "x-api-key: YOUR_API_KEY"
+```
+
+```python Python
+import requests
+
+response = requests.delete(
+    "https://api-be.atthene.com/api/v1/collections/coll_123/",
+    headers={"x-api-key": "YOUR_API_KEY"}
+)
+```
+</CodeGroup>
+
+## Response
+
+Returns `204 No Content` on success.
+
+<Warning>
+This action permanently deletes the collection and removes it from any knowledge bases that reference it.
+</Warning>

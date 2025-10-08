@@ -1,0 +1,81 @@
+---
+title: "Sessions API Overview"
+description: "Create and manage agent sessions for conversations"
+---
+
+The Sessions API allows you to create and manage agent sessions. Sessions represent individual conversation instances with agents, providing isolated contexts for interactions.
+
+## Key Features
+
+- **Session Management**: Create sessions from agent configurations or YAML
+- **Flexible Creation**: Use existing agents or provide inline configurations
+- **Session Tracking**: Unique session IDs for conversation management
+- **Configuration Hashing**: Track configuration changes
+
+## Authentication
+
+All endpoints require authentication using your API key:
+- **API Key**: `x-api-key: <key>`
+
+## Available Endpoints
+
+<CardGroup cols={2}>
+  <Card title="Create Session" icon="plus" href="/api-reference/sessions/create">
+    Create a new session with YAML configuration
+  </Card>
+  <Card title="List Sessions" icon="list" href="/api-reference/sessions/list">
+    Retrieve all sessions for your account
+  </Card>
+  <Card title="Get Session" icon="eye" href="/api-reference/sessions/get">
+    Retrieve details of a specific session
+  </Card>
+  <Card title="Create from Agent" icon="robot" href="/api-reference/sessions/from-agent">
+    Create session from existing agent configuration
+  </Card>
+</CardGroup>
+
+## Session Creation Methods
+
+### From YAML Configuration
+Create sessions by providing a complete agent configuration in YAML or JSON format. This is useful for:
+- Testing new configurations
+- One-off conversations
+- Dynamic agent behavior
+
+### From Existing Agent
+Create sessions from pre-configured agents for:
+- Production deployments
+- Consistent behavior
+- Reusing tested configurations
+
+## Session Lifecycle
+
+1. **Creation**: Session created with agent configuration
+2. **Active**: Ready to receive and process messages
+3. **Runtime**: Messages executed through Runtime API
+4. **Tracking**: Session state maintained throughout conversation
+
+<Note>
+Sessions maintain their configuration throughout their lifecycle. To change agent behavior, create a new session.
+</Note>
+
+## Common Response Fields
+
+<ResponseField name="session_id" type="string">
+  Unique session identifier for runtime operations
+</ResponseField>
+
+<ResponseField name="config_hash" type="string">
+  Hash of the agent configuration used for this session
+</ResponseField>
+
+<ResponseField name="success" type="boolean">
+  Indicates whether the session was created successfully
+</ResponseField>
+
+## Next Steps
+
+Once you have a session, use the [Runtime API](/api-reference/runtime/overview) to:
+- Execute messages
+- Retrieve conversation history
+- Monitor session status

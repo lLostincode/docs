@@ -1,0 +1,47 @@
+---
+title: 'List Sessions'
+openapi: 'GET /api/v1/sessions/'
+---
+
+Retrieve all sessions for your account.
+
+<CodeGroup>
+```bash cURL
+curl -X GET https://api-be.atthene.com/api/v1/sessions/ \
+  -H "x-api-key: YOUR_API_KEY"
+```
+
+```python Python
+import requests
+
+response = requests.get(
+    "https://api-be.atthene.com/api/v1/sessions/",
+    headers={"x-api-key": "YOUR_API_KEY"}
+)
+sessions = response.json()
+```
+
+```javascript JavaScript
+const response = await fetch('https://api-be.atthene.com/api/v1/sessions/', {
+  headers: {
+    'x-api-key': 'YOUR_API_KEY'
+  }
+});
+const sessions = await response.json();
+```
+</CodeGroup>
+
+## Response
+
+Returns an array of session objects:
+
+```json
+[
+  {
+    "session_id": "session_abc123",
+    "config_hash": "a1b2c3d4e5f6",
+    "created_at": "2025-01-15T10:30:00Z",
+    "status": "active"
+  }
+]
+```

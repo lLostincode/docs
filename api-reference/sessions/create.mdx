@@ -1,0 +1,88 @@
+---
+title: 'Create Session'
+openapi: 'POST /api/v1/sessions/'
+---
+
+Create a new session with a complete YAML agent configuration. Sessions represent individual conversation instances with agents.
+
+## Request Body
+
+Send the complete agent configuration in YAML or JSON format.
+
+<CodeGroup>
+```bash cURL
+curl -X POST https://api-be.atthene.com/api/v1/sessions/ \
+  -H "x-api-key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Support Session",
+    "agent_type": "llm_agent",
+    "system_prompt": "You are a helpful customer support agent.",
+    "llm_config": {
+      "model": "gpt-4o",
+      "temperature": 0.7
+    },
+    "tools": ["tavily_search"]
+  }'
+```
+
+```python Python
+import requests
+
+config = {
+    "name": "Support Session",
+    "agent_type": "llm_agent", 
+    "system_prompt": "You are a helpful customer support agent.",
+    "llm_config": {
+        "model": "gpt-4o",
+        "temperature": 0.7
+    },
+    "tools": ["tavily_search"]
+}
+
+response = requests.post(
+    "https://api-be.atthene.com/api/v1/sessions/",
+    headers={"x-api-key": "YOUR_API_KEY"},
+    json=config
+)
+session = response.json()
+```
+
+```javascript JavaScript
+const config = {
+  name: "Support Session",
+  agent_type: "llm_agent",
+  system_prompt: "You are a helpful customer support agent.",
+  llm_config: {
+    model: "gpt-4o", 
+    temperature: 0.7
+  },
+  tools: ["tavily_search"]
+};
+
+const response = await fetch('https://api-be.atthene.com/api/v1/sessions/', {
+  method: 'POST',
+  headers: {
+    'x-api-key': 'YOUR_API_KEY',
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify(config)
+});
+
+const session = await response.json();
+```
+</CodeGroup>
+
+## Response
+
+```json
+{
+  "success": true,
+  "session_id": "session_abc123",
+  "config_hash": "a1b2c3d4e5f6"
+}
+```
+
+<Note>
+The returned `session_id` is used for all runtime operations with this session.
+</Note>

@@ -1,0 +1,158 @@
+---
+title: "Quickstart"
+description: "Build and test your first agent"
+---
+
+## Overview
+
+This guide covers the essentials: create an agent, test it in the playground, add knowledge retrieval, and configure access. Expected time: 10 minutes.
+
+<Info>
+**Prerequisites**: Atthene Agents Studio account, basic YAML familiarity
+</Info>
+
+---
+
+## Create Your First Agent
+
+### Access the Playground
+
+Navigate to **Playground** in the sidebar. You'll see:
+- Left panel: YAML configuration editor
+- Right panel: Agent Preview for testing
+
+### Load a Template
+
+Click **"Load Config"** and select **"Basic Dynamic Agent Test"** to start with a working configuration.
+
+<Accordion title="Template structure">
+```yaml
+name: "Basic Dynamic Agent Test"
+description: "Test configuration for basic dynamic agent loading"
+save_messages: true
+persistent_state: true
+
+agents:
+  - name: "test_basic_agent"
+    agent_type: "llm_agent"
+    description: "A simple sessional agent for testing dynamic loading"
+    system_prompt: "You are a helpful AI assistant."
+    llm_config:
+      temperature: 1.0
+      max_tokens: 500
+    memory_config: {}
+    knowledge_bases: []
+    streaming_config:
+      show_output_to_user: true
+
+edges:
+  - from: "__start__"
+    to: "test_basic_agent"
+  - from: "test_basic_agent"
+    to: "__end__"
+
+entry_point: "test_basic_agent"
+```
+</Accordion>
+
+### Test the Agent
+
+Click on `Load Configuration`.
+
+Verify the Agent Preview shows **"Connected"**, then send a test message. The agent uses the loaded configuration to respond.
+
+---
+
+## Add Knowledge Retrieval
+
+Knowledge retrieval requires creating a chain of entities: Data Source → Collection → Knowledge Base → Retrieval Method.
+
+### Create Data Source
+
+Navigate to **Knowledge Base** → **Data Sources** tab.
+
+Click **"+ Add Data Source"** and upload your files. Wait for processing to complete.
+
+### Create Collection
+
+Go to **Collections** tab.
+
+Click **"+ Create Collection"** and add your data source(s) to it. Collections group related documents.
+
+### Create Knowledge Base
+
+Navigate to **Knowledge Bases** tab.
+
+Click **"+ Create Knowledge Base"** and select your collection. This creates a searchable index.
+
+### Configure Retrieval Method
+
+In **Retrieval Methods** tab:
+
+1. Click **"+ Create Retrieval Method"**
+2. Select your knowledge base
+3. Configure search parameters (similarity threshold, max results, etc.)
+4. Copy the generated configuration string
+
+### Connect to Agent
+
+Paste the copied configuration into your YAML:
+```yaml
+agents:
+  - name: "test_basic_agent"
+    knowledge_bases: ["kb_uuid_from_copied_config"]  # Paste here
+```
+
+Load the new configuration and test with questions about your uploaded content. The agent retrieves and references relevant information based on your retrieval method settings.
+
+---
+
+## Save and Deploy
+
+### Persist Your Agent
+
+Click **"Save as Agent"** in the editor, provide a name.
+
+<Check>
+Saved agents appear in **Agent Overview** and can be accessed via API or embedded.
+</Check>
+
+### Deploy a Version
+
+Saving creates a new version. To make it active for API/connections:
+
+**Agent Overview** → Select agent → **Settings** → **Versions** → Click **Deploy** on desired version
+
+<Info>
+The version with the **"current"** banner is actively deployed and handles all API requests and connections.
+</Info>
+
+### Access Your Agent from Software or Websites
+
+Ready to integrate your agent into your applications? You can access your deployed agents through REST APIs, WebSocket connections, or embed them directly into websites and SharePoint. This enables seamless integration with existing software systems and user interfaces.
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Connecting Your Agent" icon="plug" href="/guides/getting-started/connecting-your-agent">
+    Learn how to access your agent from software or websites using REST API, WebSocket, and embedding
+  </Card>
+  
+  <Card title="YAML Configuration" icon="code" href="/guides/yaml-configuration">
+    Dive deeper into the agent framework with full configuration options and syntax
+  </Card>
+  
+  <Card title="Multi-Agent Workflows" icon="diagram-project" href="/guides/multi-agent-workflows">
+    Build complex agent systems with multiple interconnected agents
+  </Card>
+  
+  <Card title="Monitoring & Analytics" icon="chart-line" href="/guides/monitoring-analytics">
+    Track performance, debug issues, and analyze agent usage
+  </Card>
+</CardGroup>
+
+<Card title="Feedback" icon="comment" iconType="duotone" color="#8b5cf6">
+  Questions or suggestions? Click **"Give Feedback"** in the platform or email **lorenz.stirnweis@arttacsolutions.de**
+</Card>

@@ -1,0 +1,43 @@
+---
+title: 'Delete File'
+openapi: 'DELETE /api/v1/files/{file_id}/'
+---
+
+Remove a file from the system.
+
+<ParamField path="file_id" type="string" required>
+  The file ID
+</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl -X DELETE https://api-be.atthene.com/api/v1/files/file_123/ \
+  -H "x-api-key: YOUR_API_KEY"
+```
+
+```python Python
+import requests
+
+response = requests.delete(
+    "https://api-be.atthene.com/api/v1/files/file_123/",
+    headers={"x-api-key": "YOUR_API_KEY"}
+)
+```
+
+```javascript JavaScript
+const response = await fetch('https://api-be.atthene.com/api/v1/files/file_123/', {
+  method: 'DELETE',
+  headers: {
+    'x-api-key': 'YOUR_API_KEY'
+  }
+});
+```
+</CodeGroup>
+
+## Response
+
+Returns `204 No Content` on success.
+
+<Warning>
+Deleting a file will remove it from all collections and knowledge bases that reference it.
+</Warning>

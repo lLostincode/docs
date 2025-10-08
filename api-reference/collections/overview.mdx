@@ -1,0 +1,168 @@
+---
+title: "Collections API Overview"
+description: "Organize files into collections for knowledge bases"
+---
+
+The Collections API allows you to create and manage collections of files. Collections group related data sources for organized knowledge management and serve as building blocks for knowledge bases.
+
+## Key Features
+
+- **File Organization**: Group related files into logical collections
+- **Collection Management**: Create, update, and delete collections
+- **File Operations**: Add and remove files from collections
+- **Bulk Processing**: Handle multiple files efficiently
+- **Status Tracking**: Monitor collection processing progress
+
+## Authentication
+
+All endpoints require authentication using your API key:
+- **API Key**: `x-api-key: <key>`
+
+## Available Endpoints
+
+<CardGroup cols={2}>
+  <Card title="List Collections" icon="list" href="/api-reference/collections/list">
+    Retrieve all your collections
+  </Card>
+  <Card title="Create Collection" icon="plus" href="/api-reference/collections/create">
+    Create a new file collection
+  </Card>
+  <Card title="Get Collection" icon="eye" href="/api-reference/collections/get">
+    Retrieve collection details
+  </Card>
+  <Card title="Update Collection" icon="pen" href="/api-reference/collections/update">
+    Modify collection metadata
+  </Card>
+  <Card title="Delete Collection" icon="trash" href="/api-reference/collections/delete">
+    Remove a collection
+  </Card>
+  <Card title="Add File" icon="plus-circle" href="/api-reference/collections/add-file">
+    Add files to a collection
+  </Card>
+  <Card title="Remove File" icon="minus-circle" href="/api-reference/collections/remove-file">
+    Remove files from a collection
+  </Card>
+  <Card title="Bulk Operations" icon="layers" href="/api-reference/collections/bulk-operations">
+    Perform bulk file operations
+  </Card>
+</CardGroup>
+
+## Collection Lifecycle
+
+### 1. Creation
+Collections start empty and ready to receive files:
+```json
+{
+  "name": "Product Documentation",
+  "description": "All product manuals and guides"
+}
+```
+
+### 2. File Addition
+Add files individually or in bulk:
+- **Single files**: Add one file at a time
+- **Bulk upload**: Add multiple files efficiently
+- **Validation**: Ensure files exist and are accessible
+
+### 3. Processing
+Collections process their files for knowledge base integration:
+- **Text extraction**: Extract searchable content
+- **Indexing**: Prepare for vector search
+- **Validation**: Ensure content quality
+
+### 4. Completion
+Ready collections can be used in knowledge bases.
+
+## Collection Status
+
+<AccordionGroup>
+  <Accordion title="pending">
+    Collection created but processing not started
+  </Accordion>
+  <Accordion title="running">
+    Files are being processed for the collection
+  </Accordion>
+  <Accordion title="completed">
+    All files processed successfully
+  </Accordion>
+  <Accordion title="failed">
+    Processing failed - check error details
+  </Accordion>
+</AccordionGroup>
+
+## Data Sources
+
+Collections contain data sources (files) with metadata:
+
+<ResponseField name="id" type="string">
+  Unique data source identifier
+</ResponseField>
+
+<ResponseField name="data_source" type="string">
+  Reference to the original file ID
+</ResponseField>
+
+<ResponseField name="data_source_name" type="string">
+  Human-readable name of the file
+</ResponseField>
+
+<ResponseField name="data_source_type" type="string">
+  Type of content (document, image, etc.)
+</ResponseField>
+
+<ResponseField name="data_source_size" type="integer">
+  Size of the file in bytes
+</ResponseField>
+
+## Collection Organization
+
+### Best Practices
+
+<Tip>
+**Logical Grouping**: Group files by topic, project, or department for better organization.
+</Tip>
+
+<Tip>
+**Size Management**: Keep collections reasonably sized (50-500 files) for optimal processing.
+</Tip>
+
+<Tip>
+**Naming Convention**: Use descriptive names that clearly indicate the collection's purpose.
+</Tip>
+
+### Common Patterns
+
+- **By Department**: HR policies, Engineering docs, Sales materials
+- **By Product**: Product A manuals, Product B guides
+- **By Content Type**: FAQs, Policies, Procedures
+- **By Project**: Project Alpha docs, Project Beta resources
+
+## Integration with Knowledge Bases
+
+Collections serve as input for knowledge bases:
+
+1. **Collection Completion**: Ensure all files are processed
+2. **Knowledge Base Creation**: Reference collections in KB configuration
+3. **Processing**: Knowledge base processes collection content
+4. **Agent Integration**: Agents can query the knowledge base
+
+<Note>
+Collections must be in "completed" status before they can be used in knowledge bases.
+</Note>
+
+## Monitoring and Troubleshooting
+
+### Progress Tracking
+Monitor collection processing:
+- **Progress percentage**: Overall completion status
+- **File counts**: Total vs. processed files
+- **Error tracking**: Failed files and reasons
+
+### Common Issues
+- **File access errors**: Check file permissions and existence
+- **Processing failures**: Verify file formats are supported
+- **Size limits**: Ensure files meet size requirements
+
+<Warning>
+Large collections may take significant time to process. Monitor progress and plan accordingly.
+</Warning>

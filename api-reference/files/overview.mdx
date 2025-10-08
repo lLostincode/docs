@@ -1,0 +1,152 @@
+---
+title: "Files API Overview"
+description: "Upload and manage files for knowledge bases"
+---
+
+The Files API allows you to upload, manage, and organize files that can be used in knowledge bases. Files serve as data sources for agent retrieval and knowledge augmentation.
+
+## Key Features
+
+- **File Upload**: Support for multiple file formats
+- **File Management**: List, organize, and delete files
+- **Metadata Tracking**: File types, sizes, and processing status
+- **Bulk Operations**: Efficient handling of multiple files
+- **Search & Filtering**: Find files by name, type, or tags
+
+## Authentication
+
+All endpoints require authentication using your API key:
+- **API Key**: `x-api-key: <key>`
+
+## Available Endpoints
+
+<CardGroup cols={2}>
+  <Card title="List Files" icon="list" href="/api-reference/files/list">
+    Retrieve all accessible files
+  </Card>
+  <Card title="Upload File" icon="upload" href="/api-reference/files/upload">
+    Upload a new file to the system
+  </Card>
+  <Card title="Get File" icon="eye" href="/api-reference/files/get">
+    Retrieve file details and metadata
+  </Card>
+  <Card title="Delete File" icon="trash" href="/api-reference/files/delete">
+    Remove a file from the system
+  </Card>
+  <Card title="Bulk Operations" icon="layers" href="/api-reference/files/bulk-operations">
+    Perform operations on multiple files
+  </Card>
+</CardGroup>
+
+## Supported File Types
+
+<Tabs>
+  <Tab title="Documents">
+    - **PDF**: `.pdf`
+    - **Word**: `.doc`, `.docx`
+    - **Text**: `.txt`, `.md`
+    - **Rich Text**: `.rtf`
+  </Tab>
+  <Tab title="Images">
+    - **Common**: `.jpg`, `.jpeg`, `.png`, `.gif`
+    - **Professional**: `.tiff`, `.bmp`, `.webp`
+    - **Vector**: `.svg`
+  </Tab>
+  <Tab title="Data">
+    - **Spreadsheets**: `.xlsx`, `.csv`
+    - **JSON**: `.json`
+    - **XML**: `.xml`
+  </Tab>
+  <Tab title="Code">
+    - **Source**: `.py`, `.js`, `.java`, `.cpp`
+    - **Web**: `.html`, `.css`
+    - **Config**: `.yaml`, `.toml`
+  </Tab>
+</Tabs>
+
+## File Processing Pipeline
+
+1. **Upload**: File uploaded to secure storage
+2. **Validation**: Format and content verification
+3. **Processing**: Text extraction and analysis
+4. **Indexing**: Preparation for knowledge base integration
+5. **Ready**: Available for use in collections
+
+## File Status States
+
+<AccordionGroup>
+  <Accordion title="uploading">
+    File is being uploaded to the system
+  </Accordion>
+  <Accordion title="active">
+    File is processed and ready for use
+  </Accordion>
+  <Accordion title="archived">
+    File is archived but still accessible
+  </Accordion>
+  <Accordion title="deleted">
+    File is marked for deletion
+  </Accordion>
+  <Accordion title="error">
+    Processing failed - check error details
+  </Accordion>
+</AccordionGroup>
+
+## File Organization
+
+### Tags
+Organize files with custom tags:
+- **Project-based**: `project:website`, `project:mobile`
+- **Content-type**: `manual`, `policy`, `faq`
+- **Department**: `hr`, `engineering`, `sales`
+
+### Search & Filtering
+Find files efficiently:
+- **By name**: Partial filename matching
+- **By type**: Filter by document, image, etc.
+- **By status**: Active, archived, or error states
+- **By tags**: Multiple tag filtering
+
+<Tip>
+Use consistent tagging strategies to improve file organization and retrieval.
+</Tip>
+
+## File Metadata
+
+Each file includes comprehensive metadata:
+
+<ResponseField name="id" type="string">
+  Unique file identifier
+</ResponseField>
+
+<ResponseField name="original_filename" type="string">
+  Original name of the uploaded file
+</ResponseField>
+
+<ResponseField name="file_type" type="string">
+  Categorized file type (document, image, etc.)
+</ResponseField>
+
+<ResponseField name="size_bytes" type="integer">
+  File size in bytes
+</ResponseField>
+
+<ResponseField name="status" type="string">
+  Current processing status
+</ResponseField>
+
+<ResponseField name="tags" type="array">
+  Associated tags for organization
+</ResponseField>
+
+## Usage in Knowledge Bases
+
+Files can be:
+- **Added to collections**: Grouped with related files
+- **Processed for retrieval**: Text extracted and indexed
+- **Used by agents**: Referenced in knowledge base queries
+- **Updated or replaced**: Maintain current information
+
+<Note>
+Files must be added to collections before they can be used in knowledge bases.
+</Note>

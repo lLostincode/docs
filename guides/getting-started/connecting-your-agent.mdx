@@ -1,0 +1,467 @@
+---
+title: "Connecting Your Agent"
+description: "Integrate agents via REST API, WebSocket, or embedded chatbot"
+---
+
+## Integration Overview
+
+Once you've built and tested your agent in the Playground, you can integrate it into your applications using three methods:
+
+<CardGroup cols={3}>
+  <Card title="REST API" icon="server">
+    Server-side integration with request/response pattern
+  </Card>
+  <Card title="WebSocket" icon="bolt">
+    Real-time streaming for interactive applications
+  </Card>
+  <Card title="Embedded Chatbot" icon="message">
+    Drop-in chat widget for websites
+  </Card>
+</CardGroup>
+
+---
+
+## Before You Start
+
+### Get Your Credentials
+
+<Steps>
+  <Step title="Create an API Key">
+    Navigate to **Settings** in the platform and generate an API key for authentication.
+  </Step>
+  <Step title="Get Your Agent Key">
+    Find your agent's unique identifier in **Agent Overview** or **Agent Settings**.
+  </Step>
+  <Step title="Enable Public Access (if needed)">
+    For external integrations, enable public access and set an allowed origin URL in **Agent Settings**.
+  </Step>
+</Steps>
+
+### API Base URLs
+
+- **REST API**: `https://api-be.atthene.com/api/v1/`
+- **WebSocket**: `wss://api-be.atthene.com/ws/amas`
+
+---
+
+## Authentication
+
+All API requests require authentication using your API key:
+
+```bash
+x-api-key: YOUR_API_KEY_HERE
+```
+
+<Warning>
+Please check out the [API Introduction](/api-reference/introduction) for full details on authentication and available endpoints.
+</Warning>
+
+## Other headers
+
+On POST requests, you can use **Content-Type**: `application/json` or `application/yaml` (see [API Introduction](/api-reference/introduction) for more details).
+
+---
+
+## REST API Integration
+
+### Step 1: Create a Session
+
+Before sending messages, create a session to establish context. An agent session represents a loaded configuration. Sessions can be created directly from a configuration or from an existing agent. (deployed version)
+
+<Tabs>
+  <Tab title="From Saved Agent">
+    Use this method when connecting to a saved agent:
+    
+    ```bash
+    GET https://api-be.atthene.com/api/v1/sessions/from-agent/?agent_key={agent_key}
+    ```
+    
+    **Headers:**
+    ```bash
+    x-api-key: YOUR_API_KEY
+    ```
+    
+    **Response:**
+    ```json
+    {
+      "session_id": "sess_abc123xyz",
+      "agent_key": "agent_456def",
+      "created_at": "2025-10-06T10:30:00Z"
+    }
+    ```
+  </Tab>
+  
+  <Tab title="From YAML Config">
+    Use this method to create a session with a custom YAML configuration:
+    
+    ```bash
+    POST https://api-be.atthene.com/api/v1/sessions/
+    ```
+    
+    **Headers:**
+    ```bash
+    x-api-key: YOUR_API_KEY
+    Content-Type: application/yaml
+    ```
+    
+    **Body:**
+    ```yaml
+    name: "Dynamic Agent"
+    agents:
+      - name: "assistant"
+        agent_type: "llm_agent"
+        system_prompt: "You are a helpful assistant."
+        llm_config:
+          temperature: 0.7
+          max_tokens: 1000
+    edges:
+      - from: "__start__"
+        to: "assistant"
+      - from: "assistant"
+        to: "__end__"
+    entry_point: "assistant"
+    ```
+    
+    **Response:**
+    ```json
+    {
+      "session_id": "sess_abc123xyz",
+      "config_hash": "hash_789ghi",
+      "created_at": "2025-10-06T10:30:00Z"
+    }
+    ```
+  </Tab>
+</Tabs>
+
+### Step 2: Send Messages
+
+Once you have a session ID, you can execute a user message on a session:
+
+```bash
+POST https://api-be.atthene.com/api/v1/runtime/{session_id}/execute
+```
+
+**Headers:**
+```bash
+x-api-key: YOUR_API_KEY
+Content-Type: application/json
+```
+
+**Body:**
+```json
+{
+  "content": "What's the weather like today?",
+  "correlation_id": "optional-tracking-id"
+}
+```
+
+<Tabs>
+  <Tab title="Text Message">
+    For simple text messages, use a string:
+    
+    ```json
+    {
+      "content": "What's the weather like today?"
+    }
+    ```
+  </Tab>
+  
+  <Tab title="Multimodal Message">
+    <Note>
+    NOT YET SUPPORTED
+    </Note> 
+    For messages with images, files, or mixed content, use an array of content blocks:
+    
+    ```json
+    {
+      "content": [
+        {
+          "type": "text",
+          "text": "Can you analyze this image?"
+        },
+        {
+          "type": "image",
+          "source": {
+            "type": "base64",
+            "media_type": "image/jpeg",
+            "data": "base64-encoded-image-data"
+          }
+        }
+      ],
+      "correlation_id": "image-analysis-123"
+    }
+    ```
+  </Tab>
+  
+  <Tab title="File Upload">
+    <Note>
+    NOT YET SUPPORTED
+    </Note>
+    For file uploads (PDFs, documents, etc.):
+    
+    ```json
+    {
+      "content": [
+        {
+          "type": "text", 
+          "text": "Please summarize this document"
+        },
+        {
+          "type": "file",
+          "source": {
+            "type": "base64",
+            "media_type": "application/pdf",
+            "filename": "report.pdf",
+            "data": "base64-encoded-file-data"
+          }
+        }
+      ]
+    }
+    ```
+  </Tab>
+</Tabs>
+
+**Parameters:**
+- `content` (required): User input - either a simple text string or an array of content blocks for multimodal messages
+- `correlation_id` (optional): Custom tracking ID for response identification.
+
+**Response:**
+```json
+{
+  "type": "execution_result",
+  "client_type": "backend",
+  "session_id": "sess_abc123xyz",
+  "status": "completed",
+  "execution_time": 2.34,
+  "messages": [
+    {
+      "type": "assistant_message",
+      "role": "assistant",
+      "content": "I'd be happy to help you check the weather...",
+      "timestamp": "2025-10-06T10:31:00Z"
+    }
+  ],
+  "error": null,
+  "events": [],
+  "timestamp": "2025-10-06T10:31:00Z",
+  "correlation_id": "optional-tracking-id"
+}
+```
+
+**Response Fields:**
+- `type`: Always "execution_result"
+- `client_type`: Always "backend"
+- `session_id`: The session ID used for execution
+- `status`: Execution status - "completed", "error", or "timeout"
+- `execution_time`: Time taken to execute in seconds
+- `messages`: Array of messages generated during execution (typically assistant responses)
+- `error`: Error message if status is "error", otherwise null
+- `events`: Raw events collected during execution
+- `timestamp`: ISO timestamp when execution completed
+- `correlation_id`: The correlation ID from the original request (if provided)
+
+---
+
+## Direct WebSocket Integration
+
+Currently only supported with the embedded chatbot. Please let us know if you need this feature.
+
+---
+
+## Embedded Chatbot
+
+TODO
+
+The easiest way to add your agent to a website is using the embedded chatbot widget.
+
+### Step 1: Configure Public Access
+
+<Warning>
+Before embedding, you **must** configure public access in Agent Settings.
+</Warning>
+
+1. Go to **Agent Overview** and select your agent
+2. Open **Agent Settings**
+3. Enable **Public Access**
+4. Set **Allowed Origin URL** to your website domain
+   - Example: `https://your-website.com`
+   - This prevents unauthorized use of your agent
+
+### Step 2: Get the Embed Code
+
+The platform provides a JavaScript snippet to embed your agent:
+
+```html
+<!-- Add to your website's <head> or before </body> -->
+<script src="https://cdn.atthene.com/chat-widget.js"></script>
+<script>
+  AttheneChat.init({
+    agentKey: 'your_agent_key_here',
+    position: 'bottom-right',
+    theme: 'light'
+  });
+</script>
+```
+
+### Step 3: Customize the Widget
+
+```javascript
+AttheneChat.init({
+  agentKey: 'your_agent_key_here',
+  
+  // Position
+  position: 'bottom-right', // or 'bottom-left'
+  
+  // Appearance
+  theme: 'light', // or 'dark'
+  primaryColor: '#0066FF',
+  
+  // Behavior
+  welcomeMessage: 'Hi! How can I help you today?',
+  placeholder: 'Type your message...',
+  autoOpen: false,
+  
+  // Branding
+  title: 'Customer Support',
+  subtitle: 'We typically reply in minutes',
+  avatar: 'https://your-site.com/avatar.png'
+});
+```
+
+### Complete Embedding Example
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>My Website</title>
+</head>
+<body>
+  <h1>Welcome to My Website</h1>
+  <p>Need help? Chat with our AI assistant!</p>
+  
+  <!-- Atthene Chat Widget -->
+  <script src="https://cdn.atthene.com/chat-widget.js"></script>
+  <script>
+    AttheneChat.init({
+      agentKey: 'agent_abc123',
+      position: 'bottom-right',
+      theme: 'light',
+      primaryColor: '#0066FF',
+      welcomeMessage: 'Hi! I\'m here to help. What can I do for you?',
+      title: 'Support Assistant',
+      autoOpen: false
+    });
+  </script>
+</body>
+</html>
+```
+
+### Widget API
+
+Control the widget programmatically:
+
+```javascript
+// Open the chat window
+AttheneChat.open();
+
+// Close the chat window
+AttheneChat.close();
+
+// Send a message programmatically
+AttheneChat.sendMessage('Hello from the website!');
+
+// Listen for events
+AttheneChat.on('message', (message) => {
+  console.log('New message:', message);
+});
+
+AttheneChat.on('open', () => {
+  console.log('Chat opened');
+});
+
+AttheneChat.on('close', () => {
+  console.log('Chat closed');
+});
+```
+
+---
+
+## Testing Your Integration
+
+### Test in Development
+
+1. **Use Agent Preview First**: Always test in the Playground before integrating
+2. **Start with REST API**: Simpler to debug than WebSocket
+3. **Check Authentication**: Verify your API key works with a simple GET request
+4. **Monitor Tracing**: Use the Tracing section to see what your agent receives
+
+### Common Integration Issues
+
+<AccordionGroup>
+  <Accordion title="401 Unauthorized">
+    **Problem**: Invalid or missing API key
+    
+    **Solutions**:
+    - Verify API key is correct
+    - Check header format: `x-api-key: YOUR_KEY`
+    - Ensure key hasn't been revoked
+  </Accordion>
+  
+  <Accordion title="403 Forbidden (Embedded Widget)">
+    **Problem**: Origin URL not allowed
+    
+    **Solutions**:
+    - Add your domain to Allowed Origin URL in Agent Settings
+    - Include protocol: `https://your-site.com` not `your-site.com`
+    - Check for typos in domain name
+  </Accordion>
+  
+  <Accordion title="WebSocket Connection Failed">
+    **Problem**: Can't establish WebSocket connection
+    
+    **Solutions**:
+    - Ensure session was created via REST API first
+    - Check that you're using `wss://` (secure WebSocket)
+    - Verify firewall/proxy settings allow WebSocket
+    - Check browser console for detailed errors
+  </Accordion>
+  
+  <Accordion title="No Response from Agent">
+    **Problem**: Messages sent but no response
+    
+    **Solutions**:
+    - Check agent status in Agent Overview
+    - Verify session_id is correct
+    - Look at Tracing logs for errors
+    - Ensure agent configuration is valid
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## What's Next?
+
+<Tip>
+**Server-Sent Events (SSE)** support is being considered for a future release. If SSE is important for your use case, please let us know via the feedback button!
+</Tip>
+
+---
+
+## Additional Resources
+
+<CardGroup cols={2}>
+  <Card title="API Reference" icon="book" href="/api-reference/introduction">
+    Complete API documentation with all endpoints
+  </Card>
+  <Card title="TypeScript SDK" icon="code" href="/sdk/typescript">
+    Full SDK documentation and examples
+  </Card>
+  <Card title="Monitoring & Tracing" icon="chart-line" href="/guides/monitoring-analytics">
+    Track agent performance in production
+  </Card>
+  <Card title="Give Feedback" icon="comment">
+    Request features or report integration issues
+  </Card>
+</CardGroup>

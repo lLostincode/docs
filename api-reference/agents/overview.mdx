@@ -1,0 +1,82 @@
+---
+title: "Agents API Overview"
+description: "Manage agent configurations with CRUD operations and validation"
+---
+
+The Agent Configuration API allows you to create, manage, and validate agent configurations programmatically. Agents are the core entities that define AI assistant behavior, including their prompts, models, tools, and knowledge bases.
+
+## Key Features
+
+- **CRUD Operations**: Create, read, update, and delete agent configurations
+- **Validation**: Validate configurations before deployment
+- **Version Control**: Track configuration changes with hashes
+
+## Authentication
+
+All endpoints require authentication using your API key:
+- **API Key**: `x-api-key: <key>`
+
+## Available Endpoints
+
+<CardGroup cols={2}>
+  <Card title="List Agents" icon="list" href="/api-reference/agents/list">
+    Retrieve all agent configurations
+  </Card>
+  <Card title="Create Agent" icon="plus" href="/api-reference/agents/create">
+    Create a new agent configuration
+  </Card>
+  <Card title="Get Agent" icon="eye" href="/api-reference/agents/get">
+    Retrieve a specific agent by ID
+  </Card>
+  <Card title="Update Agent" icon="pen" href="/api-reference/agents/update">
+    Update an existing agent configuration
+  </Card>
+  <Card title="Delete Agent" icon="trash" href="/api-reference/agents/delete">
+    Delete an agent configuration
+  </Card>
+  <Card title="Validate Agent" icon="check" href="/api-reference/agents/validate">
+    Validate configuration without creating
+  </Card>
+</CardGroup>
+
+## Agent Configuration Structure
+
+Agents are configured using a `system_config` object that includes:
+
+- **Basic Settings**: Name, type, and architecture
+- **LLM Configuration**: Model, temperature, and other parameters
+- **System Prompt**: Instructions defining agent behavior
+- **Tools**: Available capabilities like search, code execution
+- **Knowledge Bases**: Connected data sources for retrieval
+
+<Note>
+The `agent_key` is automatically derived from the agent name and serves as a unique identifier.
+</Note>
+
+## Common Response Fields
+
+All agent endpoints return objects with these key fields:
+
+<ResponseField name="id" type="string">
+  Unique agent identifier (UUID)
+</ResponseField>
+
+<ResponseField name="agent_key" type="string">
+  Unique key derived from agent name
+</ResponseField>
+
+<ResponseField name="name" type="string">
+  Human-readable agent name
+</ResponseField>
+
+<ResponseField name="system_config" type="object">
+  Complete agent configuration including prompts, LLM settings, tools, and knowledge bases
+</ResponseField>
+
+<ResponseField name="version_number" type="string">
+  Current version of the agent configuration
+</ResponseField>
+
+<ResponseField name="config_hash" type="string">
+  Hash of the current configuration for change detection
+</ResponseField>

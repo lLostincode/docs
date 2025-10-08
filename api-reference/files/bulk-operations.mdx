@@ -1,0 +1,86 @@
+---
+title: 'Bulk File Operations'
+openapi: 'POST /api/v1/files/bulk/'
+---
+
+Perform operations on multiple files efficiently.
+
+## Request Body
+
+<ParamField body="operation" type="string" required>
+  The operation to perform: `delete`, `update_tags`, `change_status`
+</ParamField>
+
+<ParamField body="file_ids" type="array" required>
+  Array of file IDs to operate on
+</ParamField>
+
+<ParamField body="parameters" type="object">
+  Operation-specific parameters
+</ParamField>
+
+### Bulk Delete
+
+<CodeGroup>
+```bash cURL
+curl -X POST https://api-be.atthene.com/api/v1/files/bulk/ \
+  -H "x-api-key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "operation": "delete",
+    "file_ids": ["file_123", "file_456", "file_789"]
+  }'
+```
+
+```python Python
+import requests
+
+data = {
+    "operation": "delete",
+    "file_ids": ["file_123", "file_456", "file_789"]
+}
+
+response = requests.post(
+    "https://api-be.atthene.com/api/v1/files/bulk/",
+    headers={"x-api-key": "YOUR_API_KEY"},
+    json=data
+)
+result = response.json()
+```
+</CodeGroup>
+
+### Bulk Update Tags
+
+```json
+{
+  "operation": "update_tags",
+  "file_ids": ["file_123", "file_456"],
+  "parameters": {
+    "tags": ["updated", "batch_processed"]
+  }
+}
+```
+
+## Response
+
+```json
+{
+  "success": true,
+  "processed": 3,
+  "failed": 0,
+  "results": [
+    {
+      "file_id": "file_123",
+      "status": "success"
+    },
+    {
+      "file_id": "file_456", 
+      "status": "success"
+    },
+    {
+      "file_id": "file_789",
+      "status": "success"
+    }
+  ]
+}
+```

@@ -1,0 +1,43 @@
+---
+title: 'Delete Knowledge Base'
+openapi: 'DELETE /api/v1/knowledge-bases/{kb_id}/'
+---
+
+Remove a knowledge base and all its indexed content.
+
+<ParamField path="kb_id" type="string" required>
+  The knowledge base ID
+</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl -X DELETE https://api-be.atthene.com/api/v1/knowledge-bases/kb_123/ \
+  -H "x-api-key: YOUR_API_KEY"
+```
+
+```python Python
+import requests
+
+response = requests.delete(
+    "https://api-be.atthene.com/api/v1/knowledge-bases/kb_123/",
+    headers={"x-api-key": "YOUR_API_KEY"}
+)
+```
+
+```javascript JavaScript
+const response = await fetch('https://api-be.atthene.com/api/v1/knowledge-bases/kb_123/', {
+  method: 'DELETE',
+  headers: {
+    'x-api-key': 'YOUR_API_KEY'
+  }
+});
+```
+</CodeGroup>
+
+## Response
+
+Returns `204 No Content` on success.
+
+<Warning>
+This action permanently deletes the knowledge base and all its indexed content. The source collections and files remain intact.
+</Warning>

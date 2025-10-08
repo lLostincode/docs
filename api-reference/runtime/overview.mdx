@@ -1,0 +1,113 @@
+---
+title: "Runtime API Overview"
+description: "Execute messages and interact with agent sessions"
+---
+
+The Session Runtime API allows you to execute messages in sessions, retrieve conversation history, and monitor session status. This is where the actual AI interactions happen.
+
+## Key Features
+
+- **Message Execution**: Send messages and receive AI responses
+- **Multimodal Support**: Text, images, and other content types
+- **Conversation History**: Retrieve message threads
+- **Session Monitoring**: Check session status and health
+- **Correlation Tracking**: Link related events and messages
+
+## Authentication
+
+All endpoints require authentication using your API key:
+- **API Key**: `x-api-key: <key>`
+
+## Available Endpoints
+
+<CardGroup cols={2}>
+  <Card title="Execute Message" icon="play" href="/api-reference/runtime/execute">
+    Send a message and get AI response
+  </Card>
+  <Card title="Get Messages" icon="message" href="/api-reference/runtime/messages">
+    Retrieve conversation history
+  </Card>
+  <Card title="Session Status" icon="activity" href="/api-reference/runtime/status">
+    Check session health and status
+  </Card>
+</CardGroup>
+
+## Message Types
+
+### Text Messages
+Simple string content for basic conversations:
+```json
+{
+  "content": "What is the weather like today?"
+}
+```
+
+### Multimodal Messages
+Rich content with images, documents, and other media:
+```json
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "What's in this image?"
+    },
+    {
+      "type": "image_url",
+      "image_url": {
+        "url": "https://example.com/image.jpg"
+      }
+    }
+  ]
+}
+```
+
+## Response Handling
+
+Runtime responses include:
+- **AI-generated content**: The agent's response
+- **Tool usage**: Information about tools used
+- **Metadata**: Execution details and timing
+- **Error handling**: Clear error messages for issues
+
+## Correlation IDs
+
+Use correlation IDs to:
+- Track related messages across sessions
+- Link events in analytics
+- Debug conversation flows
+- Implement custom logging
+
+<Tip>
+Always include correlation IDs in production applications for better observability.
+</Tip>
+
+## Session State
+
+Sessions maintain state between messages:
+- **Conversation history**: Previous messages and responses
+- **Context**: Accumulated knowledge from the conversation
+- **Tool state**: Persistent tool configurations
+- **Memory**: Agent's working memory
+
+<Warning>
+Sessions have memory limits. Long conversations may need to be summarized or split into new sessions.
+</Warning>
+
+## Error Handling
+
+Common error scenarios:
+- **Session not found**: Invalid session ID
+- **Rate limiting**: Too many requests
+- **Content policy**: Inappropriate content
+- **Tool failures**: External service issues
+
+## Performance Considerations
+
+- **Response times**: Vary based on model and complexity
+- **Concurrent requests**: Limited per session
+- **Message size**: Limits on content length
+- **Rate limits**: Per-user and per-session limits
+
+<Info>
+For high-volume applications, consider implementing request queuing and retry logic.
+</Info>
