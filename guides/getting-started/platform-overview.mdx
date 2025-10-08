@@ -1,0 +1,244 @@
+---
+title: "Platform Overview"
+description: "Navigate the Atthene Agents Studio interface and understand each component"
+---
+
+## Interface Layout
+
+When you log into Atthene Agents Studio, you'll see a sidebar navigation on the left and your main workspace on the right. Let's walk through each section.
+
+---
+
+## Agent Overview
+
+<Frame>
+  <img src="/images/agent-overview.png" alt="Agent Overview Dashboard" />
+</Frame>
+
+Your landing page shows key metrics at a glance:
+
+- **Total Agents**: Number of agents you've created
+- **Active**: Currently running agents
+- **Runs**: Total executions across all agents
+- **Total Tokens**: Token consumption tracking
+
+Click **"Create Agent"** to start building, or select from the dropdown to filter and manage existing agents.
+
+---
+
+## Core Development
+
+### Playground
+
+<Frame>
+  <img src="/images/playground.png" alt="Playground Interface" />
+</Frame>
+
+The **Playground** is where you'll spend most of your time. It's split into two panels:
+
+#### Left Panel: YAML Configuration Editor
+- Write and edit your agent configurations
+- Syntax highlighting for YAML
+- Tabs for **Agents** and **Tools** view
+- **Load Config** button to import saved agents or templates
+- **Validate YAML** to check syntax before running
+- **Format YAML** for clean, readable code
+- **Save as Agent** to persist your configuration
+
+#### Right Panel: Agent Preview
+- Real-time chat interface to test your agent
+- Shows connection status (Connected/Disconnected)
+- Test different scenarios immediately
+- See how your agent responds with current configuration
+
+<Tip>
+**Pro Tip**: Load the "Basic Dynamic Agent Test" template to see a working example, then modify it to understand how changes affect behavior.
+</Tip>
+
+### Knowledge Base
+
+<Frame>
+  <img src="/images/knowledge-base.png" alt="Knowledge Base Management" />
+</Frame>
+
+The **Knowledge Base** section has four main areas:
+
+<Tabs>
+  <Tab title="Data Sources">
+    Upload files and connect to external data:
+    - PDF documents
+    - Text files
+    - CSVs and structured data
+    - Cloud storage connections (coming in v0.2)
+    
+    Click **"Add Data Source"** to upload new files.
+  </Tab>
+  
+  <Tab title="Collections">
+    Group and organize your data sources into logical collections for easier retrieval and agent assignment.
+  </Tab>
+  
+  <Tab title="Knowledge Base">
+    Process and index your data sources. View indexing status and configure retrieval parameters.
+  </Tab>
+  
+  <Tab title="Retrieval">
+    Test search and query capabilities. Configure retrieval strategies and see what your agents will find.
+  </Tab>
+</Tabs>
+
+Each data source shows:
+- **Name**: Custom identifier
+- **File Name**: Original file name
+- **File Details**: Size and type
+- **Tags**: Organizational labels
+- **Upload Info**: When it was added
+- **Actions**: Edit, delete, or configure
+
+### Tools
+
+Browse and manage the tools available to your agents:
+
+- **Built-in Tools**: Pre-configured capabilities (web search, calculations, etc.)
+- **Custom Tools**: Tools you create for specific integrations
+- **Tool Configuration**: Set default parameters and permissions
+
+<Note>
+Custom tool creation and external integrations (Microsoft Teams, SharePoint, etc.) are coming in **v0.2 (November)**.
+</Note>
+
+### Prompt Library
+
+Save and reuse prompts across your agents:
+
+- Create versioned prompts
+- Reference them in YAML: `{{ prompt('prompt-name', 'v1') }}`
+- Update prompts without changing agent configs
+- A/B test different prompt versions
+
+---
+
+## Operations & Insights
+
+### Tracing
+
+Monitor your agents in production:
+
+- **Execution Logs**: See every step your agent takes
+- **Token Usage**: Track consumption by agent and conversation
+- **Performance Metrics**: Response times and success rates
+- **Error Tracking**: Debug issues with full stack traces
+
+### Compliance
+
+View compliance and audit features (enterprise features):
+
+- Conversation retention policies
+- Data handling logs
+- Access control audits
+
+---
+
+## Agent Settings
+
+<Frame>
+  <img src="/images/agent-settings.png" alt="Agent Settings Panel" />
+</Frame>
+
+Once you've saved an agent, access its settings to:
+
+### General Settings
+
+- **Agent Name**: Update the display name
+- **Description**: Document what this agent does
+- **Status**: Active/Inactive toggle
+
+### Public Access
+
+Control how your agent can be accessed:
+
+- **Enabled/Disabled**: Toggle public access
+- **Allowed Origin URL**: Whitelist domains for embedded chatbots
+  - Example: `https://your-domain.com`
+  - Required for security when embedding
+
+<Warning>
+When public access is **enabled**, external clients can connect using your agent key. Always configure an allowed origin URL to prevent unauthorized usage.
+</Warning>
+
+### Versions
+
+- View version history
+- Roll back to previous configurations
+- Compare changes between versions
+
+### API Keys
+
+Generate API keys for programmatic access:
+
+- Create multiple keys for different environments
+- Revoke compromised keys instantly
+- Track usage per key
+
+---
+
+## Navigation Tips
+
+<AccordionGroup>
+  <Accordion title="Quick Configuration Loading">
+    In the Playground, click **"Load Config"** to see:
+    - Your saved agents
+    - System templates
+    - Recent configurations
+    
+    This is faster than recreating from scratch.
+  </Accordion>
+  
+  <Accordion title="Testing Workflow">
+    Recommended flow for testing:
+    1. Load a template or your agent
+    2. Make configuration changes
+    3. Test in Agent Preview (right panel)
+    4. Iterate until satisfied
+    5. Click **"Save as Agent"**
+  </Accordion>
+  
+  <Accordion title="Knowledge Base Integration">
+    To use uploaded data:
+    1. Upload files in **Knowledge Base > Data Sources**
+    2. Wait for processing (status will update)
+    3. Reference the knowledge base in your agent YAML
+    4. Test retrieval in the Agent Preview
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## What's Coming in v0.2 (November)
+
+<CardGroup cols={2}>
+  <Card title="Custom Tools" icon="code">
+    Create and integrate your own tools with custom logic
+  </Card>
+  <Card title="Microsoft Teams" icon="microsoft">
+    Deploy agents directly to Teams channels
+  </Card>
+  <Card title="SharePoint Integration" icon="folder">
+    Connect SharePoint as a knowledge base source
+  </Card>
+  <Card title="Additional Integrations" icon="plug">
+    More third-party app connections
+  </Card>
+</CardGroup>
+
+<Tip>
+**Want to influence the roadmap?** Use the **"Give Feedback"** button in the top right to tell us what integrations matter most to you.
+</Tip>
+
+---
+
+## Next Steps
+
+<Card title="Quickstart Guide" icon="rocket" href="/quickstart">
+  Ready to build? Follow our quickstart to create your first agent in 10 minutes.
+</Card>

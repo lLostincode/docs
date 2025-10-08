@@ -7,7 +7,8 @@
     "light": "#818CF8",
     "dark": "#4F46E5"
   },
-  "favicon": "/favicon.svg",
+  "favicon": "/favicon.ico",
+  "css": ["styles.css"],
   "navigation": {
     "tabs": [
       {
@@ -17,16 +18,19 @@
             "group": "Getting started",
             "pages": [
               "index",
-              "quickstart",
-              "platform-overview"
+              "guides/getting-started/quickstart",
+              "guides/getting-started/platform-overview",
+              "guides/getting-started/yaml-configuration",
+              "guides/getting-started/connecting-your-agent"
             ]
           },
           {
-            "group": "Platform Setup",
+            "group": "Platform",
             "pages": [
-              "guides/account-setup",
-              "guides/authentication",
-              "guides/dashboard-navigation"
+              "guides/platform/prompts",
+              "guides/platform/tools",
+              "guides/platform/knowledge-bases",
+              "guides/platform/roadmap"
             ]
           },
           {
@@ -53,55 +57,6 @@
               "guides/multi-agent-workflows",
               "guides/monitoring-analytics",
               "guides/compliance-security"
-            ]
-          }
-        ]
-      },
-      {
-        "tab": "Agent Systems Theory",
-        "groups": [
-          {
-            "group": "Fundamentals",
-            "pages": [
-              "theory/introduction-to-agents",
-              "theory/agent-architecture",
-              "theory/agent-capabilities"
-            ]
-          },
-          {
-            "group": "Prompt Engineering",
-            "pages": [
-              "theory/prompt-engineering-basics",
-              "theory/advanced-prompting",
-              "theory/system-messages",
-              "theory/few-shot-learning"
-            ]
-          },
-          {
-            "group": "Multi-Agent Systems",
-            "pages": [
-              "theory/agent-composition",
-              "theory/agent-communication",
-              "theory/orchestration-patterns",
-              "theory/emergent-behaviors"
-            ]
-          },
-          {
-            "group": "Evaluation & Optimization",
-            "pages": [
-              "theory/evaluation-metrics",
-              "theory/testing-frameworks",
-              "theory/performance-optimization",
-              "theory/continuous-improvement"
-            ]
-          },
-          {
-            "group": "Best Practices",
-            "pages": [
-              "theory/design-patterns",
-              "theory/safety-guardrails",
-              "theory/ethical-considerations",
-              "theory/case-studies"
             ]
           }
         ]
@@ -156,30 +111,11 @@
           }
         ]
       }
-    ],
-    "global": {
-      "anchors": [
-        {
-          "anchor": "Documentation",
-          "href": "https://docs.atthene.com",
-          "icon": "book-open-cover"
-        },
-        {
-          "anchor": "Use Cases",
-          "href": "https://atthene.com/use-cases",
-          "icon": "lightbulb"
-        },
-        {
-          "anchor": "Pricing",
-          "href": "https://atthene.com/pricing",
-          "icon": "tag"
-        }
-      ]
-    }
+    ]
   },
   "logo": {
-    "light": "/logo/light.svg",
-    "dark": "/logo/dark.svg"
+    "light": "/images/hero-light.png",
+    "dark": "/images/hero-dark.png"
   },
   "navbar": {
     "links": [

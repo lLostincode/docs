@@ -1,0 +1,705 @@
+---
+title: "Connecting Your Agent"
+description: "Integrate agents via REST API, WebSocket, or embedded chatbot"
+---
+
+## Integration Overview
+
+Once you've built and tested your agent in the Playground, you can integrate it into your applications using three methods:
+
+<CardGroup cols={3}>
+  <Card title="REST API" icon="server">
+    Server-side integration with request/response pattern
+  </Card>
+  <Card title="WebSocket" icon="bolt">
+    Real-time streaming for interactive applications
+  </Card>
+  <Card title="Embedded Chatbot" icon="message">
+    Drop-in chat widget for websites
+  </Card>
+</CardGroup>
+
+---
+
+## Before You Start
+
+### Get Your Credentials
+
+<Steps>
+  <Step title="Create an API Key">
+    Navigate to **Settings** in the platform and generate an API key for authentication.
+  </Step>
+  <Step title="Get Your Agent Key">
+    Find your agent's unique identifier in **Agent Overview** or **Agent Settings**.
+  </Step>
+  <Step title="Enable Public Access (if needed)">
+    For external integrations, enable public access and set an allowed origin URL in **Agent Settings**.
+  </Step>
+</Steps>
+
+### API Base URLs
+
+- **REST API**: `https://api-be.atthene.com/api/v1/`
+- **WebSocket**: `wss://api-be.atthene.com/ws/amas`
+
+---
+
+## Authentication
+
+All API requests require authentication using your API key:
+
+```bash
+x-api-key: YOUR_API_KEY_HERE
+```
+
+You can also use Bearer token authentication:
+
+```bash
+Authorization: Bearer YOUR_API_KEY_HERE
+```
+
+---
+
+## REST API Integration
+
+### Step 1: Create a Session
+
+Before sending messages, create a session to establish context.
+
+<Tabs>
+  <Tab title="From Saved Agent">
+    Use this method when connecting to a saved agent:
+    
+    ```bash
+    GET https://api-be.atthene.com/api/v1/sessions/from-agent/?agent_key={agent_key}
+    ```
+    
+    **Headers:**
+    ```bash
+    x-api-key: YOUR_API_KEY
+    ```
+    
+    **Response:**
+    ```json
+    {
+      "session_id": "sess_abc123xyz",
+      "agent_key": "agent_456def",
+      "created_at": "2024-10-06T10:30:00Z"
+    }
+    ```
+  </Tab>
+  
+  <Tab title="From YAML Config">
+    Use this method to create a session with a custom YAML configuration:
+    
+    ```bash
+    POST https://api-be.atthene.com/api/v1/sessions/
+    ```
+    
+    **Headers:**
+    ```bash
+    x-api-key: YOUR_API_KEY
+    Content-Type: application/x-yaml
+    ```
+    
+    **Body:**
+    ```yaml
+    name: "Dynamic Agent"
+    agents:
+      - name: "assistant"
+        agent_type: "llm_agent"
+        system_prompt: "You are a helpful assistant."
+        llm_config:
+          temperature: 0.7
+          max_tokens: 1000
+    edges:
+      - from: "__start__"
+        to: "assistant"
+      - from: "assistant"
+        to: "__end__"
+    entry_point: "assistant"
+    ```
+    
+    **Response:**
+    ```json
+    {
+      "session_id": "sess_abc123xyz",
+      "config_hash": "hash_789ghi",
+      "created_at": "2024-10-06T10:30:00Z"
+    }
+    ```
+  </Tab>
+</Tabs>
+
+### Step 2: Send Messages
+
+Once you have a session ID, send user messages:
+
+```bash
+POST https://api-be.atthene.com/api/v1/sessions/{session_id}/messages
+```
+
+**Headers:**
+```bash
+x-api-key: YOUR_API_KEY
+Content-Type: application/json
+```
+
+**Body:**
+```json
+{
+  "content": "What's the weather like today?",
+  "role": "user"
+}
+```
+
+**Response:**
+```json
+{
+  "message_id": "msg_abc123",
+  "role": "assistant",
+  "content": "I'd be happy to help you check the weather...",
+  "timestamp": "2024-10-06T10:31:00Z"
+}
+```
+
+### Complete Example (Node.js)
+
+```javascript
+const ATTHENE_API_KEY = 'your_api_key_here';
+const AGENT_KEY = 'your_agent_key_here';
+const BASE_URL = 'https://api-be.atthene.com/api/v1';
+
+async function chatWithAgent(userMessage) {
+  // Step 1: Create session
+  const sessionResponse = await fetch(
+    `${BASE_URL}/sessions/from-agent/?agent_key=${AGENT_KEY}`,
+    {
+      method: 'GET',
+      headers: {
+        'x-api-key': ATTHENE_API_KEY
+      }
+    }
+  );
+  
+  const { session_id } = await sessionResponse.json();
+  
+  // Step 2: Send message
+  const messageResponse = await fetch(
+    `${BASE_URL}/sessions/${session_id}/messages`,
+    {
+      method: 'POST',
+      headers: {
+        'x-api-key': ATTHENE_API_KEY,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        content: userMessage,
+        role: 'user'
+      })
+    }
+  );
+  
+  const reply = await messageResponse.json();
+  return reply.content;
+}
+
+// Usage
+const response = await chatWithAgent("Hello, can you help me?");
+console.log(response);
+```
+
+### Complete Example (Python)
+
+```python
+import requests
+
+ATTHENE_API_KEY = 'your_api_key_here'
+AGENT_KEY = 'your_agent_key_here'
+BASE_URL = 'https://api-be.atthene.com/api/v1'
+
+def chat_with_agent(user_message):
+    # Step 1: Create session
+    session_response = requests.get(
+        f'{BASE_URL}/sessions/from-agent/',
+        params={'agent_key': AGENT_KEY},
+        headers={'x-api-key': ATTHENE_API_KEY}
+    )
+    session_id = session_response.json()['session_id']
+    
+    # Step 2: Send message
+    message_response = requests.post(
+        f'{BASE_URL}/sessions/{session_id}/messages',
+        headers={
+            'x-api-key': ATTHENE_API_KEY,
+            'Content-Type': 'application/json'
+        },
+        json={
+            'content': user_message,
+            'role': 'user'
+        }
+    )
+    
+    reply = message_response.json()
+    return reply['content']
+
+# Usage
+response = chat_with_agent("Hello, can you help me?")
+print(response)
+```
+
+---
+
+## WebSocket Integration
+
+WebSocket provides real-time streaming, ideal for interactive chat interfaces where you want to display agent responses as they're generated.
+
+### TypeScript SDK (Recommended)
+
+We provide a TypeScript SDK that handles WebSocket connections and session management:
+
+```typescript
+import { AttheneClient } from '@atthene/agents-sdk';
+
+const client = new AttheneClient({
+  apiKey: 'your_api_key_here',
+  wsUrl: 'wss://api-be.atthene.com/ws/amas'
+});
+
+// Create session from saved agent
+const session = await client.createSessionFromAgent('agent_key_here');
+
+// Connect to WebSocket
+await session.connect();
+
+// Listen for messages
+session.on('message', (message) => {
+  console.log('Agent:', message.content);
+});
+
+// Listen for streaming chunks
+session.on('stream', (chunk) => {
+  console.log('Streaming:', chunk);
+});
+
+// Send a message
+await session.sendMessage('Hello, how can you help me?');
+
+// Close when done
+await session.disconnect();
+```
+
+### Manual WebSocket Connection
+
+If you prefer not to use the SDK:
+
+<Steps>
+  <Step title="Create a Session">
+    First create a session via REST API (see above)
+  </Step>
+  
+  <Step title="Connect to WebSocket">
+    ```javascript
+    const ws = new WebSocket('wss://api-be.atthene.com/ws/amas');
+    
+    ws.onopen = () => {
+      // Authenticate and join session
+      ws.send(JSON.stringify({
+        type: 'connect',
+        session_id: 'sess_abc123xyz',
+        api_key: 'your_api_key_here'
+      }));
+    };
+    ```
+  </Step>
+  
+  <Step title="Handle Messages">
+    ```javascript
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      
+      switch(data.type) {
+        case 'connected':
+          console.log('Connected to session');
+          break;
+        case 'message':
+          console.log('Agent reply:', data.content);
+          break;
+        case 'stream':
+          console.log('Stream chunk:', data.chunk);
+          break;
+        case 'error':
+          console.error('Error:', data.message);
+          break;
+      }
+    };
+    ```
+  </Step>
+  
+  <Step title="Send Messages">
+    ```javascript
+    ws.send(JSON.stringify({
+      type: 'user_message',
+      content: 'Your message here'
+    }));
+    ```
+  </Step>
+</Steps>
+
+### Complete WebSocket Example
+
+```javascript
+class AttheneAgent {
+  constructor(apiKey, agentKey) {
+    this.apiKey = apiKey;
+    this.agentKey = agentKey;
+    this.ws = null;
+    this.sessionId = null;
+  }
+  
+  async initialize() {
+    // Create session via REST
+    const response = await fetch(
+      `https://api-be.atthene.com/api/v1/sessions/from-agent/?agent_key=${this.agentKey}`,
+      {
+        headers: { 'x-api-key': this.apiKey }
+      }
+    );
+    
+    const data = await response.json();
+    this.sessionId = data.session_id;
+    
+    // Connect WebSocket
+    this.ws = new WebSocket('wss://api-be.atthene.com/ws/amas');
+    
+    this.ws.onopen = () => {
+      this.ws.send(JSON.stringify({
+        type: 'connect',
+        session_id: this.sessionId,
+        api_key: this.apiKey
+      }));
+    };
+    
+    this.ws.onmessage = (event) => {
+      const message = JSON.parse(event.data);
+      this.handleMessage(message);
+    };
+  }
+  
+  handleMessage(message) {
+    switch(message.type) {
+      case 'connected':
+        console.log('WebSocket connected');
+        break;
+      case 'stream':
+        // Handle streaming content
+        process.stdout.write(message.chunk);
+        break;
+      case 'message':
+        // Handle complete message
+        console.log('\nComplete:', message.content);
+        break;
+    }
+  }
+  
+  sendMessage(content) {
+    this.ws.send(JSON.stringify({
+      type: 'user_message',
+      content: content
+    }));
+  }
+  
+  disconnect() {
+    if (this.ws) {
+      this.ws.close();
+    }
+  }
+}
+
+// Usage
+const agent = new AttheneAgent('your_api_key', 'your_agent_key');
+await agent.initialize();
+agent.sendMessage('Hello!');
+```
+
+---
+
+## Embedded Chatbot
+
+The easiest way to add your agent to a website is using the embedded chatbot widget.
+
+### Step 1: Configure Public Access
+
+<Warning>
+Before embedding, you **must** configure public access in Agent Settings.
+</Warning>
+
+1. Go to **Agent Overview** and select your agent
+2. Open **Agent Settings**
+3. Enable **Public Access**
+4. Set **Allowed Origin URL** to your website domain
+   - Example: `https://your-website.com`
+   - This prevents unauthorized use of your agent
+
+### Step 2: Get the Embed Code
+
+The platform provides a JavaScript snippet to embed your agent:
+
+```html
+<!-- Add to your website's <head> or before </body> -->
+<script src="https://cdn.atthene.com/chat-widget.js"></script>
+<script>
+  AttheneChat.init({
+    agentKey: 'your_agent_key_here',
+    position: 'bottom-right',
+    theme: 'light'
+  });
+</script>
+```
+
+### Step 3: Customize the Widget
+
+```javascript
+AttheneChat.init({
+  agentKey: 'your_agent_key_here',
+  
+  // Position
+  position: 'bottom-right', // or 'bottom-left'
+  
+  // Appearance
+  theme: 'light', // or 'dark'
+  primaryColor: '#0066FF',
+  
+  // Behavior
+  welcomeMessage: 'Hi! How can I help you today?',
+  placeholder: 'Type your message...',
+  autoOpen: false,
+  
+  // Branding
+  title: 'Customer Support',
+  subtitle: 'We typically reply in minutes',
+  avatar: 'https://your-site.com/avatar.png'
+});
+```
+
+### Complete Embedding Example
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>My Website</title>
+</head>
+<body>
+  <h1>Welcome to My Website</h1>
+  <p>Need help? Chat with our AI assistant!</p>
+  
+  <!-- Atthene Chat Widget -->
+  <script src="https://cdn.atthene.com/chat-widget.js"></script>
+  <script>
+    AttheneChat.init({
+      agentKey: 'agent_abc123',
+      position: 'bottom-right',
+      theme: 'light',
+      primaryColor: '#0066FF',
+      welcomeMessage: 'Hi! I\'m here to help. What can I do for you?',
+      title: 'Support Assistant',
+      autoOpen: false
+    });
+  </script>
+</body>
+</html>
+```
+
+### Widget API
+
+Control the widget programmatically:
+
+```javascript
+// Open the chat window
+AttheneChat.open();
+
+// Close the chat window
+AttheneChat.close();
+
+// Send a message programmatically
+AttheneChat.sendMessage('Hello from the website!');
+
+// Listen for events
+AttheneChat.on('message', (message) => {
+  console.log('New message:', message);
+});
+
+AttheneChat.on('open', () => {
+  console.log('Chat opened');
+});
+
+AttheneChat.on('close', () => {
+  console.log('Chat closed');
+});
+```
+
+---
+
+## Security Best Practices
+
+<AccordionGroup>
+  <Accordion title="Always Set Allowed Origin URL">
+    When using public access, **always** configure the allowed origin URL in Agent Settings. This prevents unauthorized domains from using your agent.
+    
+    ```
+    Allowed Origin: https://your-domain.com
+    ```
+    
+    Without this, anyone could embed your agent on their site.
+  </Accordion>
+  
+  <Accordion title="Rotate API Keys Regularly">
+    Generate new API keys periodically and revoke old ones. This is especially important if:
+    - Keys may have been exposed
+    - Team members with access have left
+    - You're moving from development to production
+  </Accordion>
+  
+  <Accordion title="Use Environment Variables">
+    Never hardcode API keys in your source code:
+    
+    ```javascript
+    // ✅ Good
+    const apiKey = process.env.ATTHENE_API_KEY;
+    
+    // ❌ Bad
+    const apiKey = 'atthene_key_abc123...';
+    ```
+  </Accordion>
+  
+  <Accordion title="Implement Rate Limiting">
+    Add rate limiting on your backend to prevent abuse:
+    
+    ```javascript
+    const rateLimit = require('express-rate-limit');
+    
+    const limiter = rateLimit({
+      windowMs: 15 * 60 * 1000, // 15 minutes
+      max: 100 // limit each IP to 100 requests per windowMs
+    });
+    
+    app.use('/api/chat', limiter);
+    ```
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Testing Your Integration
+
+### Test in Development
+
+1. **Use Agent Preview First**: Always test in the Playground before integrating
+2. **Start with REST API**: Simpler to debug than WebSocket
+3. **Check Authentication**: Verify your API key works with a simple GET request
+4. **Monitor Tracing**: Use the Tracing section to see what your agent receives
+
+### Common Integration Issues
+
+<AccordionGroup>
+  <Accordion title="401 Unauthorized">
+    **Problem**: Invalid or missing API key
+    
+    **Solutions**:
+    - Verify API key is correct
+    - Check header format: `x-api-key: YOUR_KEY`
+    - Ensure key hasn't been revoked
+  </Accordion>
+  
+  <Accordion title="403 Forbidden (Embedded Widget)">
+    **Problem**: Origin URL not allowed
+    
+    **Solutions**:
+    - Add your domain to Allowed Origin URL in Agent Settings
+    - Include protocol: `https://your-site.com` not `your-site.com`
+    - Check for typos in domain name
+  </Accordion>
+  
+  <Accordion title="WebSocket Connection Failed">
+    **Problem**: Can't establish WebSocket connection
+    
+    **Solutions**:
+    - Ensure session was created via REST API first
+    - Check that you're using `wss://` (secure WebSocket)
+    - Verify firewall/proxy settings allow WebSocket
+    - Check browser console for detailed errors
+  </Accordion>
+  
+  <Accordion title="No Response from Agent">
+    **Problem**: Messages sent but no response
+    
+    **Solutions**:
+    - Check agent status in Agent Overview
+    - Verify session_id is correct
+    - Look at Tracing logs for errors
+    - Ensure agent configuration is valid
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## What's Next?
+
+<Tip>
+**Server-Sent Events (SSE)** support is being considered for a future release. If SSE is important for your use case, please let us know via the feedback button!
+</Tip>
+
+---
+
+## Integration Checklist
+
+Before going to production:
+
+<Steps>
+  <Step title="Test Thoroughly">
+    - [ ] Agent works in Playground
+    - [ ] REST API calls return expected results
+    - [ ] WebSocket streaming functions correctly
+    - [ ] Embedded widget appears and responds
+  </Step>
+  
+  <Step title="Security Configuration">
+    - [ ] API keys generated
+    - [ ] Allowed origin URL configured
+    - [ ] Keys stored in environment variables
+    - [ ] Rate limiting implemented
+  </Step>
+  
+  <Step title="Monitoring Setup">
+    - [ ] Tracing enabled
+    - [ ] Error tracking configured
+    - [ ] Usage alerts set up
+  </Step>
+  
+  <Step title="Documentation">
+    - [ ] Team knows where to find API keys
+    - [ ] Integration endpoints documented
+    - [ ] Error handling procedures defined
+  </Step>
+</Steps>
+
+---
+
+## Additional Resources
+
+<CardGroup cols={2}>
+  <Card title="API Reference" icon="book" href="/api-reference/introduction">
+    Complete API documentation with all endpoints
+  </Card>
+  <Card title="TypeScript SDK" icon="code" href="/sdk/typescript">
+    Full SDK documentation and examples
+  </Card>
+  <Card title="Monitoring & Tracing" icon="chart-line" href="/guides/monitoring-analytics">
+    Track agent performance in production
+  </Card>
+  <Card title="Give Feedback" icon="comment">
+    Request features or report integration issues
+  </Card>
+</CardGroup>

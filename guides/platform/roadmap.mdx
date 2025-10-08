@@ -1,0 +1,373 @@
+---
+title: "Roadmap"
+description: "What we're building next and how you can shape it"
+---
+
+## Your Input Shapes This
+
+Atthene Agents Studio is in **closed alpha**. That means **you influence what we build**.
+
+This roadmap shows our direction, but we prioritize based on what you need. If something here doesn't work for your use case, or if we're missing something critical—tell us.
+
+<Card title="Give Feedback" icon="comment" href="mailto:lorenz.stirnweis@arttacsolutions.de">
+  **Email us at lorenz.stirnweis@arttacsolutions.de** with feature requests, timeline concerns, or integration needs.
+</Card>
+
+---
+
+## Current Version: v0.1
+
+**Status**: Live in closed alpha  
+**Released**: October 2025
+
+### What's Available Now
+
+- **YAML Configuration**: Declarative agent definitions
+- **Playground**: Real-time testing with Agent Preview
+- **Knowledge Base**: File upload and document retrieval
+- **Prompt Library**: Versioned, reusable prompts
+- **Multi-Agent Workflows**: Coordinated agent orchestration
+- **REST API & WebSocket**: Integration endpoints with streaming
+- **Public Chatbot Embedding**: JavaScript widget for websites
+- **Execution Tracing**: Monitor agent behavior and performance
+- **Built-in Tools**: Pre-configured capabilities
+
+### What's Missing (We Know)
+
+- Custom tools (coming in v0.2)
+- Third-party app integrations (coming in v0.2)
+- Advanced orchestration patterns (coming in v0.2)
+- More model providers (coming in v0.2)
+- Cloud storage connectors (coming in v0.2)
+
+<Note>
+**Experiencing issues?** Report bugs or problems at **lorenz.stirnweis@arttacsolutions.de** — we're actively fixing issues based on alpha feedback.
+</Note>
+
+---
+
+## v0.2: Extensions & Intelligence
+
+**Expected**: November 2024  
+**Focus**: Advanced configuration, model flexibility, and enterprise integrations
+
+### Model Provider Support
+
+Choose your LLM provider per agent:
+- OpenAI
+- Anthropic (Claude)
+- Mistral
+- Qwen
+- Additional providers based on demand
+
+<Tip>
+**Need a specific model provider?** Let us know which ones matter for your use case.
+</Tip>
+
+### Advanced YAML Features
+
+**Config Reference System**: Use variables and reference configs across agents
+
+```yaml
+variables:
+  api_endpoint: "https://api.example.com"
+  
+agents:
+  - name: "agent1"
+    config_ref: "{{ variables.api_endpoint }}"
+```
+
+**Input/Output System**: Pass data between agents explicitly
+
+```yaml
+agents:
+  - name: "analyzer"
+    outputs: ["analysis_result"]
+  
+  - name: "responder"
+    inputs: ["analysis_result"]
+```
+
+**Conditional Edges**: Dynamic routing based on agent outputs
+
+```yaml
+edges:
+  - from: "classifier"
+    to: "urgent_handler"
+    condition: "output.priority == 'high'"
+  
+  - from: "classifier"
+    to: "standard_handler"
+    condition: "output.priority == 'normal'"
+```
+
+**Structured Output**: Enforce JSON schemas for agent responses
+
+```yaml
+agents:
+  - name: "data_extractor"
+    structured_output:
+      type: "json_schema"
+      schema:
+        type: "object"
+        properties:
+          name: {type: "string"}
+          age: {type: "number"}
+```
+
+### Live Avatar Chatbots
+
+New embedded chatbot format with talking avatars:
+- Default avatar library included
+- Custom avatars available (enterprise requests)
+- Speech-to-text user input
+- Text-to-speech agent responses
+- Real-time lip-sync and expressions
+
+Perfect for customer-facing applications where visual presence matters.
+
+<Tip>
+**Interested in custom avatars?** Reach out to discuss your branding needs.
+</Tip>
+
+### Model Context Protocol (MCP)
+
+Integration with the Model Context Protocol standard for:
+- Standardized tool definitions
+- Cross-platform agent compatibility
+- Community tool sharing
+- Easier custom tool creation
+
+### Cloud Knowledge Base Connectors
+
+Connect cloud storage as knowledge sources:
+- Google Drive
+- Dropbox
+- OneDrive
+- SharePoint Online
+- AWS S3
+- Azure Blob Storage
+
+Real-time sync and permission-aware retrieval included.
+
+<Card title="Which cloud provider matters most?" icon="question">
+  We're prioritizing based on demand. **Email us** your top 3 cloud integrations.
+</Card>
+
+### Microsoft & Atlassian Tools
+
+OAuth-enabled integrations with:
+- **Microsoft**: Teams, SharePoint, Outlook, OneDrive
+- **Atlassian**: Jira, Confluence, Trello
+
+Agents can read, create, and update content in these platforms.
+
+**What actions do you need?** (Create tickets, search docs, send messages, etc.)  
+→ Tell us at **lorenz.stirnweis@arttacsolutions.de**
+
+### Sophisticated Orchestration Examples
+
+Pre-built templates for advanced patterns:
+- Map-reduce workflows
+- Parallel processing with aggregation
+- Multi-stage research pipelines
+- Approval chains with fallbacks
+- Recursive agent loops
+
+### Deep Research Agent
+
+Specialized agent template for comprehensive research tasks:
+- Multi-source information gathering
+- Iterative query refinement
+- Source verification and citation
+- Report generation with structured findings
+
+---
+
+## v0.3: Production Readiness
+
+**Expected**: Q1 2025  
+**Focus**: Evaluation, control, and advanced orchestration
+
+### Evaluation Framework
+
+- Agent response quality scoring
+- A/B testing for prompt variations
+- Performance benchmarking
+- Cost tracking per agent and conversation
+
+### Human-in-the-Loop (HITL)
+
+- Approval workflows for sensitive actions
+- Interactive decision points in agent flows
+- User feedback collection during execution
+- Manual override capabilities
+
+### Parallel Agent Workflows
+
+Run multiple agents simultaneously:
+
+```yaml
+agents:
+  - name: "researcher_1"
+  - name: "researcher_2"
+  - name: "researcher_3"
+  - name: "aggregator"
+
+edges:
+  - from: "__start__"
+    to: ["researcher_1", "researcher_2", "researcher_3"]
+    mode: "parallel"
+  
+  - from: ["researcher_1", "researcher_2", "researcher_3"]
+    to: "aggregator"
+    mode: "collect"
+```
+
+### Context Engineering
+
+- Automatic context window optimization
+- Intelligent conversation summarization
+- Priority-based context inclusion
+- Token usage optimization
+
+<Note>
+**v0.3 feature priorities will shift** based on what v0.2 alpha users need most. Stay vocal about what matters.
+</Note>
+
+---
+
+## v0.4: Autonomy & Scale
+
+**Expected**: Q2 2025  
+**Focus**: Goal-oriented agents and automation
+
+### Planning Agent
+
+New agent type that:
+- Breaks down complex goals into steps
+- Creates execution plans dynamically
+- Adapts plans based on outcomes
+- Coordinates sub-agents to achieve objectives
+
+### Goal-Based Workflows
+
+Agents work toward defined objectives with incentive structures:
+
+```yaml
+agents:
+  - name: "sales_assistant"
+    goals:
+      - objective: "schedule_meeting"
+        priority: "high"
+      - objective: "gather_requirements"
+        priority: "medium"
+```
+
+### Intelligent Agent Collaboration
+
+Advanced coordination methods:
+- Negotiation between agents
+- Consensus building
+- Resource sharing
+- Conflict resolution
+
+### CronJobs & Trigger Events
+
+- Schedule-based agent execution
+- Webhook triggers from external systems
+- Event-driven workflows (new email, new ticket, etc.)
+- Monitoring and alerting automation
+
+---
+
+## Beyond v0.4
+
+We're thinking about:
+- **Agent Marketplace**: Community-shared agents and workflows
+- **Self-Improving Agents**: Learn from past interactions
+- **Multimodal Support**: Process images, audio, video
+- **On-Premise Deployment**: Self-hosted for maximum control
+- **Enterprise SSO**: SAML/OAuth integration
+
+**But we're not committing yet.** These depend on how v0.2 and v0.3 land with alpha users.
+
+---
+
+## How to Influence the Roadmap
+
+<Steps>
+  <Step title="Use the Platform">
+    The more you build, the more we learn what's needed.
+  </Step>
+  
+  <Step title="Report What's Blocking You">
+    If a missing feature stops your project, tell us immediately.
+  </Step>
+  
+  <Step title="Describe Your Use Case">
+    Context helps us prioritize. What are you building? Who's it for?
+  </Step>
+  
+  <Step title="Vote on Features">
+    When we ask "which integration matters most?", respond. We listen.
+  </Step>
+</Steps>
+
+---
+
+## Feedback Channels
+
+<CardGroup cols={2}>
+  <Card title="Feature Requests" icon="lightbulb" href="mailto:lorenz.stirnweis@arttacsolutions.de">
+    Email: **lorenz.stirnweis@arttacsolutions.de**  
+    Subject: "Feature Request: [Your Idea]"
+  </Card>
+  
+  <Card title="Bug Reports" icon="bug" href="mailto:lorenz.stirnweis@arttacsolutions.de">
+    Email: **lorenz.stirnweis@arttacsolutions.de**  
+    Subject: "Bug: [What's broken]"
+  </Card>
+  
+  <Card title="Integration Needs" icon="plug" href="mailto:lorenz.stirnweis@arttacsolutions.de">
+    Email: **lorenz.stirnweis@arttacsolutions.de**  
+    Subject: "Need Integration: [Tool/Service]"
+  </Card>
+  
+  <Card title="In-Platform Feedback" icon="comment">
+    Click **"Give Feedback"** in the top right of the platform
+  </Card>
+</CardGroup>
+
+---
+
+## Transparency Commitment
+
+We'll update this roadmap monthly as priorities shift. If something gets delayed or dropped, we'll explain why.
+
+**Last Updated**: October 2024  
+**Next Update**: November 2024 (post v0.2 release)
+
+<Warning>
+**Alpha Disclaimer**: Timelines are estimates. Features may change or be postponed based on technical complexity and user feedback. We prioritize building the right thing over hitting exact dates.
+</Warning>
+
+---
+
+## What You've Told Us So Far
+
+Early alpha feedback themes:
+- ✅ "Need more model provider options" → **Coming in v0.2**
+- ✅ "Custom tools are essential" → **Prioritized for v0.2**
+- ✅ "Want better agent-to-agent data passing" → **I/O system in v0.2**
+- ✅ "Cloud storage integration critical" → **Added to v0.2**
+- 🔄 "SSE would be useful" → **Still evaluating demand**
+
+Keep the feedback coming. This list grows based on what you tell us.
+
+---
+
+<Card title="Have 5 Minutes?" icon="clock">
+  **Quick Survey**: What's the #1 feature that would make AMAS indispensable for your project?  
+  → **lorenz.stirnweis@arttacsolutions.de**
+</Card>
