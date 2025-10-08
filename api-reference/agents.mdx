@@ -1,0 +1,543 @@
+---
+title: "Agent Configuration API"
+description: "Manage agent configurations with CRUD operations, validation, and import/export"
+---
+
+The Agent Configuration API allows you to create, manage, and validate agent configurations programmatically.
+
+## Authentication
+
+All endpoints require authentication using your API key:
+- **API Key**: `x-api-key: <key>`
+
+---
+
+## List Agent Configurations
+
+<ParamField query="GET" path="/api/v1/agent/">
+  Retrieve all agent configurations for the authenticated user
+</ParamField>
+
+### Response
+
+```json
+[
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "agent_key": "customer_support_agent",
+    "name": "Customer Support Agent",
+    "architecture": "llm_agent",
+    "entry_point": "main",
+    "is_public": false,
+    "is_shared": false,
+    "origin_url": null,
+    "owner": "user_123",
+    "company": "company_456",
+    "system_config": {
+      "name": "Customer Support Agent",
+      "agent_type": "llm_agent",
+      "system_prompt": "You are a helpful customer support agent...",
+      "llm_config": {
+        "model": "gpt-4o",
+        "temperature": 0.7
+      }
+    },
+    "version_number": "1.0.0",
+    "config_hash": "a1b2c3d4e5f6",
+    "created_at": "2024-01-15T10:30:00Z",
+    "updated_at": "2024-01-15T10:30:00Z"
+  }
+]
+```
+
+### Example
+
+<CodeGroup>
+```bash cURL
+curl -X GET https://api-be.atthene.com/api/v1/agent/ \
+  -H "x-api-key: YOUR_API_KEY"
+```
+
+```python Python
+import requests
+
+response = requests.get(
+    "https://api-be.atthene.com/api/v1/agent/",
+    headers={"x-api-key": "YOUR_API_KEY"}
+)
+agents = response.json()
+```
+
+```javascript JavaScript
+const response = await fetch('https://api-be.atthene.com/api/v1/agent/', {
+  headers: {
+    'x-api-key': 'YOUR_API_KEY'
+  }
+});
+const agents = await response.json();
+```
+</CodeGroup>
+
+<Note>
+**Key Response Fields:**
+- `agent_key` - Unique identifier derived from agent name
+- `architecture` - Agent architecture type (e.g., `llm_agent`, `react_agent`)
+- `system_config` - Complete agent configuration including prompts, LLM settings, tools, and knowledge bases
+- `version_number` - Current version of the agent configuration
+- `config_hash` - Hash of the current configuration for change detection
+</Note>
+
+---
+
+## Create Agent Configuration
+
+<ParamField query="POST" path="/api/v1/agent/">
+  Create a new agent configuration
+</ParamField>
+
+### Request Body
+
+<Note>
+All agent configuration must be provided within the `system_config` object. The `name` field in the config is required and will be used to derive the `agent_key`.
+</Note>
+
+```json
+{
+  "system_config": {
+    "name": "Support Agent",
+    "agent_type": "llm_agent",
+    "system_prompt": "You are a helpful customer support agent.",
+    "llm_config": {
+      "model": "gpt-4o",
+      "temperature": 0.7,
+      "max_tokens": 1000
+    },
+    "knowledge_bases": [
+      {
+        "name": "support_docs",
+        "knowledge_base_type": "milvus",
+        "knowledge_base_id": "kb_123"
+      }
+    ]
+  }
+}
+```
+
+### Response
+
+```json
+{
+  "id": "550e8400-e29b-41d4-a716-446655440001",
+  "agent_key": "support_agent",
+  "name": "Support Agent",
+  "architecture": "llm_agent",
+  "entry_point": "main",
+  "is_public": false,
+  "is_shared": false,
+  "origin_url": null,
+  "owner": "user_123",
+  "company": "company_456",
+  "system_config": {
+    "name": "Support Agent",
+    "agent_type": "llm_agent",
+    "system_prompt": "You are a helpful customer support agent.",
+    "llm_config": {
+      "model": "gpt-4o",
+      "temperature": 0.7,
+      "max_tokens": 1000
+    },
+    "knowledge_bases": [
+      {
+        "name": "support_docs",
+        "knowledge_base_type": "milvus",
+        "knowledge_base_id": "kb_123"
+      }
+    ]
+  },
+  "version_number": "1.0.0",
+  "config_hash": "b2c3d4e5f6a7",
+  "created_at": "2024-01-15T10:30:00Z",
+  "updated_at": "2024-01-15T10:30:00Z"
+}
+```
+
+### Example
+
+<CodeGroup>
+```bash cURL
+curl -X POST https://api-be.atthene.com/api/v1/agent/ \
+  -H "x-api-key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "system_config": {
+      "name": "Support Agent",
+      "agent_type": "llm_agent",
+      "system_prompt": "You are a helpful customer support agent.",
+      "llm_config": {
+        "model": "gpt-4o",
+        "temperature": 0.7
+      }
+    }
+  }'
+```
+
+```python Python
+import requests
+
+data = {
+    "system_config": {
+        "name": "Support Agent",
+        "agent_type": "llm_agent",
+        "system_prompt": "You are a helpful customer support agent.",
+        "llm_config": {
+            "model": "gpt-4o",
+            "temperature": 0.7
+        }
+    }
+}
+
+response = requests.post(
+    "https://api-be.atthene.com/api/v1/agent/",
+    headers={"x-api-key": "YOUR_API_KEY"},
+    json=data
+)
+agent = response.json()
+```
+</CodeGroup>
+
+---
+
+## Get Agent Details
+
+<ParamField query="GET" path="/api/v1/agent/{id}/">
+  Retrieve details of a specific agent configuration
+</ParamField>
+
+### Path Parameters
+
+<ParamField path="id" type="string" required>
+  The agent ID
+</ParamField>
+
+### Response
+
+```json
+{
+  "id": "550e8400-e29b-41d4-a716-446655440000",
+  "agent_key": "customer_support_agent",
+  "name": "Customer Support Agent",
+  "architecture": "llm_agent",
+  "entry_point": "main",
+  "is_public": false,
+  "is_shared": false,
+  "origin_url": null,
+  "owner": "user_123",
+  "company": "company_456",
+  "system_config": {
+    "name": "Customer Support Agent",
+    "agent_type": "llm_agent",
+    "system_prompt": "You are a helpful customer support agent...",
+    "llm_config": {
+      "model": "gpt-4o",
+      "temperature": 0.7
+    },
+    "tools": ["tavily_search"],
+    "knowledge_bases": [...]
+  },
+  "version_number": "1.0.0",
+  "config_hash": "a1b2c3d4e5f6",
+  "created_at": "2024-01-15T10:30:00Z",
+  "updated_at": "2024-01-15T10:30:00Z"
+}
+```
+
+---
+
+## Update Agent Configuration
+
+<ParamField query="PUT/PATCH" path="/api/v1/agent/{id}/">
+  Update an existing agent configuration
+</ParamField>
+
+### Path Parameters
+
+<ParamField path="id" type="string" required>
+  The agent ID
+</ParamField>
+
+### Request Body
+
+```json
+{
+  "system_config": {
+    "system_prompt": "Updated system prompt...",
+    "llm_config": {
+      "temperature": 0.8
+    }
+  }
+}
+```
+
+### Example
+
+<CodeGroup>
+```bash cURL
+curl -X PATCH https://api-be.atthene.com/api/v1/agent/550e8400-e29b-41d4-a716-446655440000/ \
+  -H "x-api-key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "system_config": {
+      "system_prompt": "Updated system prompt...",
+      "llm_config": {
+        "temperature": 0.8
+      }
+    }
+  }'
+```
+
+```python Python
+import requests
+
+data = {
+    "system_config": {
+        "system_prompt": "Updated system prompt...",
+        "llm_config": {
+            "temperature": 0.8
+        }
+    }
+}
+
+response = requests.patch(
+    "https://api-be.atthene.com/api/v1/agent/550e8400-e29b-41d4-a716-446655440000/",
+    headers={"x-api-key": "YOUR_API_KEY"},
+    json=data
+)
+```
+</CodeGroup>
+
+---
+
+## Delete Agent Configuration
+
+<ParamField query="DELETE" path="/api/v1/agent/{id}/">
+  Delete an agent configuration
+</ParamField>
+
+### Path Parameters
+
+<ParamField path="id" type="string" required>
+  The agent ID
+</ParamField>
+
+### Response
+
+Returns `204 No Content` on success.
+
+### Example
+
+<CodeGroup>
+```bash cURL
+curl -X DELETE https://api-be.atthene.com/api/v1/agent/550e8400-e29b-41d4-a716-446655440000/ \
+  -H "x-api-key: YOUR_API_KEY"
+```
+
+```python Python
+import requests
+
+response = requests.delete(
+    "https://api-be.atthene.com/api/v1/agent/550e8400-e29b-41d4-a716-446655440000/",
+    headers={"x-api-key": "YOUR_API_KEY"}
+)
+```
+</CodeGroup>
+
+---
+
+## Validate Agent Configuration
+
+<ParamField query="POST" path="/api/v1/agent/validate/">
+  Validate an agent configuration without creating it
+</ParamField>
+
+### Request Body
+
+Send the complete agent configuration YAML or JSON to validate.
+
+```yaml
+name: "Test Agent"
+agent_type: "llm_agent"
+system_prompt: "You are a helpful assistant."
+llm_config:
+  model: "gpt-4o"
+  temperature: 0.7
+```
+
+### Response
+
+```json
+{
+  "valid": true,
+  "message": "Configuration is valid"
+}
+```
+
+Or if invalid:
+
+```json
+{
+  "valid": false,
+  "errors": [
+    {
+      "field": "llm_config.model",
+      "message": "Invalid model specified"
+    }
+  ]
+}
+```
+
+### Example
+
+<CodeGroup>
+```bash cURL
+curl -X POST https://api-be.atthene.com/api/v1/agent/validate/ \
+  -H "x-api-key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Test Agent",
+    "agent_type": "llm_agent",
+    "system_prompt": "You are a helpful assistant.",
+    "llm_config": {
+      "model": "gpt-4o",
+      "temperature": 0.7
+    }
+  }'
+```
+
+```python Python
+import requests
+
+config = {
+    "name": "Test Agent",
+    "agent_type": "llm_agent",
+    "system_prompt": "You are a helpful assistant.",
+    "llm_config": {
+        "model": "gpt-4o",
+        "temperature": 0.7
+    }
+}
+
+response = requests.post(
+    "https://api-be.atthene.com/api/v1/agent/validate/",
+    headers={"x-api-key": "YOUR_API_KEY"},
+    json=config
+)
+validation_result = response.json()
+```
+</CodeGroup>
+
+---
+
+## Export Agent as YAML
+
+<ParamField query="GET" path="/api/v1/agent/{id}/export_yaml/">
+  Export an agent configuration as YAML
+</ParamField>
+
+### Path Parameters
+
+<ParamField path="id" type="string" required>
+  The agent ID
+</ParamField>
+
+### Response
+
+Returns the agent configuration in YAML format.
+
+```yaml
+name: "Customer Support Agent"
+agent_type: "llm_agent"
+system_prompt: "You are a helpful customer support agent..."
+llm_config:
+  model: "gpt-4o"
+  temperature: 0.7
+  max_tokens: 1000
+tools:
+  - "tavily_search"
+```
+
+---
+
+## Import Agent from YAML
+
+<ParamField query="POST" path="/api/v1/agent/{id}/import_yaml/">
+  Import/update an agent configuration from YAML
+</ParamField>
+
+### Path Parameters
+
+<ParamField path="id" type="string" required>
+  The agent ID to update
+</ParamField>
+
+### Request Body
+
+Send YAML configuration in the request body.
+
+```yaml
+name: "Updated Agent"
+agent_type: "llm_agent"
+system_prompt: "Updated prompt..."
+llm_config:
+  model: "gpt-4o"
+  temperature: 0.8
+```
+
+### Response
+
+Returns the updated agent configuration.
+
+---
+
+## Error Responses
+
+<AccordionGroup>
+  <Accordion title="400 Bad Request">
+    Invalid request data or configuration
+    
+    ```json
+    {
+      "error": {
+        "type": "validation_error",
+        "message": "Invalid agent configuration",
+        "details": {...}
+      }
+    }
+    ```
+  </Accordion>
+  
+  <Accordion title="401 Unauthorized">
+    Missing or invalid authentication
+    
+    ```json
+    {
+      "error": {
+        "type": "authentication_error",
+        "message": "Invalid or missing authentication credentials"
+      }
+    }
+    ```
+  </Accordion>
+  
+  <Accordion title="404 Not Found">
+    Agent not found
+    
+    ```json
+    {
+      "error": {
+        "type": "not_found",
+        "message": "Agent not found"
+      }
+    }
+    ```
+  </Accordion>
+</AccordionGroup>

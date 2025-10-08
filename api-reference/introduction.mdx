@@ -1,46 +1,52 @@
 ---
 title: 'API Reference'
-description: 'Complete reference documentation for the Multi-Agentic Workforce Platform API'
+description: 'Complete reference documentation for the Atthene Multi-Agent System API'
 ---
 
-# Multi-Agentic Workforce Platform API
-
-Welcome to the API reference documentation for the Multi-Agentic Workforce Platform. This API allows you to programmatically create, configure, and execute intelligent agents for a wide range of tasks and workflows.
+Welcome to the API reference documentation for the Atthene Multi-Agent System (AMAS). This API allows you to programmatically create, configure, and execute intelligent agents for a wide range of tasks and workflows.
 
 ## API Overview
 
-The Multi-Agentic Workforce Platform API is organized around REST principles. It accepts JSON-encoded request bodies, returns JSON-encoded responses, and uses standard HTTP response codes, authentication, and verbs.
+The AMAS API is organized around REST principles. It accepts JSON and YAML-encoded request bodies, returns JSON-encoded responses, and uses standard HTTP response codes, authentication, and verbs.
 
 <CardGroup cols={2}>
-  <Card title="Base URL" icon="server" color="#16A34A">
+  <Card title="Base URL" icon="server" color="#6366F1">
     All API requests should be made to:
     ```
-    https://api.yourdomain.com/v1
+    https://api-be.atthene.com/api/v1
     ```
   </Card>
   
-  <Card title="API Versioning" icon="code-branch" color="#16A34A">
-    The current API version is `v1`. Future versions will be accessible at different endpoints.
+  <Card title="API Versioning" icon="code-branch" color="#6366F1">
+    The current API version is `v1`. All endpoints are prefixed with `/api/v1/`.
   </Card>
 </CardGroup>
+
+<Note>
+For a comprehensive interactive API reference, visit the [Swagger Documentation](https://api-be.atthene.com/api/v1/docs/).
+</Note>
 
 ## Key Concepts
 
 <AccordionGroup>
   <Accordion title="Agents">
-    Agents are the core entities in the platform. Each agent has a configuration that defines its capabilities, instructions, and behavior. Agents can be created on-the-fly or saved for repeated use.
+    Agents are AI-powered entities configured with specific capabilities, instructions, and behaviors. AMAS supports two types: **LLM Agents** (conversational) and **ReAct Agents** (tool-using, reasoning agents).
   </Accordion>
   
-  <Accordion title="Runs">
-    A run represents a single execution instance of an agent. Each run maintains its own conversation history and state. Runs can be short-lived for simple tasks or long-running for complex workflows.
+  <Accordion title="Sessions">
+    A session represents a conversation instance with an agent. Each session maintains its own message history and state. Sessions are created with a complete agent configuration in YAML or JSON format.
   </Accordion>
   
-  <Accordion title="Tools">
-    Tools are capabilities that agents can use to interact with external systems or perform specific functions. Examples include web search, code interpretation, and knowledge base access.
+  <Accordion title="Runtime">
+    The Runtime API allows you to execute messages in sessions and interact with agents in real-time. Send user messages, retrieve agent responses, access conversation history, and monitor execution status with detailed metadata and usage statistics.
   </Accordion>
   
-  <Accordion title="Messages">
-    Messages represent the conversation between users and agents. Each message has a role (user or assistant) and content.
+  <Accordion title="Knowledge Bases">
+    Knowledge bases provide agents with access to domain-specific information through semantic search. AMAS supports Milvus vector database for production-ready retrieval.
+  </Accordion>
+  
+  <Accordion title="Collections & Files">
+    Files are uploaded documents that can be organized into collections. Collections group related data sources for knowledge base ingestion and management.
   </Accordion>
 </AccordionGroup>
 
@@ -48,34 +54,57 @@ The Multi-Agentic Workforce Platform API is organized around REST principles. It
 
 <Steps>
   <Step title="Get your API key">
-    Sign up for an account and generate an API key from the [dashboard](https://dashboard.yourdomain.com).
+    Contact your administrator or use the dashboard to generate an API key.
     
     <Warning>
     Keep your API keys secure! Do not expose them in client-side code or public repositories.
     </Warning>
   </Step>
   
-  <Step title="Make your first API call">
-    Try validating a simple agent configuration:
+  <Step title="Validate your agent configuration">
+    Test your agent configuration before creating a session:
     
     <CodeGroup>
-    ```bash
-    curl -X POST https://api.yourdomain.com/v1/agents/validate \
-      -H "Authorization: Bearer YOUR_API_KEY" \
+    ```bash cURL
+    curl -X POST https://api-be.atthene.com/api/v1/agent/validate/ \
+      -H "x-api-key: YOUR_API_KEY" \
       -H "Content-Type: application/json" \
       -d '{
-        "config": {
-          "name": "My First Agent",
-          "model": "gpt-4",
-          "instructions": "You are a helpful assistant."
+        "name": "My First Agent",
+        "agent_type": "llm_agent",
+        "system_prompt": "You are a helpful assistant.",
+        "llm_config": {
+          "model": "gpt-4o",
+          "temperature": 0.7
         }
       }'
     ```
     </CodeGroup>
   </Step>
   
-  <Step title="Create and execute a run">
-    Once your configuration is valid, create and execute a run to start interacting with your agent.
+  <Step title="Create a session and execute">
+    Create a session with your configuration and start executing messages:
+    
+    <CodeGroup>
+    ```bash cURL
+    # Create session
+    curl -X POST https://api-be.atthene.com/api/v1/sessions/ \
+      -H "x-api-key: YOUR_API_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "name": "My Session",
+        "agent_type": "llm_agent",
+        "system_prompt": "You are a helpful assistant.",
+        "llm_config": {"model": "gpt-4o"}
+      }'
+    
+    # Execute message
+    curl -X POST https://api-be.atthene.com/api/v1/runtime/SESSION_ID/execute/ \
+      -H "x-api-key: YOUR_API_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{"content": "Hello, how can you help me?"}'
+    ```
+    </CodeGroup>
   </Step>
 </Steps>
 
@@ -88,15 +117,19 @@ Explore the full API documentation to learn about all available endpoints and fe
     Learn how to authenticate your API requests
   </Card>
   
-  <Card title="Rate Limits" icon="gauge-high" href="/api-reference/rate-limits">
-    Understand API rate limits and best practices
+  <Card title="Agent Configuration" icon="robot" href="/api-reference/agents">
+    Create and manage agent configurations
   </Card>
   
-  <Card title="Error Handling" icon="triangle-exclamation" href="/api-reference/error-handling">
-    Learn about error codes and troubleshooting
+  <Card title="Sessions & Runtime" icon="messages" href="/api-reference/sessions">
+    Execute agents and manage conversations
   </Card>
   
-  <Card title="Agent Endpoints" icon="robot" href="/api-reference/agents/create">
-    Explore agent-related API endpoints
+  <Card title="Knowledge Bases" icon="database" href="/api-reference/knowledge-bases">
+    Set up knowledge bases for agent retrieval
+  </Card>
+  
+  <Card title="Files & Collections" icon="folder" href="/api-reference/files">
+    Upload and organize files for knowledge bases
   </Card>
 </CardGroup>
