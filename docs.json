@@ -8,7 +8,9 @@
     "dark": "#4F46E5"
   },
   "favicon": "/logo/atthene_white.svg",
-  "css": ["styles.css"],
+  "css": [
+    "styles.css"
+  ],
   "navigation": {
     "tabs": [
       {
@@ -36,9 +38,10 @@
           {
             "group": "Platform",
             "icon": "cube",
-            "pages": ["guides/platform/roadmap"]
+            "pages": [
+              "guides/platform/roadmap"
+            ]
           },
-
           {
             "group": "Integration",
             "icon": "plug",
@@ -162,11 +165,17 @@
     "primary": {
       "type": "button",
       "label": "Login",
-      "href": "https://app.atthene.com"
+      "href": "https://amas.atthene.com"
     }
   },
   "contextual": {
-    "options": ["copy", "view", "chatgpt", "claude", "perplexity"]
+    "options": [
+      "copy",
+      "view",
+      "chatgpt",
+      "claude",
+      "perplexity"
+    ]
   },
   "footer": {
     "socials": {
