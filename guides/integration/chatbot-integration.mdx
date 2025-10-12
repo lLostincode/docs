@@ -1,6 +1,241 @@
 ---
-title: "Chatbot Integration"
+title: "Embedding Chatbot"
 description: "Integrate your agents into chatbots and messaging platforms"
 ---
 
 TODO: Tutorial for embedding agents as public chatbot into public websites and sharepoints
+
+
+
+## Overview
+
+Embed our chatbot into your application with full customization options. The chatbot component accepts various configuration props to match your brand and use case.
+
+## Basic Setup
+
+```html
+<chatbot-component
+  connection-key="your-connection-key"
+  type="inPlace"
+/>
+```
+
+## Configuration Parameters
+
+### Required Parameters
+
+<ParamField path="connectionKey" type="string" required>
+  Your unique connection key for the chatbot instance.
+  
+  **Default:** `e97e32ea-579f-448c-a953-21586dccbc28`
+</ParamField>
+
+### Display & Behavior
+
+<ParamField path="type" type="string">
+  The display type of the chatbot.
+  
+  **Options:** `inPlace`, `popup`, `fullscreen`
+  
+  **Default:** `inPlace`
+</ParamField>
+
+<ParamField path="welcomeMessage" type="string">
+  The initial greeting message displayed to users when they open the chatbot.
+  
+  **Default:** Empty string
+</ParamField>
+
+<ParamField path="placeholder" type="string">
+  Placeholder text shown in the message input field.
+  
+  **Default:** Empty string
+</ParamField>
+
+<ParamField path="hintQuestions" type="array">
+  An array of suggested questions to help users get started.
+  
+  **Example:** `["How can I track my order?", "What are your business hours?"]`
+  
+  **Default:** `[]`
+</ParamField>
+
+### Legal & Compliance
+
+<ParamField path="disclaimer" type="string">
+  A disclaimer message shown to users before they interact with the chatbot.
+  
+  **Default:** Empty string
+</ParamField>
+
+<ParamField path="persistentDisclaimer" type="string">
+  A disclaimer that remains visible throughout the chat session.
+  
+  **Default:** `undefined`
+</ParamField>
+
+### Audio Configuration
+
+<ParamField path="enableAudio" type="boolean">
+  Enable or disable audio/voice capabilities in the chatbot.
+  
+  **Default:** `true`
+</ParamField>
+
+<ParamField path="playAudioByDefault" type="boolean">
+  Automatically play audio responses when they are generated.
+  
+  **Default:** `true`
+</ParamField>
+
+<ParamField path="voiceConfig" type="object">
+  Detailed configuration for the ElevenLabs text-to-speech engine.
+
+  <Expandable title="Voice Configuration Properties">
+    <ParamField path="voiceConfig.model_id" type="string">
+      The ElevenLabs TTS model to use.
+      
+      **Options:**
+      - `eleven_turbo_v2_5` (recommended for low-latency)
+      - `eleven_flash_v2_5` (fastest option)
+      - `eleven_turbo_v2`
+      - `eleven_flash_v2`
+      - `eleven_v3`
+      - `eleven_ttv_v3`
+      - `eleven_multilingual_v2`
+      - `eleven_multilingual_ttv_v2`
+      
+      **Default:** `eleven_turbo_v2_5`
+    </ParamField>
+
+    <ParamField path="voiceConfig.voice_id" type="string">
+      The voice character to use for speech synthesis.
+      
+      **Available Voices:**
+      - `JBFqnCBsd6RMkjVDRZzb` - George (default, versatile)
+      - `L0Dsvb3SLTyegXwtm47J` - Archer (British male, charming)
+      - `g6xIsTj2HwM6VR4iXFCw` - Jessica Anne Bogart (empathetic)
+      - `OYTbf65OHHFELVut7v2H` - Hope (bright, uplifting)
+      - `HDA9tsk27wYi3uq0fPcK` - Stuart (Australian, professional)
+      - `1SM7GgM6IMuvQlz2BwM3` - Mark (relaxed, laid back)
+      - `PT4nqlKZfc06VW1BuClj` - Angela (raw, relatable)
+      - `vBKc2FfBKJfcZNyEt1n6` - Finn (tenor, podcast-friendly)
+      - `56AoDkrOh6qfVPDXZ7Pt` - Cassidy (energetic)
+      - `NOpBlnGInO9m6vDvFkFC` - Grandpa Spuds Oxley (character voice)
+      
+      **Default:** `JBFqnCBsd6RMkjVDRZzb`
+    </ParamField>
+
+    <ParamField path="voiceConfig.speed" type="number">
+      Speaking speed multiplier.
+      
+      **Range:** `0.7` - `1.2`
+      
+      **Default:** `1.2`
+      
+      <Note>Extreme values may affect audio quality</Note>
+    </ParamField>
+
+    <ParamField path="voiceConfig.stability" type="number">
+      Voice stability and consistency. Lower values produce more emotional/dramatic speech, while higher values are more monotone and consistent.
+      
+      **Range:** `0.0` - `1.0`
+      
+      **Default:** `0.1`
+    </ParamField>
+
+    <ParamField path="voiceConfig.similarity_boost" type="number">
+      How closely the AI should adhere to the original voice characteristics.
+      
+      **Range:** `0.0` - `1.0`
+      
+      **Default:** `0.8`
+    </ParamField>
+
+    <ParamField path="voiceConfig.use_speaker_boost" type="boolean">
+      Boost similarity to the original speaker. Increases latency and is not available for Eleven v3 models.
+      
+      **Default:** `false`
+    </ParamField>
+
+    <ParamField path="voiceConfig.style_exaggeration" type="number">
+      Amplify the style of the original speaker. Increases latency and reduces stability.
+      
+      **Range:** `0.0` - `1.0`
+      
+      **Default:** `0.0`
+      
+      <Warning>Recommended to keep at 0.0 for best results</Warning>
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+### Styling & Theming
+
+<ParamField path="font" type="string">
+  Custom font family to use throughout the chatbot interface.
+  
+  **Example:** `"Inter, sans-serif"`
+  
+  **Default:** Empty string (uses default font)
+</ParamField>
+
+<ParamField path="theme" type="object">
+  Custom theme configuration object for colors, spacing, and other visual properties.
+  
+  **Default:** `{}`
+</ParamField>
+
+<ParamField path="images" type="object">
+  Custom images for branding (logo, avatar, etc.).
+  
+  **Default:** `{}`
+</ParamField>
+
+### User Management
+
+<ParamField path="userToken" type="string">
+  Optional authentication token to identify and track individual users across sessions.
+  
+  **Default:** Empty string
+</ParamField>
+
+## Example Configuration
+
+```html
+<chatbot-component
+  connection-key="e97e32ea-579f-448c-a953-21586dccbc28"
+  type="inPlace"
+  welcome-message="Hello! How can I help you today?"
+  placeholder="Type your message here..."
+  :hint-questions="['How do I get started?', 'What features are available?']"
+  disclaimer="This chatbot uses AI and may occasionally produce inaccurate information."
+  :enable-audio="true"
+  :play-audio-by-default="true"
+  font="Inter, system-ui, sans-serif"
+  :voice-config="{
+    model_id: 'eleven_turbo_v2_5',
+    voice_id: 'JBFqnCBsd6RMkjVDRZzb',
+    speed: 1.2,
+    stability: 0.1,
+    similarity_boost: 0.8,
+    use_speaker_boost: false,
+    style_exaggeration: 0.0
+  }"
+  user-token="user-12345"
+/>
+```
+
+## Best Practices
+
+<Tip>
+  **Voice Configuration:** For the best balance of quality and latency, use `eleven_turbo_v2_5` with a speed of 1.0-1.2 and stability around 0.5.
+</Tip>
+
+<Tip>
+  **User Experience:** Provide 2-4 hint questions to help users understand what your chatbot can do.
+</Tip>
+
+<Warning>
+  Avoid setting `style_exaggeration` above 0.0 unless specifically needed, as it can reduce audio quality and increase latency.
+</Warning>
