@@ -43,6 +43,15 @@
             ]
           },
           {
+            "group": "Advanced Agent Features",
+            "icon": "brain-circuit",
+            "pages": [
+              "guides/advanced/ai-config-generator",
+              "guides/advanced/structured-output",
+              "guides/advanced/conditional-edges"
+            ]
+          },
+          {
             "group": "Integration",
             "icon": "plug",
             "pages": [
