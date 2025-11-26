@@ -1,0 +1,789 @@
+---
+title: "REST API Tutorial"
+description: "Complete guide to integrating AMAS agents into your applications via REST API"
+---
+
+This tutorial walks you through integrating AMAS agents into your applications using the REST API. You'll learn how to create agents, manage sessions, execute messages, and handle responses programmatically.
+
+## Prerequisites
+
+<Steps>
+  <Step title="Get API Key">
+    Generate an API key from the Atthene Agent Studio settings
+  </Step>
+  
+  <Step title="Base URL">
+    All API requests use: `https://api-be.atthene.com/api/v1`
+  </Step>
+  
+  <Step title="Authentication">
+    Include your API key in the `x-api-key` header with every request
+  </Step>
+</Steps>
+
+<Warning>
+Never expose your API key in client-side code or public repositories. Use environment variables or secure credential storage.
+</Warning>
+
+## Quick Start: Your First Agent
+
+Let's create a simple conversational agent and interact with it.
+
+### Step 1: Validate Your Configuration
+
+Before creating a session, validate your agent configuration:
+
+<CodeGroup>
+```bash cURL
+curl -X POST https://api-be.atthene.com/api/v1/agent/validate/ \
+  -H "x-api-key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Customer Support Agent",
+    "agent_type": "llm_agent",
+    "system_prompt": "You are a helpful customer support agent. Be friendly and professional.",
+    "llm_config": {
+      "model": "gpt-4o",
+      "temperature": 0.7
+    }
+  }'
+```
+
+```python Python
+import requests
+
+API_KEY = "YOUR_API_KEY"
+BASE_URL = "https://api-be.atthene.com/api/v1"
+
+headers = {
+    "x-api-key": API_KEY,
+    "Content-Type": "application/json"
+}
+
+config = {
+    "name": "Customer Support Agent",
+    "agent_type": "llm_agent",
+    "system_prompt": "You are a helpful customer support agent. Be friendly and professional.",
+    "llm_config": {
+        "model": "gpt-4o",
+        "temperature": 0.7
+    }
+}
+
+response = requests.post(
+    f"{BASE_URL}/agent/validate/",
+    headers=headers,
+    json=config
+)
+
+print(response.json())
+```
+
+```javascript JavaScript
+const API_KEY = "YOUR_API_KEY";
+const BASE_URL = "https://api-be.atthene.com/api/v1";
+
+const config = {
+  name: "Customer Support Agent",
+  agent_type: "llm_agent",
+  system_prompt: "You are a helpful customer support agent. Be friendly and professional.",
+  llm_config: {
+    model: "gpt-4o",
+    temperature: 0.7
+  }
+};
+
+const response = await fetch(`${BASE_URL}/agent/validate/`, {
+  method: "POST",
+  headers: {
+    "x-api-key": API_KEY,
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify(config)
+});
+
+const data = await response.json();
+console.log(data);
+```
+</CodeGroup>
+
+### Step 2: Create a Session
+
+Once validated, create a session with your agent configuration:
+
+<CodeGroup>
+```bash cURL
+curl -X POST https://api-be.atthene.com/api/v1/sessions/ \
+  -H "x-api-key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Support Chat Session",
+    "agent_type": "llm_agent",
+    "system_prompt": "You are a helpful customer support agent.",
+    "llm_config": {"model": "gpt-4o", "temperature": 0.7}
+  }'
+```
+
+```python Python
+session_response = requests.post(
+    f"{BASE_URL}/sessions/",
+    headers=headers,
+    json={
+        "name": "Support Chat Session",
+        **config  # Reuse validated config
+    }
+)
+
+session_data = session_response.json()
+session_id = session_data["id"]
+print(f"Session created: {session_id}")
+```
+
+```javascript JavaScript
+const sessionResponse = await fetch(`${BASE_URL}/sessions/`, {
+  method: "POST",
+  headers: {
+    "x-api-key": API_KEY,
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    name: "Support Chat Session",
+    ...config
+  })
+});
+
+const sessionData = await sessionResponse.json();
+const sessionId = sessionData.id;
+console.log(`Session created: ${sessionId}`);
+```
+</CodeGroup>
+
+### Step 3: Execute a Message
+
+Send a message to your agent and get a response:
+
+<CodeGroup>
+```bash cURL
+curl -X POST https://api-be.atthene.com/api/v1/runtime/SESSION_ID/execute/ \
+  -H "x-api-key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "content": "Hello! I need help with my account."
+  }'
+```
+
+```python Python
+message_response = requests.post(
+    f"{BASE_URL}/runtime/{session_id}/execute/",
+    headers=headers,
+    json={"content": "Hello! I need help with my account."}
+)
+
+result = message_response.json()
+agent_reply = result["response"]["content"]
+print(f"Agent: {agent_reply}")
+```
+
+```javascript JavaScript
+const messageResponse = await fetch(
+  `${BASE_URL}/runtime/${sessionId}/execute/`,
+  {
+    method: "POST",
+    headers: {
+      "x-api-key": API_KEY,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      content: "Hello! I need help with my account."
+    })
+  }
+);
+
+const result = await messageResponse.json();
+const agentReply = result.response.content;
+console.log(`Agent: ${agentReply}`);
+```
+</CodeGroup>
+
+## Common Workflows
+
+### Building a Chatbot Integration
+
+Complete example of a multi-turn conversation:
+
+<CodeGroup>
+```python Python
+import requests
+from typing import Optional
+
+class AMASChatbot:
+    def __init__(self, api_key: str):
+        self.api_key = api_key
+        self.base_url = "https://api-be.atthene.com/api/v1"
+        self.headers = {
+            "x-api-key": api_key,
+            "Content-Type": "application/json"
+        }
+        self.session_id: Optional[str] = None
+    
+    def create_session(self, agent_config: dict) -> str:
+        """Create a new agent session"""
+        response = requests.post(
+            f"{self.base_url}/sessions/",
+            headers=self.headers,
+            json=agent_config
+        )
+        response.raise_for_status()
+        data = response.json()
+        self.session_id = data["id"]
+        return self.session_id
+    
+    def send_message(self, content: str) -> str:
+        """Send a message and get agent response"""
+        if not self.session_id:
+            raise ValueError("No active session. Call create_session() first.")
+        
+        response = requests.post(
+            f"{self.base_url}/runtime/{self.session_id}/execute/",
+            headers=self.headers,
+            json={"content": content}
+        )
+        response.raise_for_status()
+        data = response.json()
+        return data["response"]["content"]
+    
+    def get_history(self) -> list:
+        """Get conversation history"""
+        response = requests.get(
+            f"{self.base_url}/runtime/{self.session_id}/messages/",
+            headers=self.headers
+        )
+        response.raise_for_status()
+        return response.json()
+
+# Usage
+chatbot = AMASChatbot(api_key="YOUR_API_KEY")
+
+# Create session
+chatbot.create_session({
+    "name": "Customer Support",
+    "agent_type": "llm_agent",
+    "system_prompt": "You are a helpful support agent.",
+    "llm_config": {"model": "gpt-4o"}
+})
+
+# Multi-turn conversation
+print(chatbot.send_message("Hi, I need help"))
+print(chatbot.send_message("How do I reset my password?"))
+print(chatbot.send_message("Thank you!"))
+
+# Get full history
+history = chatbot.get_history()
+```
+
+```javascript JavaScript
+class AMASChatbot {
+  constructor(apiKey) {
+    this.apiKey = apiKey;
+    this.baseUrl = "https://api-be.atthene.com/api/v1";
+    this.sessionId = null;
+  }
+
+  async createSession(agentConfig) {
+    const response = await fetch(`${this.baseUrl}/sessions/`, {
+      method: "POST",
+      headers: {
+        "x-api-key": this.apiKey,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(agentConfig)
+    });
+
+    const data = await response.json();
+    this.sessionId = data.id;
+    return this.sessionId;
+  }
+
+  async sendMessage(content) {
+    if (!this.sessionId) {
+      throw new Error("No active session. Call createSession() first.");
+    }
+
+    const response = await fetch(
+      `${this.baseUrl}/runtime/${this.sessionId}/execute/`,
+      {
+        method: "POST",
+        headers: {
+          "x-api-key": this.apiKey,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ content })
+      }
+    );
+
+    const data = await response.json();
+    return data.response.content;
+  }
+
+  async getHistory() {
+    const response = await fetch(
+      `${this.baseUrl}/runtime/${this.sessionId}/messages/`,
+      {
+        headers: { "x-api-key": this.apiKey }
+      }
+    );
+
+    return await response.json();
+  }
+}
+
+// Usage
+const chatbot = new AMASChatbot("YOUR_API_KEY");
+
+await chatbot.createSession({
+  name: "Customer Support",
+  agent_type: "llm_agent",
+  system_prompt: "You are a helpful support agent.",
+  llm_config: { model: "gpt-4o" }
+});
+
+console.log(await chatbot.sendMessage("Hi, I need help"));
+console.log(await chatbot.sendMessage("How do I reset my password?"));
+console.log(await chatbot.sendMessage("Thank you!"));
+```
+</CodeGroup>
+
+### Knowledge Base Integration
+
+Create an agent with knowledge base access:
+
+```python
+# Create knowledge base first (via platform or API)
+kb_config = {
+    "name": "Documentation Agent",
+    "agent_type": "llm_agent",
+    "system_prompt": "You are a documentation assistant. Use the knowledge base to answer questions accurately.",
+    "llm_config": {"model": "gpt-4o"},
+    "knowledge_bases": [
+        {
+            "name": "product_docs",
+            "knowledge_base_type": "milvus",
+            "id": "kb_abc123",
+            "config": {
+                "top_k": 10,
+                "metric_type": "COSINE"
+            }
+        }
+    ]
+}
+
+# Create session with KB
+session_response = requests.post(
+    f"{BASE_URL}/sessions/",
+    headers=headers,
+    json=kb_config
+)
+
+session_id = session_response.json()["id"]
+
+# Agent will automatically search KB when needed
+response = requests.post(
+    f"{BASE_URL}/runtime/{session_id}/execute/",
+    headers=headers,
+    json={"content": "How do I configure authentication?"}
+)
+
+print(response.json()["response"]["content"])
+```
+
+### Saved Agent Configurations
+
+Save and reuse agent configurations instead of passing full YAML each time:
+
+```python
+# Save an agent configuration (full SystemConfig format)
+agent_config = {
+    "system_config": {
+        "name": "Support Agent Template",
+        "architecture": "workflow",
+        "agents": [
+            {
+                "name": "support_agent",
+                "agent_type": "llm_agent",
+                "system_prompt": "You are a helpful support agent.",
+                "llm_config": {"model": "gpt-4o", "temperature": 0.7},
+                "tools": ["web_search"]
+            }
+        ],
+        "entry_point": "support_agent"
+    }
+}
+
+# Create saved agent
+save_response = requests.post(
+    f"{BASE_URL}/agent/",
+    headers=headers,
+    json=agent_config
+)
+
+saved_agent = save_response.json()
+agent_id = saved_agent["id"]
+
+# List all saved agents
+agents_response = requests.get(
+    f"{BASE_URL}/agent/",
+    headers=headers
+)
+agents = agents_response.json()
+
+# Get specific agent
+agent_response = requests.get(
+    f"{BASE_URL}/agent/{agent_id}/",
+    headers=headers
+)
+
+# Update agent (must update full system_config)
+update_response = requests.patch(
+    f"{BASE_URL}/agent/{agent_id}/",
+    headers=headers,
+    json={
+        "system_config": {
+            "name": "Support Agent Template",
+            "architecture": "workflow",
+            "agents": [
+                {
+                    "name": "support_agent",
+                    "agent_type": "llm_agent",
+                    "system_prompt": "Updated prompt here",
+                    "llm_config": {"model": "gpt-4o", "temperature": 0.7},
+                    "tools": ["web_search"]
+                }
+            ],
+            "entry_point": "support_agent"
+        }
+    }
+)
+
+# Delete agent
+delete_response = requests.delete(
+    f"{BASE_URL}/agent/{agent_id}/",
+    headers=headers
+)
+```
+
+<Note>
+Saved agents are stored per user and can be reused across multiple sessions without re-sending the full configuration.
+</Note>
+
+### Session Status Monitoring
+
+Check session status and metadata:
+
+```python
+# Check session status
+status_response = requests.get(
+    f"{BASE_URL}/runtime/{session_id}/status/",
+    headers=headers
+)
+
+status_data = status_response.json()
+print(f"Session ID: {status_data['id']}")
+print(f"Status: {status_data['status']}")
+print(f"Title: {status_data['title']}")
+print(f"Created: {status_data['created_at']}")
+print(f"Updated: {status_data['updated_at']}")
+
+# Response format:
+# {
+#     "id": "session_123",
+#     "status": "active",
+#     "created_at": 1234567890,
+#     "updated_at": 1234567890,
+#     "title": "Support Chat Session"
+# }
+```
+
+### Multi-Agent Workflow
+
+Create a multi-agent system with conditional routing:
+
+```yaml
+# Save as multi_agent_config.yaml
+name: "Content Review System"
+architecture: "workflow"
+
+agents:
+  - name: "writer"
+    agent_type: "llm_agent"
+    system_prompt: "Write blog posts on given topics."
+  
+  - name: "reviewer"
+    agent_type: "llm_agent"
+    system_prompt: "Review content for quality and accuracy."
+    structured_output:
+      enabled: true
+      schema:
+        approved:
+          type: "bool"
+          description: "Whether content is approved"
+  
+  - name: "publisher"
+    agent_type: "llm_agent"
+    system_prompt: "Format and publish approved content."
+
+edges:
+  - from: "__start__"
+    to: "writer"
+  - from: "writer"
+    to: "reviewer"
+  - from: "reviewer"
+    condition: "Is content approved? {{reviewer.output.approved}}"
+    condition_type: "boolean"
+    routing:
+      yes: "publisher"
+      no: "__end__"
+  - from: "publisher"
+    to: "__end__"
+
+entry_point: "writer"
+```
+
+```python
+import yaml
+
+# Load YAML config
+with open("multi_agent_config.yaml") as f:
+    config = yaml.safe_load(f)
+
+# Create session
+response = requests.post(
+    f"{BASE_URL}/sessions/",
+    headers=headers,
+    json=config
+)
+
+session_id = response.json()["id"]
+
+# Execute workflow
+result = requests.post(
+    f"{BASE_URL}/runtime/{session_id}/execute/",
+    headers=headers,
+    json={"content": "Write a blog post about AI safety"}
+)
+
+print(result.json())
+```
+
+## Best Practices
+
+### Error Handling
+
+Always implement proper error handling:
+
+```python
+import requests
+from requests.exceptions import RequestException
+
+def execute_with_retry(session_id: str, content: str, max_retries: int = 3):
+    """Execute message with automatic retry on failure"""
+    for attempt in range(max_retries):
+        try:
+            response = requests.post(
+                f"{BASE_URL}/runtime/{session_id}/execute/",
+                headers=headers,
+                json={"content": content},
+                timeout=30
+            )
+            response.raise_for_status()
+            return response.json()
+        
+        except requests.exceptions.Timeout:
+            if attempt < max_retries - 1:
+                print(f"Timeout, retrying... (attempt {attempt + 1})")
+                continue
+            raise
+        
+        except requests.exceptions.HTTPError as e:
+            if e.response.status_code == 429:  # Rate limit
+                import time
+                wait_time = 2 ** attempt  # Exponential backoff
+                print(f"Rate limited, waiting {wait_time}s...")
+                time.sleep(wait_time)
+                continue
+            raise
+        
+        except RequestException as e:
+            print(f"Request failed: {e}")
+            raise
+
+# Usage
+try:
+    result = execute_with_retry(session_id, "Hello!")
+    print(result["response"]["content"])
+except Exception as e:
+    print(f"Failed after retries: {e}")
+```
+
+### Session Management
+
+Manage sessions efficiently:
+
+```python
+class SessionManager:
+    def __init__(self, api_key: str):
+        self.api_key = api_key
+        self.base_url = "https://api-be.atthene.com/api/v1"
+        self.headers = {"x-api-key": api_key, "Content-Type": "application/json"}
+    
+    def list_sessions(self):
+        """List all active sessions"""
+        response = requests.get(
+            f"{self.base_url}/sessions/",
+            headers=self.headers
+        )
+        return response.json()
+    
+    def get_session(self, session_id: str):
+        """Get session details"""
+        response = requests.get(
+            f"{self.base_url}/sessions/{session_id}/",
+            headers=self.headers
+        )
+        return response.json()
+    
+    def delete_session(self, session_id: str):
+        """Delete a session"""
+        response = requests.delete(
+            f"{self.base_url}/sessions/{session_id}/",
+            headers=self.headers
+        )
+        return response.status_code == 204
+
+# Usage
+manager = SessionManager("YOUR_API_KEY")
+
+# List all sessions
+sessions = manager.list_sessions()
+print(f"Active sessions: {len(sessions)}")
+
+# Clean up old sessions
+for session in sessions:
+    if should_delete(session):  # Your logic
+        manager.delete_session(session["id"])
+```
+
+### Monitoring and Logging
+
+Track API usage and performance:
+
+```python
+import logging
+from datetime import datetime
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+def execute_with_logging(session_id: str, content: str):
+    """Execute message with detailed logging"""
+    start_time = datetime.now()
+    
+    try:
+        logger.info(f"Executing message in session {session_id}")
+        logger.debug(f"Content: {content[:100]}...")
+        
+        response = requests.post(
+            f"{BASE_URL}/runtime/{session_id}/execute/",
+            headers=headers,
+            json={"content": content}
+        )
+        
+        duration = (datetime.now() - start_time).total_seconds()
+        
+        response.raise_for_status()
+        data = response.json()
+        
+        logger.info(f"Success in {duration:.2f}s")
+        logger.debug(f"Response: {data['response']['content'][:100]}...")
+        
+        return data
+    
+    except Exception as e:
+        duration = (datetime.now() - start_time).total_seconds()
+        logger.error(f"Failed after {duration:.2f}s: {e}")
+        raise
+```
+
+## Common Errors
+
+| Status Code | Error | Solution |
+|-------------|-------|----------|
+| `400` | Invalid configuration | Validate config with `/agent/validate/` endpoint |
+| `401` | Unauthorized | Check API key is correct and not expired |
+| `404` | Session not found | Verify session ID exists, may have been deleted |
+| `429` | Rate limit exceeded | Implement exponential backoff and retry logic |
+| `500` | Internal server error | Check request format, contact support if persists |
+
+## Advanced Topics
+
+### Streaming Responses
+
+For real-time streaming (WebSocket/SSE):
+
+<Note>
+Streaming is available via WebSocket connections. See the [Chatbot Integration](/guides/integration/chatbot-integration) guide for WebSocket examples.
+</Note>
+
+### Batch Processing
+
+Process multiple messages efficiently:
+
+```python
+def batch_process(session_id: str, messages: list[str]):
+    """Process multiple messages in sequence"""
+    results = []
+    
+    for i, message in enumerate(messages):
+        print(f"Processing {i+1}/{len(messages)}...")
+        
+        response = requests.post(
+            f"{BASE_URL}/runtime/{session_id}/execute/",
+            headers=headers,
+            json={"content": message}
+        )
+        
+        results.append({
+            "input": message,
+            "output": response.json()["response"]["content"]
+        })
+    
+    return results
+
+# Usage
+messages = [
+    "Summarize this document...",
+    "Extract key points...",
+    "Generate action items..."
+]
+
+results = batch_process(session_id, messages)
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="API Reference" icon="book" href="/api-reference/introduction">
+    Complete API endpoint documentation
+  </Card>
+  
+  <Card title="Authentication" icon="key" href="/api-reference/authentication">
+    Detailed authentication guide
+  </Card>
+  
+  <Card title="Chatbot Integration" icon="comments" href="/guides/integration/chatbot-integration">
+    Build real-time chat interfaces
+  </Card>
+  
+  <Card title="YAML Configuration" icon="file-code" href="/guides/yaml-configuration">
+    Learn about agent configuration
+  </Card>
+</CardGroup>

@@ -31,8 +31,16 @@
             "pages": [
               "guides/yaml-configuration",
               "guides/agent-types",
-              "guides/agent-capabilities",
-              "guides/knowledge-base-setup"
+              "guides/agent-capabilities"
+            ]
+          },
+          {
+            "group": "Knowledge Bases",
+            "icon": "database",
+            "pages": [
+              "guides/knowledge-base/overview",
+              "guides/knowledge-base/milvus",
+              "guides/knowledge-base/uknow-cloud-storage"
             ]
           },
           {
@@ -55,6 +63,7 @@
             "group": "Integration",
             "icon": "plug",
             "pages": [
+              "guides/integration/rest-api-tutorial",
               "guides/integration/connecting-services",
               "guides/integration/embedding-agents",
               "guides/integration/chatbot-integration",

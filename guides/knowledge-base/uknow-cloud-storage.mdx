@@ -1,0 +1,379 @@
+---
+title: "UKnow Cloud Storage"
+description: "Connect Google Drive, Dropbox, OneDrive, and SharePoint to your agents via UKnow"
+---
+
+UKnow cloud storage integration allows your agents to search and retrieve information directly from your cloud storage accounts without manual file uploads. Connect multiple cloud storage providers and give agents access to your organization's documents.
+
+## Overview
+
+UKnow provides semantic search capabilities across:
+- **Google Drive** - Search across all your Google Drive files and folders
+- **Dropbox** - Access Dropbox documents and shared folders
+- **OneDrive** - Search personal and business OneDrive accounts
+- **SharePoint** - Connect to SharePoint document libraries
+
+<Info>
+UKnow connections are managed via OAuth authentication and require the UKnow service to be configured with valid API credentials.
+</Info>
+
+## How It Works
+
+1. **OAuth Connection**: Users authenticate with their cloud storage provider via UKnow OAuth
+2. **Drive Selection**: Choose which drives/libraries to include in search
+3. **Path Filtering**: Optionally filter to specific folders or paths
+4. **Semantic Search**: Agents query documents using natural language
+5. **Real-time Access**: No file uploads needed - agents access live cloud data
+
+## Configuration
+
+### Basic Configuration
+
+```yaml
+agents:
+  - name: "document_assistant"
+    agent_type: "llm_agent"
+    
+    knowledge_bases:
+      - name: "company_sharepoint"
+        knowledge_base_type: "uknow"
+        enabled: true
+        config:
+          username: "user@company.com"
+          drive_key: "abc123xyz"
+          path_filter: "/documents/"
+          drive_ids: []
+```
+
+### Configuration Fields
+
+<ParamField path="name" type="string" required>
+  Unique identifier for this knowledge base instance
+</ParamField>
+
+<ParamField path="knowledge_base_type" type="string" required>
+  Must be set to `"uknow"`
+</ParamField>
+
+<ParamField path="enabled" type="boolean" default="true">
+  Enable or disable this knowledge base
+</ParamField>
+
+<ParamField path="config" type="object" required>
+  UKnow-specific configuration object
+  
+  <Expandable title="Config Properties">
+    <ParamField path="config.username" type="string" required>
+      Email address of the cloud storage account
+      
+      This is the email used for OAuth authentication with the cloud provider.
+    </ParamField>
+    
+    <ParamField path="config.drive_key" type="string" required>
+      OAuth drive key/token for authentication
+      
+      Obtained through UKnow OAuth flow. Stored securely and never exposed.
+    </ParamField>
+    
+    <ParamField path="config.path_filter" type="string" default="/documents/">
+      Path filter to limit search scope
+      
+      **Examples:**
+      - `"/documents/"` - Only search in documents folder (default)
+      - `"/projects/2024/"` - Search specific project folder
+      - `"/"` - Search entire drive
+    </ParamField>
+    
+    <ParamField path="config.drive_ids" type="array" default="[]">
+      List of specific drive/library IDs to search
+      
+      Leave empty to search all available drives. Use specific IDs to limit scope to certain SharePoint sites or shared drives.
+      
+      **Example:** `["guid-1234-5678", "guid-abcd-efgh"]`
+    </ParamField>
+    
+    <ParamField path="config.search_options" type="object" optional>
+      Advanced search configuration
+      
+      <Expandable title="Search Options">
+        <ParamField path="search_options.search_type" type="string" default="similarity">
+          Search algorithm type
+          
+          **Options:**
+          - `"similarity"` - Standard semantic similarity search
+          - `"similarity_score_threshold"` - Filter by minimum score
+          - `"mmr"` - Maximum Marginal Relevance (diverse results)
+        </ParamField>
+        
+        <ParamField path="search_options.fetch_k" type="integer" default="5">
+          Number of results to fetch
+          
+          **Range:** 1-100
+        </ParamField>
+        
+        <ParamField path="search_options.lambda_mult" type="float" default="0.5">
+          Lambda multiplier for MMR search
+          
+          **Range:** 0.0-1.0  
+          Controls diversity vs relevance trade-off in MMR mode
+        </ParamField>
+      </Expandable>
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+## Usage Examples
+
+### SharePoint Document Library
+
+```yaml
+agents:
+  - name: "hr_assistant"
+    agent_type: "llm_agent"
+    
+    knowledge_bases:
+      - name: "hr_policies"
+        knowledge_base_type: "uknow"
+        enabled: true
+        config:
+          username: "hr@company.com"
+          drive_key: "sharepoint_key_123"
+          path_filter: "/HR Policies/"
+          drive_ids: ["sharepoint-site-guid-1234"]
+    
+    system_prompt: |
+      You are an HR assistant with access to company policies and procedures.
+      Search the knowledge base to answer employee questions accurately.
+```
+
+### Google Drive with Multiple Folders
+
+```yaml
+agents:
+  - name: "sales_assistant"
+    agent_type: "react_agent"
+    tools: ["web_search"]
+    
+    knowledge_bases:
+      - name: "sales_materials"
+        knowledge_base_type: "uknow"
+        enabled: true
+        config:
+          username: "sales@company.com"
+          drive_key: "gdrive_key_456"
+          path_filter: "/Sales Materials/"
+          search_options:
+            search_type: "mmr"
+            fetch_k: 10
+            lambda_mult: 0.7
+    
+    system_prompt: |
+      You are a sales assistant with access to product documentation and sales materials.
+      Use the knowledge base to find relevant information for customer inquiries.
+```
+
+### Multiple Cloud Storage Connections
+
+```yaml
+agents:
+  - name: "knowledge_agent"
+    agent_type: "llm_agent"
+    
+    knowledge_bases:
+      - name: "sharepoint_docs"
+        knowledge_base_type: "uknow"
+        enabled: true
+        config:
+          username: "user1@company.com"
+          drive_key: "sp_key_123"
+          path_filter: "/documents/"
+      
+      - name: "google_drive_files"
+        knowledge_base_type: "uknow"
+        enabled: true
+        config:
+          username: "user2@company.com"
+          drive_key: "gd_key_456"
+          path_filter: "/shared/"
+    
+    system_prompt: |
+      You have access to multiple cloud storage sources.
+      Search across all available knowledge bases to find relevant information.
+```
+
+## Managing Connections
+
+UKnow connections are managed through the platform interface or API. Each connection represents an authenticated cloud storage account.
+
+### Connection Properties
+
+- **Email**: Cloud storage account email
+- **Drive Key**: OAuth authentication token
+- **Display Name**: Friendly name for the connection
+- **Drive IDs**: Selected drives/libraries to search
+- **Path Filter**: Folder path restriction
+- **Sync Status**: Connection readiness (`syncing`, `ready`)
+
+### Connection Lifecycle
+
+<Steps>
+  <Step title="OAuth Authentication">
+    User authenticates with cloud provider via UKnow OAuth flow
+  </Step>
+  
+  <Step title="Drive Discovery">
+    System fetches available drives/libraries from the account
+  </Step>
+  
+  <Step title="Configuration">
+    User selects drives and sets path filters
+  </Step>
+  
+  <Step title="Sync Status Check">
+    System verifies connection is ready for search
+  </Step>
+  
+  <Step title="Agent Integration">
+    Connection is used in agent knowledge base configuration
+  </Step>
+</Steps>
+
+## Search Behavior
+
+### How Agents Search UKnow
+
+When an agent needs information:
+
+1. **Query Processing**: Agent's question is sent to UKnow API
+2. **Semantic Search**: UKnow performs vector similarity search across configured drives
+3. **Path Filtering**: Results filtered by path_filter if specified
+4. **Drive Filtering**: Results limited to drive_ids if specified
+5. **Ranking**: Results ranked by relevance score
+6. **Context Injection**: Top results provided to agent as context
+
+### Search Types
+
+<Tabs>
+  <Tab title="Similarity Search">
+    **Default search mode**
+    
+    Returns documents most semantically similar to the query.
+    
+    ```yaml
+    search_options:
+      search_type: "similarity"
+      fetch_k: 5
+    ```
+    
+    Best for: General knowledge retrieval
+  </Tab>
+  
+  <Tab title="Score Threshold">
+    **Filtered similarity search**
+    
+    Only returns results above a minimum relevance score.
+    
+    ```yaml
+    search_options:
+      search_type: "similarity_score_threshold"
+      fetch_k: 10
+    ```
+    
+    Best for: High-precision requirements
+  </Tab>
+  
+  <Tab title="MMR (Diverse Results)">
+    **Maximum Marginal Relevance**
+    
+    Balances relevance with diversity to avoid redundant results.
+    
+    ```yaml
+    search_options:
+      search_type: "mmr"
+      fetch_k: 10
+      lambda_mult: 0.7  # Higher = more diverse
+    ```
+    
+    Best for: Broad research, avoiding duplicates
+  </Tab>
+</Tabs>
+
+## Best Practices
+
+<Tip>
+**Path Filtering**: Use specific path filters to improve search relevance and reduce noise. Instead of searching entire drives, target specific folders.
+</Tip>
+
+<Tip>
+**Drive Selection**: For SharePoint, select specific document libraries rather than searching all sites to improve performance.
+</Tip>
+
+<Tip>
+**Search Type**: Use `similarity` for most cases. Use `mmr` when you need diverse results (e.g., research tasks).
+</Tip>
+
+<Tip>
+**Fetch K**: Start with 5-10 results. Increase if agents need more context, but be mindful of token limits.
+</Tip>
+
+<Warning>
+**OAuth Tokens**: Drive keys are sensitive credentials. Never hardcode them in configurations. Use the platform's secure connection management.
+</Warning>
+
+<Warning>
+**Sync Status**: Ensure connections show `sync_status: ready` before using in production. Syncing connections may return incomplete results.
+</Warning>
+
+## Limitations
+
+<Note>
+- **Read-Only**: UKnow knowledge bases are read-only. Agents cannot create, update, or delete cloud files.
+- **OAuth Required**: All connections require valid OAuth authentication through UKnow.
+- **API Dependency**: Requires UKnow API to be configured with `UKNOW_API_BASE` and `UKNOW_API_KEY` environment variables.
+- **Sync Delays**: New files may take time to appear in search results depending on cloud provider sync.
+</Note>
+
+## Troubleshooting
+
+### Connection Issues
+
+| Issue | Cause | Solution |
+|-------|-------|----------|
+| `sync_status: syncing` | Connection still indexing | Wait for sync to complete, check status via API |
+| `Missing credentials` | API keys not configured | Verify `UKNOW_API_BASE` and `UKNOW_API_KEY` environment variables |
+| `No results found` | Path filter too restrictive | Broaden path filter or check folder exists |
+| `Authentication failed` | Expired OAuth token | Re-authenticate connection via platform |
+
+### Search Quality Issues
+
+<AccordionGroup>
+  <Accordion title="Results not relevant">
+    - Check path_filter is targeting correct folders
+    - Verify drive_ids include the right libraries
+    - Try adjusting search_type (e.g., use MMR for diversity)
+  </Accordion>
+  
+  <Accordion title="Missing recent documents">
+    - Check connection sync_status is "ready"
+    - Cloud provider may have sync delay
+    - Verify document is in filtered path
+  </Accordion>
+  
+  <Accordion title="Too many results">
+    - Reduce fetch_k value
+    - Use more specific path_filter
+    - Limit drive_ids to relevant libraries only
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Milvus Knowledge Base" icon="database" href="/guides/knowledge-base/milvus">
+    Learn about vector database knowledge bases
+  </Card>
+  
+  <Card title="Agent Capabilities" icon="wand-magic-sparkles" href="/guides/agent-capabilities">
+    Explore all agent capabilities
+  </Card>
+</CardGroup>
