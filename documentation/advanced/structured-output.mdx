@@ -487,7 +487,7 @@ Each field in the schema must have:
 <ParamField path="type" type="string" required>
   Type notation for the field
   
-  See [Type Notation Reference](/guides/advanced/reference/type-notation) for all supported types.
+  See [Type Notation Reference](/documentation/advanced/reference/type-notation) for all supported types.
   
   **Supported types**: `str`, `int`, `float`, `bool`, `list[T]`, `dict[K, V]`
 </ParamField>
@@ -532,7 +532,7 @@ The system automatically validates structured output:
 
 | Error | Cause | Solution |
 |-------|-------|----------|
-| `Invalid type notation` | Unsupported type syntax | Check [Type Notation Reference](/guides/advanced/reference/type-notation) |
+| `Invalid type notation` | Unsupported type syntax | Check [Type Notation Reference](/documentation/advanced/reference/type-notation) |
 | `Missing required field` | Agent didn't provide all fields | Improve system prompt to mention all fields |
 | `Type validation failed` | Value doesn't match expected type | Ensure agent outputs correct type for the field |
 | `Type mismatch` | Wrong data type | Ensure agent outputs correct type (e.g., number not string) |
@@ -565,6 +565,6 @@ If validation fails, you'll receive a detailed error:
 
 ## Next Steps
 
-<Card title="Conditional Edges" icon="code-branch" href="/guides/advanced/conditional-edges">
+<Card title="Conditional Edges" icon="code-branch" href="/documentation/advanced/conditional-edges">
   Learn how to route agents based on structured output values
 </Card>

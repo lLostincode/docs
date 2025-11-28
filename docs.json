@@ -38,18 +38,31 @@
                   "documentation/agent_config/types_config/prompt-configuration"
                 ]
               },
-              "documentation/agent_config/agent-capabilities",
+              {
+                "group": "Agent Capabilities",
+                "pages": [
+                  "documentation/agent_config/agent-capabilities",
+                  "documentation/advanced/structured-output"
+                ]
+              },
               "documentation/agent_config/knowledge-base-setup"
             ]
           },
           {
-            "group": "Knowledge Bases",
+            "group": "Multi Agent Systems",
+            "icon": "brain-circuit",
+            "pages": [
+              "documentation/advanced/conditional-edges"
+            ]
+          },
+          {
+            "group": "Atthene Agents Studio",
             "icon": "database",
             "pages": [
+              "documentation/advanced/ai-config-generator",
               "documentation/knowledge-base/overview",
               "documentation/knowledge-base/milvus",
-              "documentation/knowledge-base/uknow-cloud-storage",
-              "documentation/yaml-configuration"
+              "documentation/knowledge-base/uknow-cloud-storage"
             ]
           },
           {
@@ -59,15 +72,6 @@
               "documentation/platform/roadmap",
               "documentation/platform/release-notes",
               "documentation/platform/known-issues"
-            ]
-          },
-          {
-            "group": "Advanced Agent Features",
-            "icon": "brain-circuit",
-            "pages": [
-              "guides/advanced/ai-config-generator",
-              "guides/advanced/structured-output",
-              "guides/advanced/conditional-edges"
             ]
           },
           {
