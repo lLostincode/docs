@@ -1,0 +1,1184 @@
+---
+title: 'Prompt Configuration'
+description: 'Master prompt engineering in Atthene with dynamic context control, few-shot learning, and history management'
+icon: 'message-lines'
+---
+
+## Overview
+
+Atthene's `PromptConfig` provides sophisticated prompt engineering capabilities through dynamic context control, few-shot examples, and intelligent history management. This enables precise control over what information reaches your LLM.
+
+## Core Concepts
+
+### Message Ordering
+
+Atthene constructs prompts in an optimal order for LLM attention:
+
+<Steps>
+  <Step title="System Prompt">
+    **Highest attention** - Behavioral instructions and role definition
+  </Step>
+  <Step title="Few-Shot Examples">
+    **Teaching patterns** - Static examples showing desired behavior
+  </Step>
+  <Step title="Conversation History">
+    **Dynamic context** - Previous messages (configurable)
+  </Step>
+  <Step title="Current User Input">
+    **Highest attention** - The current task or question
+  </Step>
+</Steps>
+
+<Info>
+This ordering leverages the **primacy and recency effects** in LLM attention, placing the most important information at the beginning and end.
+</Info>
+
+## PromptConfig Schema
+
+```yaml
+prompt_config:
+  system_prompt: string           # Core behavioral instructions (supports template variables)
+  include_user_input: bool        # Include current user message (default: true)
+  include_history: bool | int     # History control (default: true)
+  include_media_in_history: bool  # Strip media from history (default: false)
+  few_shot_examples: list         # Teaching examples (default: [])
+```
+
+## Template Variables
+
+Atthene supports **dynamic template variables** in your `system_prompt` using `{{ variable }}` syntax. Variables are substituted recursively before the prompt is sent to the LLM, enabling powerful dynamic context injection.
+
+### Variable Categories
+
+<CardGroup cols={2}>
+  <Card title="Prompt Library" icon="book">
+    Access stored prompts from database
+  </Card>
+  <Card title="User Input" icon="message">
+    Current user message content
+  </Card>
+  <Card title="Conversation History" icon="comments">
+    User-visible message history
+  </Card>
+  <Card title="Full Execution History" icon="list">
+    Complete trace with internal messages
+  </Card>
+  <Card title="Structured Outputs" icon="diagram-project">
+    Data from previous agents
+  </Card>
+  <Card title="Agent Outputs" icon="robot">
+    Non-structured agent responses
+  </Card>
+</CardGroup>
+
+### 1. Prompt Library Variables
+
+Access reusable prompts stored in the database with automatic user/company scoping.
+
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `{{ prompts.prompt_name }}` | Latest version of named prompt | `{{ prompts.system_instructions }}` |
+| `{{ prompts.prompt_name.version }}` | Specific version number | `{{ prompts.guidelines.2 }}` |
+
+**Example:**
+```yaml
+agents:
+  - name: support_agent
+    prompt_config:
+      system_prompt: |
+        {{ prompts.base_instructions }}
+        
+        ## Company Guidelines
+        {{ prompts.support_guidelines.3 }}
+        
+        ## Tone
+        {{ prompts.professional_tone }}
+```
+
+<Tip>
+**Prompt Reusability**: Store common instructions in the prompt library and reference them across multiple agents. Update once, apply everywhere.
+</Tip>
+
+<Info>
+**Variables in Prompt Library**: You can use template variables **inside** prompt library prompts! For example, a stored prompt can contain `{{ user_input }}`, `{{ history }}`, or even other `{{ prompts.* }}` references. The system resolves them recursively (up to 10 iterations).
+
+**Example Prompt Library Entry:**
+```
+Name: "contextual_greeting"
+Content: |
+  You are a helpful assistant.
+  
+  The user just said: "{{ user_input }}"
+  
+  Recent conversation:
+  {{ history[3] }}
+  
+  Respond appropriately based on context.
+```
+
+**Usage:**
+```yaml
+prompt_config:
+  system_prompt: "{{ prompts.contextual_greeting }}"
+```
+
+This enables powerful prompt composition and reusability!
+</Info>
+
+### 2. User Input Variable
+
+Access the current user's message content.
+
+| Variable | Description | Multimodal Handling |
+|----------|-------------|---------------------|
+| `{{ user_input }}` | Latest user message | Extracts only text from images/files |
+
+**Example:**
+```yaml
+prompt_config:
+  system_prompt: |
+    The user asked: "{{ user_input }}"
+    
+    Analyze this question and provide:
+    1. Intent classification
+    2. Key entities mentioned
+    3. Suggested response approach
+```
+
+### 3. Conversation History Variables
+
+Access formatted conversation history (user-visible messages only, excludes internal tool calls).
+
+| Variable | Description | Format |
+|----------|-------------|--------|
+| `{{ history }}` | Full user-visible history | `user: message\nassistant: response\n...` |
+| `{{ history[N] }}` | Last N messages | Same format, limited to N messages |
+
+**Example:**
+```yaml
+prompt_config:
+  system_prompt: |
+    ## Recent Conversation
+    {{ history[5] }}
+    
+    ## Task
+    Continue the conversation naturally, maintaining context and tone.
+  include_history: false  # Using template variable instead
+```
+
+**Output Format:**
+```
+user: What's the weather today?
+assistant: It's sunny with a high of 75°F.
+user: Should I bring an umbrella?
+assistant: No need for an umbrella today!
+```
+
+<Info>
+**History vs include_history**: You can use `{{ history }}` template variable for formatted history in your system prompt, or use `include_history: true` to add messages to the message list. They serve different purposes.
+</Info>
+
+### 4. Full Execution History Variables
+
+Access complete execution trace including internal messages, tool calls, and tool results.
+
+| Variable | Description | Includes |
+|----------|-------------|----------|
+| `{{ full_history }}` | Complete execution trace | User + Internal + Tool calls + Results |
+| `{{ full_history[N] }}` | Last N messages (all types) | Same, limited to N messages |
+
+**Example:**
+```yaml
+agents:
+  - name: execution_analyzer
+    prompt_config:
+      system_prompt: |
+        ## Complete Execution Trace
+        {{ full_history[20] }}
+        
+        ## Analysis Task
+        Analyze the tool usage patterns and identify:
+        1. Which tools were called
+        2. Success/failure rates
+        3. Optimization opportunities
+      include_history: false
+      include_user_input: false
+```
+
+**Output Format:**
+```
+user: Search for Python tutorials
+assistant: I'll search for that information.
+tool: search_web(query="Python tutorials")
+tool_result: Found 10 results: [...]
+assistant: Here are the top Python tutorials I found...
+```
+
+<Warning>
+**Full History vs History**: `{{ full_history }}` includes internal messages and tool execution details. Use it for debugging, analysis, or when agents need to understand the complete execution flow.
+</Warning>
+
+### 5. Structured Output Variables
+
+Access structured data from previous agents in multi-agent workflows.
+
+| Pattern | Description | Example |
+|---------|-------------|---------|
+| `{{ agent_name.output_name.field }}` | Access specific field | `{{ analyzer.analysis.key_topics }}` |
+| `{{ agent_name.output_name }}` | Full structured output (JSON) | `{{ analyzer.analysis }}` |
+
+**Multi-Agent Example:**
+```yaml
+agents:
+  # Agent 1: Analyze input and produce structured output
+  - name: input_analyzer
+    agent_type: llm_agent
+    prompt_config:
+      system_prompt: |
+        Analyze the user input and extract:
+        - Key topics discussed
+        - Overall sentiment
+        - Complexity level
+        - Named entities
+    structured_output:
+      enabled: true
+      output_name: analysis
+      schema:
+        type: object
+        properties:
+          key_topics:
+            type: array
+            items:
+              type: string
+          sentiment:
+            type: string
+          complexity:
+            type: string
+          entities:
+            type: array
+            items:
+              type: string
+  
+  # Agent 2: Use analyzer's structured output
+  - name: response_generator
+    agent_type: llm_agent
+    prompt_config:
+      system_prompt: |
+        ## Input Analysis
+        **Topics**: {{ input_analyzer.analysis.key_topics }}
+        **Sentiment**: {{ input_analyzer.analysis.sentiment }}
+        **Complexity**: {{ input_analyzer.analysis.complexity }}
+        **Entities**: {{ input_analyzer.analysis.entities }}
+        
+        ## Task
+        Generate a response that:
+        1. Addresses all key topics
+        2. Matches the detected sentiment
+        3. Adjusts complexity to user's level
+        4. References mentioned entities appropriately
+
+edges:
+  - from: START
+    to: input_analyzer
+  - from: input_analyzer
+    to: response_generator
+```
+
+<Tip>
+**Agent Coordination**: Structured outputs enable sophisticated multi-agent workflows where downstream agents can access precise, typed data from upstream agents.
+</Tip>
+
+### 6. Agent Output Variables
+
+Access the last message from a specific agent (non-structured output).
+
+| Pattern | Description |
+|---------|-------------|
+| `{{ agent_name.output }}` | Last message from specified agent |
+
+**Example:**
+```yaml
+agents:
+  - name: researcher
+    agent_type: llm_agent
+    prompt_config:
+      system_prompt: Research the topic and provide findings
+  
+  - name: writer
+    agent_type: llm_agent
+    prompt_config:
+      system_prompt: |
+        ## Research Findings
+        {{ researcher.output }}
+        
+        ## Task
+        Write a comprehensive article based on these findings.
+        Cite sources and maintain accuracy.
+
+edges:
+  - from: START
+    to: researcher
+  - from: researcher
+    to: writer
+```
+
+### Recursive Variable Substitution
+
+Variables are substituted **recursively** up to 10 iterations, allowing nested variable references.
+
+**Example:**
+```yaml
+# Prompt library contains:
+# - "base_role": "You are {{ prompts.role_type }}"
+# - "role_type": "a helpful assistant"
+
+prompt_config:
+  system_prompt: "{{ prompts.base_role }}"
+
+# Iteration 1: "You are {{ prompts.role_type }}"
+# Iteration 2: "You are a helpful assistant"
+# Converged ✓
+```
+
+<Info>
+**Nested Variables**: You can reference prompts that contain other variables. The system will resolve them recursively until no more variables remain.
+</Info>
+
+### Variable Substitution Timing
+
+Variables are substituted **before** building provider messages:
+
+1. **Template Resolution**: `{{ variables }}` → actual values
+2. **Message Building**: System prompt + examples + history + user input
+3. **LLM Call**: Final messages sent to provider
+
+This ensures that structured outputs from dependencies are available when constructing prompts.
+
+### Complete Variable Example
+
+```yaml
+agents:
+  - name: data_analyzer
+    agent_type: llm_agent
+    structured_output:
+      enabled: true
+      output_name: insights
+      schema:
+        trends: list[str]
+        anomalies: list[str]
+        recommendations: list[str]
+    prompt_config:
+      system_prompt: |
+        {{ prompts.data_analysis_instructions }}
+        
+        Analyze this data and extract insights.
+  
+  - name: report_generator
+    agent_type: llm_agent
+    prompt_config:
+      system_prompt: |
+        ## Base Instructions
+        {{ prompts.report_template }}
+        
+        ## Data Analysis Results
+        **Trends Identified**: {{ data_analyzer.insights.trends }}
+        **Anomalies Detected**: {{ data_analyzer.insights.anomalies }}
+        **Recommendations**: {{ data_analyzer.insights.recommendations }}
+        
+        ## Recent Context
+        {{ history[3] }}
+        
+        ## Current Request
+        {{ user_input }}
+        
+        ## Task
+        Generate a professional report incorporating:
+        1. All identified trends and anomalies
+        2. Clear recommendations
+        3. Context from recent conversation
+        4. Response to current user request
+```
+
+## System Prompt
+
+The system prompt defines your agent's behavior, role, and capabilities.
+
+### Basic Example
+
+```yaml
+agents:
+  - name: customer_support
+    agent_type: llm_agent
+    prompt_config:
+      system_prompt: |
+        You are a helpful customer support agent.
+        Your goal is to resolve customer issues efficiently and professionally.
+        Always be polite and empathetic.
+```
+
+### Advanced System Prompt
+
+```yaml
+agents:
+  - name: data_analyst
+    agent_type: llm_agent
+    prompt_config:
+      system_prompt: |
+        # Role
+        You are an expert data analyst specializing in financial data.
+        
+        # Capabilities
+        - Analyze trends and patterns
+        - Generate statistical insights
+        - Create data visualizations
+        - Provide actionable recommendations
+        
+        # Guidelines
+        1. Always cite data sources
+        2. Use statistical terminology correctly
+        3. Provide confidence levels for predictions
+        4. Format numbers with appropriate precision
+        
+        # Output Format
+        Structure your analysis with:
+        - Executive Summary
+        - Key Findings
+        - Detailed Analysis
+        - Recommendations
+```
+
+<Tip>
+Use **Markdown formatting** in system prompts for better structure. LLMs understand headings, lists, and emphasis.
+</Tip>
+
+## Few-Shot Examples
+
+Few-shot examples teach your agent desired behavior through concrete examples.
+
+### Basic Few-Shot Configuration
+
+```yaml
+agents:
+  - name: sentiment_analyzer
+    agent_type: llm_agent
+    prompt_config:
+      system_prompt: Analyze sentiment of customer feedback
+      few_shot_examples:
+        - input: "The product is amazing! Best purchase ever."
+          output: "Sentiment: Positive (0.95)\nReason: Enthusiastic language with strong positive words"
+        
+        - input: "It's okay, nothing special."
+          output: "Sentiment: Neutral (0.50)\nReason: Lukewarm response without strong emotion"
+        
+        - input: "Terrible quality, waste of money."
+          output: "Sentiment: Negative (0.10)\nReason: Strong negative words indicating dissatisfaction"
+```
+
+### Complex Few-Shot Examples
+
+```yaml
+agents:
+  - name: code_reviewer
+    agent_type: llm_agent
+    prompt_config:
+      system_prompt: Review code for quality and best practices
+      few_shot_examples:
+        - input: |
+            def calculate_total(items):
+                total = 0
+                for item in items:
+                    total += item['price']
+                return total
+          output: |
+            **Issues Found:**
+            1. No input validation (items could be None)
+            2. Missing type hints
+            3. No error handling for missing 'price' key
+            
+            **Improved Version:**
+            ```python
+            def calculate_total(items: list[dict]) -> float:
+                if not items:
+                    return 0.0
+                return sum(item.get('price', 0.0) for item in items)
+            ```
+        
+        - input: |
+            def process_data(data):
+                return [x * 2 for x in data if x > 0]
+          output: |
+            **Code Quality: Good**
+            
+            **Strengths:**
+            - Concise list comprehension
+            - Clear filtering logic
+            
+            **Suggestions:**
+            - Add type hints: `def process_data(data: list[int]) -> list[int]:`
+            - Add docstring explaining the transformation
+```
+
+### Few-Shot Best Practices
+
+<AccordionGroup>
+  <Accordion title="Example Selection">
+    - **Diversity**: Cover different scenarios and edge cases
+    - **Relevance**: Match your actual use cases
+    - **Quality**: Show ideal outputs, not just correct ones
+    - **Quantity**: 2-5 examples usually sufficient (more isn't always better)
+  </Accordion>
+  
+  <Accordion title="Input/Output Format">
+    - **Consistency**: Use same format across all examples
+    - **Clarity**: Make inputs and outputs clearly distinguishable
+    - **Completeness**: Show full expected output format
+    - **Realism**: Use realistic data, not toy examples
+  </Accordion>
+  
+  <Accordion title="Common Patterns">
+    - **Classification**: Show examples for each class
+    - **Extraction**: Demonstrate different entity types
+    - **Transformation**: Show input-output mappings
+    - **Reasoning**: Include step-by-step thought process
+  </Accordion>
+</AccordionGroup>
+
+## History Management
+
+Control how much conversation history is included in prompts.
+
+### Include All History (Default)
+
+```yaml
+prompt_config:
+  system_prompt: You are a helpful assistant
+  include_history: true  # Include all previous messages
+```
+
+**Use Case**: Long conversations where full context is needed
+
+**Token Impact**: High - all messages included
+
+### Exclude All History
+
+```yaml
+prompt_config:
+  system_prompt: You are a stateless classifier
+  include_history: false  # No history, only current input
+```
+
+**Use Case**: Stateless operations, classification, single-turn interactions
+
+**Token Impact**: Low - only current message
+
+### Sliding Window (Last N Messages)
+
+```yaml
+prompt_config:
+  system_prompt: You are a conversational assistant
+  include_history: 5  # Only last 5 messages
+```
+
+**Use Case**: Balance between context and token efficiency
+
+**Token Impact**: Medium - controlled history size
+
+<Warning>
+**Token Management**: Large histories can exceed model context windows. Use sliding windows for long conversations.
+</Warning>
+
+### History Management Examples
+
+<CodeGroup>
+
+```yaml Full Context
+# Include all conversation history
+agents:
+  - name: therapist_bot
+    agent_type: llm_agent
+    prompt_config:
+      system_prompt: You are a supportive therapist
+      include_history: true  # Need full session context
+```
+
+```yaml Recent Context
+# Include only recent messages
+agents:
+  - name: quick_responder
+    agent_type: llm_agent
+    prompt_config:
+      system_prompt: Provide quick answers
+      include_history: 3  # Last 3 messages only
+```
+
+```yaml No Context
+# Stateless operation
+agents:
+  - name: classifier
+    agent_type: llm_agent
+    prompt_config:
+      system_prompt: Classify text into categories
+      include_history: false  # Each input independent
+```
+
+</CodeGroup>
+
+## User Input Control
+
+Control whether the current user message is included in the prompt.
+
+### Include User Input (Default)
+
+```yaml
+prompt_config:
+  system_prompt: You are a helpful assistant
+  include_user_input: true  # Include current user message
+```
+
+**Standard Behavior**: Current user question/message is included
+
+### Exclude User Input
+
+```yaml
+prompt_config:
+  system_prompt: Generate a summary of the conversation
+  include_user_input: false  # Exclude current user message
+  include_history: true       # But include all history
+```
+
+**Use Case**: 
+- Conversation summarization
+- Automatic analysis without user prompt
+- Background processing tasks
+
+<Info>
+When `include_user_input: false`, the agent processes only the conversation history without the latest user message. This is useful for automated tasks triggered by system events.
+</Info>
+
+## Media Handling
+
+Control how images, PDFs, and other media are handled in conversation history.
+
+### Strip Media from History
+
+```yaml
+prompt_config:
+  system_prompt: You are a document analyzer
+  include_history: true
+  include_media_in_history: false  # Strip images/files from history
+```
+
+**Behavior**:
+- Historical messages: Text only, media stripped
+- Current user input: Media always included
+
+**Use Case**: 
+- Reduce token costs (images are expensive)
+- Focus on text-based context
+- Process only the latest image
+
+### Include Media in History
+
+```yaml
+prompt_config:
+  system_prompt: You are a visual conversation assistant
+  include_history: 5
+  include_media_in_history: true  # Keep images in history
+```
+
+**Behavior**: All media content preserved in history
+
+**Use Case**:
+- Visual conversation continuity
+- Comparing multiple images
+- Document series analysis
+
+<Warning>
+**Cost Impact**: Images consume significant tokens. A single image can use 1,000-2,000 tokens depending on size and model.
+</Warning>
+
+## Advanced Patterns
+
+### Critical: Tool Execution Results (ReAct Agents)
+
+<Warning>
+**Important for ReAct Agents**: Messages with a `run_id` in their metadata are **ALWAYS included** in the prompt, regardless of `include_history` or `include_user_input` settings. This ensures tool execution results are visible to the agent in reasoning loops.
+</Warning>
+
+When a ReAct agent executes tools, the results are tagged with the current `run_id`. These messages bypass all filtering to ensure the agent can see:
+- Tool call requests
+- Tool execution results
+- Error messages from failed tools
+
+**Example Flow:**
+```yaml
+agents:
+  - name: research_agent
+    agent_type: react_agent
+    prompt_config:
+      system_prompt: Research topics using available tools
+      include_history: 3  # Only last 3 messages
+      # But tool results and agent reasoning are ALWAYS included regardless
+    tools:
+      - search_web
+      - read_url
+
+# Execution:
+# 1. User: "Research AI trends"
+# 2. Agent thinks: "I'll search for AI trends"
+# 3. Tool call: search_web(query="AI trends")
+# 4. Tool result: [10 search results] ← ALWAYS visible
+# 5. Agent sees tool result and continues reasoning
+```
+
+**Why This Matters:**
+- Without tool results, ReAct agents can't complete their reasoning loop
+- Tool results must be visible even if history is limited
+- This is automatic - no configuration needed
+
+### Context-Aware Routing
+
+```yaml
+agents:
+  - name: intent_classifier
+    agent_type: llm_agent
+    prompt_config:
+      system_prompt: Classify user intent
+      include_history: false  # Stateless classification
+      few_shot_examples:
+        - input: "I want to cancel my order"
+          output: "intent: cancel_order"
+        - input: "Where is my package?"
+          output: "intent: track_order"
+  
+  - name: conversation_handler
+    agent_type: llm_agent
+    prompt_config:
+      system_prompt: Handle customer conversations
+      include_history: 10  # Need conversation context
+      include_media_in_history: false  # Text only in history
+```
+
+### Multi-Stage Processing
+
+```yaml
+agents:
+  - name: data_extractor
+    agent_type: llm_agent
+    prompt_config:
+      system_prompt: Extract structured data from text
+      include_history: false  # Each document independent
+      few_shot_examples:
+        - input: "John Doe, john@example.com, 555-1234"
+          output: |
+            {
+              "name": "John Doe",
+              "email": "john@example.com",
+              "phone": "555-1234"
+            }
+  
+  - name: data_validator
+    agent_type: llm_agent
+    prompt_config:
+      system_prompt: Validate extracted data
+      include_history: true  # Need extraction context
+      include_user_input: false  # Auto-validation
+```
+
+### Summarization Pipeline
+
+```yaml
+agents:
+  - name: conversation_summarizer
+    agent_type: llm_agent
+    prompt_config:
+      system_prompt: |
+        Summarize the conversation into key points.
+        Focus on decisions made and action items.
+      include_history: true  # Need full conversation
+      include_user_input: false  # Triggered automatically
+      few_shot_examples:
+        - input: |
+            User: I need to update my billing info
+            Agent: Sure, I can help with that
+            User: My new card ends in 1234
+            Agent: Updated successfully
+          output: |
+            **Summary:**
+            - Customer requested billing update
+            - New card ending in 1234 added
+            - Update completed successfully
+```
+
+## Validation & Best Practices
+
+### Automatic Validation
+
+Atthene automatically validates your prompt configuration:
+
+<AccordionGroup>
+  <Accordion title="Empty Configuration Warning">
+    **Warning**: All components disabled (no system prompt, no examples, no history, no user input)
+    
+    **Fix**: Enable at least one component
+  </Accordion>
+  
+  <Accordion title="History Without User Input">
+    **Warning**: History enabled but user input disabled
+    
+    **Behavior**: Only conversation history sent to LLM, not current question
+    
+    **Use Case**: Intentional for summarization/analysis
+  </Accordion>
+  
+  <Accordion title="User Input Without History">
+    **Info**: User input enabled but history disabled
+    
+    **Behavior**: Only current question sent (stateless)
+    
+    **Use Case**: Classification, single-turn tasks
+  </Accordion>
+  
+  <Accordion title="Few-Shot Format Validation">
+    **Error**: Missing 'input' or 'output' in examples
+    
+    **Fix**: Ensure each example has both fields
+  </Accordion>
+</AccordionGroup>
+
+### Best Practices
+
+<CardGroup cols={2}>
+  <Card title="System Prompt Design" icon="pen">
+    - Be specific about role and capabilities
+    - Include output format requirements
+    - Add constraints and guidelines
+    - Use structured formatting (Markdown)
+  </Card>
+  
+  <Card title="Few-Shot Examples" icon="graduation-cap">
+    - Use 2-5 high-quality examples
+    - Cover diverse scenarios
+    - Show ideal output format
+    - Keep examples concise
+  </Card>
+  
+  <Card title="History Management" icon="clock-rotate-left">
+    - Use sliding windows for long conversations
+    - Disable for stateless operations
+    - Monitor token usage
+    - Consider media costs
+  </Card>
+  
+  <Card title="Token Optimization" icon="coins">
+    - Strip unnecessary media
+    - Limit history length
+    - Use concise system prompts
+    - Optimize few-shot examples
+  </Card>
+</CardGroup>
+
+## Complete Example
+
+```yaml
+name: customer_support_system
+description: Multi-agent customer support with optimized prompts
+architecture: workflow
+
+agents:
+  - name: intent_router
+    agent_type: llm_agent
+    llm_config:
+      model: mistral-small-latest
+      temperature: 0.2
+    prompt_config:
+      system_prompt: |
+        Classify customer intent into one of these categories:
+        - billing: Payment, invoices, refunds
+        - technical: Product issues, bugs, errors
+        - general: Questions, information requests
+      include_history: false  # Stateless classification
+      few_shot_examples:
+        - input: "I was charged twice for my subscription"
+          output: "billing"
+        - input: "The app keeps crashing on startup"
+          output: "technical"
+        - input: "What are your business hours?"
+          output: "general"
+  
+  - name: billing_specialist
+    agent_type: llm_agent
+    llm_config:
+      model: gpt-4o
+      temperature: 0.5
+    prompt_config:
+      system_prompt: |
+        You are a billing specialist. Handle payment issues professionally.
+        
+        **Capabilities:**
+        - Check payment history
+        - Process refunds
+        - Update billing information
+        
+        **Guidelines:**
+        - Always verify customer identity
+        - Explain charges clearly
+        - Offer solutions proactively
+      include_history: 10  # Recent conversation context
+      include_media_in_history: false  # Text only
+      few_shot_examples:
+        - input: "Why was I charged $50?"
+          output: |
+            I can help you understand this charge. Let me check your account.
+            
+            The $50 charge is for your monthly premium subscription that renewed on [date].
+            This is the standard rate for the premium plan.
+            
+            Would you like me to review your subscription details?
+  
+  - name: technical_specialist
+    agent_type: llm_agent
+    llm_config:
+      model: gpt-4o
+      temperature: 0.3
+    prompt_config:
+      system_prompt: |
+        You are a technical support specialist. Solve product issues efficiently.
+        
+        **Troubleshooting Process:**
+        1. Understand the issue
+        2. Ask clarifying questions
+        3. Provide step-by-step solutions
+        4. Verify resolution
+        
+        **Tone:** Patient, clear, technical but accessible
+      include_history: 15  # Need full technical context
+      include_media_in_history: true  # Screenshots important
+      few_shot_examples:
+        - input: "The app won't load"
+          output: |
+            I'll help you resolve this. Let's troubleshoot:
+            
+            1. First, try force-closing the app and reopening it
+            2. If that doesn't work, check your internet connection
+            3. Ensure you have the latest app version
+            
+            Can you try step 1 and let me know if it works?
+
+edges:
+  - from: START
+    to: intent_router
+  - from: intent_router
+    condition: "Route to {intent_router.output}"
+    condition_type: literal
+    possible_outputs: [billing_specialist, technical_specialist]
+```
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Empty Prompt Warning">
+    **Issue**: "PromptConfig has no content"
+    
+    **Cause**: All components disabled or empty
+    
+    **Solution**: Enable at least one component (system_prompt, examples, history, or user_input)
+  </Accordion>
+  
+  <Accordion title="Few-Shot Validation Error">
+    **Issue**: "Example missing 'input' or 'output' field"
+    
+    **Cause**: Incorrect example format
+    
+    **Solution**: Ensure each example has both `input` and `output` keys
+    
+    ```yaml
+    few_shot_examples:
+      - input: "question"
+        output: "answer"
+    ```
+  </Accordion>
+  
+  <Accordion title="Token Limit Exceeded">
+    **Issue**: "Context too long" or token limit errors
+    
+    **Cause**: Too much history or large media files
+    
+    **Solution**:
+    - Reduce `include_history` to smaller number
+    - Set `include_media_in_history: false`
+    - Shorten system prompt
+    - Use fewer few-shot examples
+  </Accordion>
+  
+  <Accordion title="Unexpected Behavior">
+    **Issue**: Agent not following instructions
+    
+    **Cause**: Conflicting configuration or unclear prompts
+    
+    **Solution**:
+    - Make system prompt more specific
+    - Add relevant few-shot examples
+    - Check if history is interfering
+    - Test with `include_history: false` first
+  </Accordion>
+</AccordionGroup>
+
+## Performance Tips
+
+<Steps>
+  <Step title="Start Simple">
+    Begin with basic system prompt and no examples. Add complexity only when needed.
+  </Step>
+  
+  <Step title="Measure Token Usage">
+    Monitor token consumption and optimize based on actual usage patterns.
+  </Step>
+  
+  <Step title="Test Incrementally">
+    Add few-shot examples one at a time and measure impact on quality.
+  </Step>
+  
+  <Step title="Optimize History">
+    Find the minimum history length that maintains quality.
+  </Step>
+  
+  <Step title="Profile Costs">
+    Track costs per agent and optimize expensive ones first.
+  </Step>
+</Steps>
+
+## Quick Reference
+
+### Template Variables Cheat Sheet
+
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `{{ prompts.name }}` | Latest prompt from library | `{{ prompts.system_instructions }}` |
+| `{{ prompts.name.version }}` | Specific prompt version | `{{ prompts.guidelines.2 }}` |
+| `{{ user_input }}` | Current user message (text only) | `{{ user_input }}` |
+| `{{ history }}` | Full conversation history | `{{ history }}` |
+| `{{ history[N] }}` | Last N messages | `{{ history[5] }}` |
+| `{{ full_history }}` | Complete execution trace | `{{ full_history }}` |
+| `{{ full_history[N] }}` | Last N messages (all types) | `{{ full_history[10] }}` |
+| `{{ agent.output.field }}` | Structured output field | `{{ analyzer.analysis.topics }}` |
+| `{{ agent.output }}` | Full structured output (JSON) | `{{ analyzer.analysis }}` |
+| `{{ agent_name.output }}` | Last agent message | `{{ researcher.output }}` |
+
+### PromptConfig Settings
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `system_prompt` | string | `""` | Core behavioral instructions (supports variables) |
+| `include_user_input` | bool | `true` | Include current user message |
+| `include_history` | bool\|int | `true` | History control (true/false/N) |
+| `include_media_in_history` | bool | `false` | Keep images/files in history |
+| `few_shot_examples` | list | `[]` | Teaching examples |
+
+### Message Ordering
+
+**Final prompt structure sent to LLM:**
+
+1. **System Message** - Behavioral instructions (highest attention)
+2. **Few-Shot Examples** - Teaching patterns (static)
+3. **Separator** - Optional section marker
+4. **Conversation History** - Previous messages (filtered)
+5. **Run-ID Messages** - Tool results (ALWAYS included)
+6. **Current User Input** - Latest message (highest attention)
+
+### Common Patterns
+
+<Tabs>
+  <Tab title="Stateless Agent">
+    ```yaml
+    prompt_config:
+      system_prompt: Classify user intent
+      include_history: false
+      include_user_input: true
+      few_shot_examples:
+        - input: "Cancel my order"
+          output: "intent: cancel"
+    ```
+  </Tab>
+  
+  <Tab title="Conversational Agent">
+    ```yaml
+    prompt_config:
+      system_prompt: You are a helpful assistant
+      include_history: 10  # Last 10 messages
+      include_user_input: true
+      include_media_in_history: false
+    ```
+  </Tab>
+  
+  <Tab title="Multi-Agent Workflow">
+    ```yaml
+    # Agent 1: Analyzer
+    prompt_config:
+      system_prompt: Analyze the input
+    structured_output:
+      enabled: true
+      output_name: analysis
+    
+    # Agent 2: Responder
+    prompt_config:
+      system_prompt: |
+        Analysis: {{ analyzer.analysis }}
+        Respond based on this analysis.
+    ```
+  </Tab>
+  
+  <Tab title="Summarization">
+    ```yaml
+    prompt_config:
+      system_prompt: |
+        {{ history }}
+        
+        Summarize the above conversation.
+      include_history: false  # Using template variable
+      include_user_input: false  # Auto-triggered
+    ```
+  </Tab>
+</Tabs>
+
+### Variable Substitution Flow
+
+```
+1. Template with {{ variables }}
+   ↓
+2. Recursive substitution (up to 10 iterations)
+   ↓
+3. Resolved system prompt
+   ↓
+4. Build messages (system + examples + history + user input)
+   ↓
+5. Send to LLM provider
+```
+
+### Troubleshooting Quick Fixes
+
+| Issue | Quick Fix |
+|-------|-----------|
+| Empty prompt warning | Enable at least one: `system_prompt`, `few_shot_examples`, `include_history`, or `include_user_input` |
+| Token limit exceeded | Reduce `include_history` to smaller number or set `include_media_in_history: false` |
+| Variable not substituting | Check spelling, ensure prompt exists in library, verify recursive limit not hit |
+| Duplicate user messages | Fixed automatically - deduplication is built-in |
+| Tool results missing (ReAct) | Automatic - run_id messages always included |
+| Agent ignoring instructions | Add few-shot examples or make system prompt more specific |
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Model Selection" icon="brain" href="/model-selection">
+    Choose the right models for your use case
+  </Card>
+  <Card title="Structured Output" icon="table" href="/structured-output">
+    Generate structured data with schemas
+  </Card>
+  <Card title="Tool Integration" icon="wrench" href="/tools">
+    Add function calling capabilities
+  </Card>
+  <Card title="Agent Types" icon="robot" href="/agent-types">
+    Explore different agent architectures
+  </Card>
+</CardGroup>

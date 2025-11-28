@@ -1,0 +1,325 @@
+---
+title: "Known Issues & Limitations"
+description: "Current platform limitations, known bugs, and workarounds"
+---
+
+<Info>
+  This page is actively maintained. Issues are resolved in priority order based on impact and user feedback.
+</Info>
+
+---
+
+## Current Limitations
+
+### Platform Constraints
+
+<AccordionGroup>
+  <Accordion title="Global Knowledge Bases & Tools" icon="database" defaultOpen>
+    **Status**: Removed in v0.2.1
+    
+    Global knowledge bases and tools have been removed to simplify configuration. All knowledge bases and tools must now be configured per agent.
+    
+    **Migration**: Move global configurations to individual agent definitions.
+    
+    ```yaml
+    # ❌ Old approach (no longer supported)
+    global:
+      knowledge_bases: [kb1, kb2]
+      tools: [tool1, tool2]
+    
+    # ✅ New approach
+    agents:
+      - name: my_agent
+        knowledge_bases: [kb1, kb2]
+        tools: [tool1, tool2]
+    ```
+  </Accordion>
+  
+  <Accordion title="Manual RAG Deprecation" icon="triangle-exclamation">
+    **Status**: Deprecated, removal planned for v0.3
+    
+    Manual RAG (Retrieval-Augmented Generation) configuration is being phased out in favor of UKnow integration.
+    
+    **Action Required**: Migrate to UKnow for knowledge base management before v0.3 release.
+    
+    **Timeline**: Manual RAG will be fully removed in v0.3 (December 2025)
+  </Accordion>
+  
+  <Accordion title="Model Provider Availability" icon="server">
+    Not all model providers support all features:
+    
+    - **Tool Calling**: Not supported by Magistral, devstral-medium, mistral-moderation, and mistral-saba models
+    - **Vision**: Limited to specific models (see [Model Selection](/documentation/agent_config/types_config/model-selection))
+    - **Streaming**: Supported by most models, but may have provider-specific limitations
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Known Issues
+
+### High Priority
+
+<AccordionGroup>
+  <Accordion title="Boolean Edge Key Interpretation" icon="code-branch" defaultOpen>
+    **Issue**: Boolean edge keys `yes` and `no` are interpreted as `True`/`False` in YAML parsing.
+    
+    **Impact**: Conditional edges with boolean routing may fail or route incorrectly.
+    
+    **Workaround**: Use quoted keys in your YAML configuration:
+    
+    ```yaml
+    edges:
+      - from: decision_agent
+        condition: "Should we proceed?"
+        condition_type: boolean
+        routing:
+          "yes": approval_agent  # ✅ Quoted
+          "no": rejection_agent  # ✅ Quoted
+    ```
+    
+    **Status**: Fix planned for v0.2.2
+  </Accordion>
+  
+  <Accordion title="First Message Timing in AMAS Chat" icon="message">
+    **Issue**: The first user message in AMAS Chat appears after the first agent message instead of before.
+    
+    **Impact**: Chat history display order is incorrect for the initial exchange.
+    
+    **Workaround**: None currently. This is a UI display issue and doesn't affect functionality.
+    
+    **Status**: Fix in progress
+  </Accordion>
+</AccordionGroup>
+
+### Medium Priority
+
+<AccordionGroup>
+  <Accordion title="OneDrive SharePoint Cross-Query" icon="microsoft">
+    **Issue**: OneDrive configuration also queries from SharePoint sites when using broad drive IDs.
+    
+    **Impact**: May retrieve documents from unintended SharePoint locations.
+    
+    **Workaround**: Only include drive IDs ending with `.../me/<your_email>` to limit scope to personal OneDrive:
+    
+    ```yaml
+    knowledge_base:
+      provider: uknow
+      config:
+        sources:
+          - type: onedrive
+            drive_id: "https://graph.microsoft.com/v1.0/me/your.email@company.com"
+    ```
+    
+    **Status**: Investigating improved filtering options
+  </Accordion>
+  
+  <Accordion title="Window Context Loss" icon="window">
+    **Issue**: Switching browser windows or tabs may cause loss of selected agent context.
+    
+    **Impact**: Users need to reselect their agent after switching windows.
+    
+    **Status**: Fixed in v0.2.1
+    
+    <Check>
+      This issue has been resolved. Update to v0.2.1 or later.
+    </Check>
+  </Accordion>
+  
+  <Accordion title="Authorization UI Update" icon="shield-check">
+    **Issue**: Authorized UI doesn't update immediately after successful authorization.
+    
+    **Impact**: Users may not see authorization status change without page refresh.
+    
+    **Status**: Fixed in v0.2.1
+    
+    <Check>
+      This issue has been resolved. Update to v0.2.1 or later.
+    </Check>
+  </Accordion>
+</AccordionGroup>
+
+### Low Priority
+
+<AccordionGroup>
+  <Accordion title="Google Drive Security Status" icon="google">
+    **Issue**: Google Drive provider is marked as "insecure" in UKnow integration.
+    
+    **Impact**: Google Drive integration is available but flagged with security warning.
+    
+    **Reason**: UKnow is currently undergoing security re-issuance for Google Drive OAuth.
+    
+    **Status**: Official support coming shortly after security certification
+  </Accordion>
+  
+  <Accordion title="Pydantic Error Messages" icon="triangle-exclamation">
+    **Issue**: Pydantic validation error messages could be more user-friendly.
+    
+    **Impact**: Technical error messages may be difficult for non-developers to understand.
+    
+    **Status**: Improved in v0.2.1
+    
+    <Check>
+      Error messages have been enhanced in v0.2.1 with clearer, more actionable feedback.
+    </Check>
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Feature Limitations
+
+### Agent Configuration
+
+<Tabs>
+  <Tab title="Workflow Constraints">
+    **Current Limitations:**
+    
+    - Maximum of 50 agents per workflow
+    - Maximum of 100 edges per workflow
+    - Circular dependencies are not automatically detected (will cause runtime errors)
+    - Parallel execution limited to 10 concurrent agents
+    
+    **Planned Improvements (v0.3):**
+    - Automatic circular dependency detection
+    - Increased parallel execution limits
+    - Workflow validation before deployment
+  </Tab>
+  
+  <Tab title="Knowledge Base">
+    **Current Limitations:**
+    
+    - Maximum file size: 50MB per file
+    - Supported formats: PDF, DOCX, TXT, MD, CSV, XLSX
+    - Maximum collection size: 1000 files
+    - Indexing time: Up to 5 minutes for large documents
+    
+    **Planned Improvements (v0.3):**
+    - Support for additional file formats (PPT, HTML)
+    - Faster indexing with incremental updates
+    - Larger file size support (up to 100MB)
+  </Tab>
+  
+  <Tab title="Tool Calling">
+    **Current Limitations:**
+    
+    - Maximum of 20 tools per agent
+    - Tool execution timeout: 30 seconds
+    - No support for streaming tool outputs
+    - Limited error recovery for failed tool calls
+    
+    **Planned Improvements (v0.3):**
+    - Configurable tool timeouts
+    - Automatic retry logic for transient failures
+    - Streaming tool outputs for long-running operations
+  </Tab>
+  
+  <Tab title="API & Integration">
+    **Current Limitations:**
+    
+    - WebSocket connection timeout: 5 minutes of inactivity
+    - REST API rate limit: 100 requests/minute per user
+    - Maximum message size: 1MB
+    - Session history limited to last 100 messages
+    
+    **Planned Improvements (v0.3):**
+    - Configurable WebSocket timeouts
+    - Higher rate limits for enterprise users
+    - Extended session history options
+  </Tab>
+</Tabs>
+
+---
+
+## Performance Considerations
+
+### Response Times
+
+<CardGroup cols={2}>
+  <Card title="Typical Response Times" icon="clock" iconType="duotone">
+    - **Simple LLM Agent**: 1-3 seconds
+    - **React Agent with Tools**: 3-10 seconds
+    - **Multi-Agent Workflow**: 5-30 seconds
+    - **Vision/OCR Tasks**: 5-15 seconds
+  </Card>
+  
+  <Card title="Factors Affecting Speed" icon="gauge" iconType="duotone">
+    - Model selection (GPT-4o-mini is faster)
+    - Number of tools available
+    - Knowledge base size
+    - Workflow complexity
+    - Image/document size
+  </Card>
+</CardGroup>
+
+<Tip>
+  For latency-sensitive applications, use GPT-4o-mini or Mistral Medium models and limit the number of tools per agent.
+</Tip>
+
+### Token Usage
+
+<Warning>
+  **Context Window Management**: Large knowledge bases and long conversation histories can quickly consume token limits.
+</Warning>
+
+**Best Practices:**
+- Use `include_history: true` with `history_length: 5` instead of `include_full_history: true`
+- Implement conversation summarization for long sessions
+- Limit knowledge base scope to relevant documents
+- Use structured outputs to reduce response verbosity
+
+---
+
+## Reporting Issues
+
+<Steps>
+  <Step title="Check This Page" icon="magnifying-glass">
+    Verify if your issue is already documented with a workaround
+  </Step>
+  
+  <Step title="Search Documentation" icon="book">
+    Review relevant documentation sections for configuration guidance
+  </Step>
+  
+  <Step title="Gather Information" icon="clipboard">
+    Collect error messages, YAML configuration, and steps to reproduce
+  </Step>
+  
+  <Step title="Contact Support" icon="envelope">
+    Email **lorenz.stirnweis@arttacsolutions.de** with:
+    - Clear description of the issue
+    - Expected vs actual behavior
+    - Configuration snippets (remove sensitive data)
+    - Screenshots if applicable
+  </Step>
+</Steps>
+
+---
+
+## Issue Tracking
+
+<CardGroup cols={3}>
+  <Card title="Report Bug" icon="bug" iconType="duotone" color="#dc2626" href="mailto:lorenz.stirnweis@arttacsolutions.de?subject=Bug Report">
+    **Subject**: "Bug: [Brief Description]"
+  </Card>
+  
+  <Card title="Request Feature" icon="lightbulb" iconType="duotone" color="#f59e0b" href="mailto:lorenz.stirnweis@arttacsolutions.de?subject=Feature Request">
+    **Subject**: "Feature Request: [Your Idea]"
+  </Card>
+  
+  <Card title="Get Help" icon="life-ring" iconType="duotone" color="#0ea5e9" href="mailto:lorenz.stirnweis@arttacsolutions.de?subject=Support Request">
+    **Subject**: "Support: [Your Question]"
+  </Card>
+</CardGroup>
+
+---
+
+## Update Frequency
+
+<Note>
+  This page is updated with each release. Last updated: **November 2025** (v0.2.1)
+</Note>
+
+<Card title="View Release Notes" icon="newspaper" iconType="duotone" color="#6366F1" href="/documentation/platform/release-notes">
+  See what's been fixed and what's new in the latest releases
+</Card>

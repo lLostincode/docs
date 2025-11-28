@@ -1,0 +1,542 @@
+---
+title: "YAML Configuration"
+description: "Learn how to configure your multi-agent systems using YAML"
+---
+
+YAML configuration files define your multi-agent system's structure, behavior, and capabilities. This guide covers the complete configuration schema with practical examples.
+
+## Configuration Structure
+
+Every YAML configuration follows this basic structure:
+
+```yaml
+name: "System Name"
+description: "System description"
+architecture: "workflow" | "supervisor"
+save_messages: true
+persistent_state: true
+entry_point: "agent_name"
+
+agents:
+  - name: "agent_name"
+    agent_type: "llm_agent" | "react_agent" | "supervisor"
+    # ... agent configuration
+
+# Optional: System-level tool definitions (advanced usage)
+tools: []
+
+edges: []
+```
+
+## Core Fields
+
+The following sections detail all configuration parameters available in your YAML file.
+
+### System Configuration
+
+These parameters are defined at the root level of your YAML configuration:
+
+```yaml
+name: "System Name"           # ← System configuration
+description: "Description"    # ← parameters are defined
+architecture: "workflow"      # ← at the root level
+save_messages: true
+persistent_state: true
+entry_point: "agent_name"
+```
+
+<ParamField path="name" type="string" required>
+  Name of your multi-agent system
+</ParamField>
+
+<ParamField path="description" type="string" required>
+  Brief description of what your system does
+</ParamField>
+
+<ParamField path="architecture" type="string" default="workflow">
+  Architecture pattern for agent coordination
+  
+  **Options:**
+  - `workflow` - Linear or branching agent workflows with explicit edges
+  - `supervisor` - Multi-agent coordination with a supervisor agent
+</ParamField>
+
+<ParamField path="entry_point" type="string" required>
+  Name of the agent that receives the initial user input. Must match an agent name in the `agents` list.
+</ParamField>
+
+<ParamField path="save_messages" type="boolean" default="true">
+  Whether to persist messages in the agent session for conversation history
+</ParamField>
+
+<ParamField path="persistent_state" type="boolean" default="true">
+  Enable checkpointing for state persistence across executions
+</ParamField>
+
+## Agent Configuration
+
+Each agent in the `agents` list requires these fields. These parameters are defined within individual agent objects:
+
+```yaml
+agents:
+  - name: "agent_name"         # ← Agent configuration
+    agent_type: "llm_agent"    # ← parameters are defined
+    description: "..."         # ← within each agent object
+    system_prompt: "..."
+    # ... additional agent config
+```
+
+### Basic Agent Fields
+
+<ParamField path="name" type="string" required>
+  Unique identifier for the agent within the system
+</ParamField>
+
+<ParamField path="agent_type" type="string" required>
+  Type of agent to instantiate. See [Agent Types](/documentation/agent-types) for available options.
+  
+  **Common types:**
+  - `llm_agent` - Basic LLM-powered conversational agent
+  - `react_agent` - ReAct pattern agent with tool calling
+  - `supervisor` - Supervisor agent for multi-agent coordination
+</ParamField>
+
+<ParamField path="description" type="string">
+  Human-readable description of the agent's purpose and capabilities
+</ParamField>
+
+<ParamField path="system_prompt" type="string">
+  Instructions that define the agent's behavior, personality, and capabilities. Supports multi-line strings with `|` syntax.
+</ParamField>
+
+### LLM Configuration
+
+Configure the language model for your agents. This is nested within each agent's configuration:
+
+```yaml
+agents:
+  - name: "my_agent"
+    llm_config:              # ← LLM configuration
+      model: "gpt-4o"        # ← is nested within
+      temperature: 0.7       # ← each agent
+      max_tokens: 1000
+```
+
+<ParamField path="llm_config" type="object">
+  Configuration for the language model
+  
+  <Expandable title="LLM Config Properties">
+    <ParamField path="model" type="string" default="gpt-4o">
+      Model identifier (e.g., `gpt-4o`, `gpt-4-turbo`, `gpt-3.5-turbo`)
+    </ParamField>
+    
+    <ParamField path="temperature" type="number" default="0.7">
+      Controls randomness in responses (0.0 = deterministic, 2.0 = very random)
+      
+      Range: 0.0 - 2.0
+    </ParamField>
+    
+    <ParamField path="max_tokens" type="integer">
+      Maximum number of tokens to generate in responses
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+### Streaming Configuration
+
+Control real-time event streaming for each agent. This is nested within each agent's configuration:
+
+```yaml
+agents:
+  - name: "my_agent"
+    streaming_config:              # ← Streaming configuration
+      enable_streaming: true       # ← is nested within
+      show_output_to_user: true    # ← each agent
+      show_tool_to_user: true
+```
+
+<ParamField path="streaming_config" type="object">
+  Controls real-time event streaming behavior
+  
+  <Expandable title="Streaming Config Properties">
+    <ParamField path="enable_streaming" type="boolean" default="true">
+      Enable streaming of agent responses
+    </ParamField>
+    
+    <ParamField path="show_output_to_user" type="boolean" default="true">
+      Show agent text output to end users in real-time
+    </ParamField>
+    
+    <ParamField path="show_tool_to_user" type="boolean" default="true">
+      Show tool calling events to end users
+    </ParamField>
+    
+    <ParamField path="show_reasoning" type="boolean" default="false">
+      Show agent reasoning/thinking process to end users
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+### Tool Configuration
+
+Tools can be configured at two levels. Choose the approach that best fits your use case:
+
+---
+
+#### **Agent-Level Tools (Recommended)**
+
+Configure tools directly within each agent's configuration:
+
+```yaml
+agents:
+  - name: "my_agent"
+    agent_type: "react_agent"
+    tools:                    # ← Agent-level tools
+      - "tavily_search"       # ← are defined within
+      - "calculator"          # ← each agent object
+```
+
+<ParamField path="agents[].tools" type="array">
+  List of tool identifiers for this agent. **Only applicable for `react_agent` type.**
+  
+  Example tools: `tavily_search`, `tavily_extract`, `calculator`
+  
+  ```yaml
+  agents:
+    - name: "my_agent"
+      agent_type: "react_agent"
+      tools:
+        - "tavily_search"
+        - "calculator"
+  ```
+</ParamField>
+
+#### **System-Level Tools (Advanced)**
+
+Define tools at the root level for reuse across multiple agents:
+
+```yaml
+tools: []                     # ← System-level tools
+                              # ← are defined at root level
+agents:
+  - name: "agent1"
+    # ... agent config
+```
+
+<ParamField path="tools" type="array">
+  Optional system-level tool definitions. This is for advanced configurations where you want to define tool configurations once and reference them across multiple agents.
+  
+  <Note>
+  Most users should configure tools at the agent level. System-level tools are for advanced use cases.
+  </Note>
+</ParamField>
+
+#### **Tool Calling Behavior**
+
+Configure how agents interact with tools. This is nested within each agent's configuration:
+
+```yaml
+agents:
+  - name: "my_agent"
+    tool_calling:             # ← Tool calling config
+      enabled: true           # ← is nested within
+      max_iterations: 10      # ← each agent
+```
+
+<ParamField path="tool_calling" type="object">
+  Tool calling behavior configuration
+  
+  <Expandable title="Tool Calling Properties">
+    <ParamField path="enabled" type="boolean" default="true">
+      Enable tool calling for this agent
+    </ParamField>
+    
+    <ParamField path="max_iterations" type="integer" default="10">
+      Maximum number of tool calling iterations to prevent infinite loops
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+### Supervisor Configuration
+
+**For supervisor agents only.** These parameters are configured within the supervisor agent's configuration object:
+
+```yaml
+agents:
+  - name: "supervisor"
+    agent_type: "supervisor"
+    supervised_agents: [...]      # ← Supervisor-specific
+    return_to_supervisor: false   # ← parameters are defined
+    max_handoffs: 15              # ← within the supervisor agent
+    supervisor_prompt: "..."
+```
+
+<ParamField path="supervised_agents" type="array">
+  **Required for supervisor agents.** List of agent names that this supervisor coordinates.
+  
+  ```yaml
+  agents:
+    - name: "supervisor"
+      agent_type: "supervisor"
+      supervised_agents: ["agent1", "agent2"]
+  ```
+</ParamField>
+
+<ParamField path="return_to_supervisor" type="boolean" default="false">
+  Whether worker agents should return control to the supervisor after completing their tasks
+</ParamField>
+
+<ParamField path="max_handoffs" type="integer" default="15">
+  Maximum number of agent handoffs to prevent infinite coordination loops
+</ParamField>
+
+<ParamField path="supervisor_prompt" type="string">
+  Special system prompt for supervisor agents defining coordination strategy
+</ParamField>
+
+## Workflow Edges
+
+**For `workflow` architecture only.** Define edges at the root level to connect agents in your workflow:
+
+```yaml
+# Root-level configuration
+architecture: "workflow"
+
+edges:                        # ← Edges are defined
+  - from: "__start__"          # ← at the root level
+    to: "first_agent"          # ← for workflow architecture
+  - from: "first_agent"
+    to: "second_agent"
+  - from: "second_agent"
+    to: "__end__"
+```
+
+**Special nodes:**
+- `__start__` or `START` - Entry point of the workflow
+- `__end__` or `END` - Exit point of the workflow
+
+<Note>
+Supervisor architecture does not require explicit edges - the supervisor handles routing dynamically.
+</Note>
+
+## Complete Examples
+
+### Basic Conversational Agent
+
+```yaml
+name: "Basic LLM Agent"
+description: "Simple conversational assistant"
+save_messages: true
+persistent_state: true
+
+agents:
+  - name: "assistant"
+    agent_type: "llm_agent"
+    description: "A helpful AI assistant"
+    system_prompt: "You are a helpful AI assistant."
+    llm_config:
+      temperature: 0.7
+      max_tokens: 500
+    streaming_config:
+      show_output_to_user: true
+
+edges:
+  - from: "__start__"
+    to: "assistant"
+  - from: "assistant"
+    to: "__end__"
+
+entry_point: "assistant"
+```
+
+### Tool-Enabled Agent
+
+```yaml
+name: "Tool-Enabled Assistant"
+description: "AI assistant with calculator, web search, and database tools"
+architecture: "workflow"
+save_messages: true
+persistent_state: true
+
+agents:
+  - name: "tool_agent"
+    agent_type: "react_agent"
+    description: "AI assistant with tool calling capabilities"
+    
+    system_prompt: |
+      You are a helpful AI assistant with access to various tools.
+      When you need to use a tool, think step by step about what information you need.
+    
+    tools:
+      - "tavily_search"
+      - "tavily_extract"
+      - "calculator"
+    
+    llm_config:
+      temperature: 0.1
+      max_tokens: 2000
+    
+    tool_calling:
+      enabled: true
+      max_iterations: 10
+    
+    streaming_config:
+      enable_streaming: true
+      show_output_to_user: true
+
+edges:
+  - from: "START"
+    to: "tool_agent"
+  - from: "tool_agent" 
+    to: "END"
+
+entry_point: "tool_agent"
+```
+
+### Supervisor Multi-Agent System
+
+```yaml
+name: "Research Team Supervisor"
+description: "Complete supervisor architecture with research, analysis, and synthesis agents"
+architecture: "supervisor"
+save_messages: true
+persistent_state: true
+
+agents:
+  # Supervisor Agent
+  - name: "research_supervisor"
+    agent_type: "supervisor"
+    description: "Intelligent supervisor coordinating research team specialists"
+    supervised_agents: ["research_agent", "analysis_agent", "synthesis_agent"]
+    return_to_supervisor: false
+    max_handoffs: 15
+    
+    streaming_config:
+      enable_streaming: true
+      show_output_to_user: true
+
+    supervisor_prompt: |
+      You are a research team supervisor coordinating specialized agents.
+
+      Your team consists of:
+      - research_agent: Expert at web search and information gathering
+      - analysis_agent: Specialist in data analysis and pattern recognition
+      - synthesis_agent: Expert at summarizing findings
+
+      For ANY user request, immediately delegate to the appropriate agent.
+      Always provide clear reasoning when transferring.
+
+  # Research Agent
+  - name: "research_agent"
+    agent_type: "react_agent"
+    description: "Specialized in research and information gathering"
+    
+    tools:
+      - "tavily_search"
+      - "tavily_extract"
+    
+    tool_calling:
+      enabled: true
+      max_iterations: 5
+    
+    streaming_config:
+      show_output_to_user: true
+      show_reasoning: true
+    
+    system_prompt: |
+      You are a Research Specialist in a multi-agent team.
+      
+      Your expertise includes:
+      - Web search and information gathering
+      - Fact-checking and source verification
+      - Identifying reliable sources
+      
+      Always provide detailed, well-sourced research results.
+
+  # Analysis Agent
+  - name: "analysis_agent"
+    agent_type: "react_agent"
+    description: "Specialized in data analysis and pattern recognition"
+    
+    tools:
+      - "calculator"
+    
+    tool_calling:
+      enabled: true
+      max_iterations: 3
+    
+    streaming_config:
+      show_output_to_user: true
+    
+    system_prompt: |
+      You are an Analysis Specialist in a multi-agent team.
+      
+      Your expertise includes:
+      - Data analysis and statistical processing
+      - Pattern recognition and trend identification
+      - Insight generation from complex information
+      
+      Focus on extracting meaningful insights.
+
+  # Synthesis Agent
+  - name: "synthesis_agent"
+    agent_type: "llm_agent"
+    description: "Specialized in synthesizing information"
+    
+    streaming_config:
+      show_output_to_user: true
+    
+    system_prompt: |
+      You are a Synthesis Specialist in a multi-agent team.
+      
+      Your expertise includes:
+      - Combining research and analysis into coherent narratives
+      - Creating well-structured, comprehensive reports
+      - Ensuring completeness and coherence
+      
+      Create comprehensive, well-organized final responses.
+
+entry_point: "research_supervisor"
+```
+
+## Best Practices
+
+<Tip>
+**System Prompts**: Use multi-line strings with `|` for better readability of complex prompts.
+</Tip>
+
+<Tip>
+**Temperature Settings**: Use lower temperatures (0.1-0.3) for factual tasks and higher (0.7-1.0) for creative tasks.
+</Tip>
+
+<Warning>
+**Entry Point**: Always ensure your `entry_point` matches an existing agent name, or the system will fail to initialize.
+</Warning>
+
+<Tip>
+**Supervisor Coordination**: When using `return_to_supervisor: true`, the supervisor can evaluate worker outputs and decide on next steps. Set to `false` for simpler one-way delegation.
+</Tip>
+
+## Validation
+
+The system automatically validates your configuration:
+
+- **Required fields** are checked
+- **Agent types** are verified against the registry
+- **Entry point** must reference an existing agent
+- **Supervised agents** must exist in the agents list
+- **Edges** must reference valid agent names
+
+Validation errors will be returned with specific field-level details to help you fix issues quickly.
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Agent Types" icon="robot" href="/documentation/agent-types">
+    Learn about available agent types and when to use each
+  </Card>
+  
+  <Card title="Agent Capabilities" icon="wand-magic-sparkles" href="/documentation/agent-capabilities">
+    Explore tools, streaming, and other agent capabilities
+  </Card>
+</CardGroup>

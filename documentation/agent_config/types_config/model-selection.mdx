@@ -1,0 +1,508 @@
+---
+title: 'Available Models'
+description: 'Learn how to select and configure LLM models in Atthene, including BYOK (Bring Your Own Key) and multimodal capabilities'
+---
+
+## Overview
+
+Atthene supports multiple LLM providers and models, each with unique capabilities. The framework automatically maps model names to their providers, handles authentication, and validates configurations.
+
+## Supported Providers
+
+Atthene integrates with the following LLM providers:
+
+<CardGroup cols={2}>
+  <Card title="Azure OpenAI" icon="microsoft">
+    Enterprise-grade OpenAI models hosted on Azure
+  </Card>
+  <Card title="Telekom OTC" icon="tower-cell">
+    Open Telekom Cloud with Qwen, Claude, and custom models
+  </Card>
+  <Card title="Mistral AI" icon="bolt">
+    Fast and efficient European AI models
+  </Card>
+  <Card title="Google Gemini" icon="google">
+    Google's multimodal AI models
+  </Card>
+</CardGroup>
+
+## Model Selection
+
+### Basic Configuration
+
+Specify a model in your agent's `llm_config` section:
+
+```yaml
+agents:
+  - name: analyzer
+    agent_type: llm_agent
+    llm_config:
+      model: gpt-4o
+      temperature: 0.7
+      max_tokens: 4096
+```
+
+### Automatic Provider Detection
+
+Atthene automatically detects the provider based on the model name. You don't need to specify the provider explicitly:
+
+```yaml
+# These automatically map to their respective providers
+llm_config:
+  model: gpt-4o           # → Azure OpenAI
+  model: mistral-large    # → Mistral AI
+  model: gemini-2.5-pro   # → Google Gemini
+  model: claude-sonnet-4  # → Telekom OTC
+```
+
+<Info>
+The framework uses **case-insensitive matching** for model names, so `gpt-4o`, `GPT-4O`, and `Gpt-4o` are all valid.
+</Info>
+
+## Available Models
+
+### Azure OpenAI Models
+
+| Model Name (use in YAML) | Tool Support | Modalities | Context Window |
+|--------------------------|--------------|------------|----------------|
+| `gpt-4o` | ✅ Yes | Text, Image | 128K tokens |
+
+<Note>
+Azure OpenAI uses **deployment names**. Ensure your deployment name matches the model configuration.
+</Note>
+
+### Telekom OTC Models
+
+| Model Name (use in YAML) | Tool Support | Modalities | Context Window |
+|--------------------------|--------------|------------|----------------|
+| `Qwen2.5-Coder-32B` | ✅ Yes | Text | 32K tokens |
+| `Qwen2.5-VL-72B` | ✅ Yes | Text, Image | 32K tokens |
+| `Qwen3-235B-A22B` | ✅ Yes | Text | 32K tokens |
+| `Qwen3-30B` | ✅ Yes | Text | 32K tokens |
+| `Teuken-7B` | ✅ Yes | Text | 32K tokens |
+| `claude-3-7-sonnet` | ✅ Yes | Text, Image | 128K tokens |
+| `claude-sonnet-4` | ✅ Yes | Text, Image | 128K tokens |
+| `gpt-oss-120b` | ✅ Yes | Text | 32K tokens |
+
+### Mistral AI Models
+
+| Model Name (use in YAML) | Tool Support | Modalities | Context Window |
+|--------------------------|--------------|------------|----------------|
+| `mistral-large` | ✅ Yes | Text | 128K tokens |
+| `mistral-medium` | ✅ Yes | Text, Image | 128K tokens |
+| `mistral-small` | ✅ Yes | Text, Image | 128K tokens |
+| `pixtral-large` | ✅ Yes | Text, Image | 128K tokens |
+| `codestral` | ✅ Yes | Text | 128K tokens |
+| `ministral-3b` | ✅ Yes | Text | 128K tokens |
+| `ministral-8b` | ✅ Yes | Text | 128K tokens |
+| `devstral-small` | ✅ Yes | Text | 128K tokens |
+| `devstral-medium` | ❌ No | Text | 128K tokens |
+| `magistral-medium` | ❌ No | Text, Image | 128K tokens |
+| `magistral-small` | ❌ No | Text, Image | 128K tokens |
+| `mistral-moderation` | ❌ No | Text | 128K tokens |
+| `mistral-saba` | ❌ No | Text | 128K tokens |
+
+<Warning>
+**Magistral, devstral-medium, mistral-moderation, and mistral-saba models** do not support tool calling. Use them only for text generation tasks without tools.
+</Warning>
+
+### Google Gemini Models
+
+| Model Name (use in YAML) | Tool Support | Modalities | Context Window |
+|--------------------------|--------------|------------|----------------|
+| `gemini-2.5-pro` | ✅ Yes | Text, Image | 1M tokens |
+| `gemini-2.5-flash` | ✅ Yes | Text, Image | 1M tokens |
+| `gemini-3-pro` | ✅ Yes | Text, Image | 1M tokens |
+
+<Tip>
+Gemini models have **massive context windows** (1M tokens) and support **all modalities**, making them ideal for complex multimodal tasks.
+</Tip>
+
+## Multimodal Models & OCR
+
+### Understanding Modalities
+
+Atthene models support different input types (modalities):
+
+- **Text**: Standard text input/output
+- **Image**: Image understanding and OCR capabilities
+
+### Image Processing (OCR)
+
+Models with `image` modality support can process images directly. You can send images via the **Frontend UI** or **REST API**.
+
+#### Agent Configuration
+
+Configure your agent with a vision-capable model:
+
+```yaml
+agents:
+  - name: document_analyzer
+    agent_type: llm_agent
+    llm_config:
+      model: gpt-4o  # Supports text + image
+      temperature: 0.3
+    prompt_config:
+      system_prompt: |
+        You are a document analyzer. Extract text and structured data from images.
+        Provide detailed analysis of visual elements.
+```
+
+#### Sending Images via Frontend
+
+Use the Atthene GPT frontend to upload and process images:
+1. Click the attachment icon in the chat interface
+2. Select your image file (JPEG, PNG, etc.)
+3. Add your text prompt
+4. Send the message
+
+The frontend automatically handles image encoding and multimodal message formatting.
+
+#### Sending Images via REST API
+
+Send multimodal content using the `/api/v1/sessions/{session_id}/execute` endpoint:
+
+```bash
+POST /api/v1/sessions/{session_id}/execute
+Content-Type: application/json
+Authorization: Bearer <your_token>
+
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "What's in this image?"
+    },
+    {
+      "type": "image",
+      "source": {
+        "type": "base64",
+        "media_type": "image/jpeg",
+        "data": "<base64_encoded_image_data>"
+      }
+    }
+  ]
+}
+```
+
+**Alternative: Using Image URLs**
+
+For better performance, use publicly accessible image URLs instead of base64:
+
+```json
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "Analyze this document"
+    },
+    {
+      "type": "image",
+      "source": {
+        "type": "url",
+        "media_type": "image/jpeg",
+        "url": "https://example.com/document.jpg"
+      }
+    }
+  ]
+}
+```
+
+### PDF Processing
+
+**PDFs are automatically converted to images** when sent to vision-capable models:
+
+- Each PDF page is converted to a JPEG image (150 DPI)
+- Images are compressed to max 800KB per page (1568px max dimension)
+- Quality is optimized for LLM vision APIs (85-40% JPEG quality)
+- Conversion happens automatically in the backend
+
+#### Sending PDFs via REST API
+
+```json
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "Extract data from this invoice"
+    },
+    {
+      "type": "file",
+      "source": {
+        "type": "base64",
+        "media_type": "application/pdf",
+        "filename": "invoice.pdf",
+        "data": "<base64_encoded_pdf_data>"
+      }
+    }
+  ]
+}
+```
+
+The backend automatically:
+1. Detects the PDF file content
+2. Converts each page to a compressed JPEG image
+3. Sends the images to the multimodal model
+4. Processes the response
+
+**Note**: Only vision-capable models (e.g., `gpt-4o`, `claude-3-5-sonnet-20241022`, `Qwen2-VL-72B-Instruct`) can process images and PDFs. Text-only models will reject multimodal content.  
+
+**Supported Image Models:**
+- **Azure OpenAI**: `gpt-4o`
+- **Telekom OTC**: `Qwen2.5-VL-72B`, `claude-3-7-sonnet`, `claude-sonnet-4`
+- **Mistral AI**: `mistral-medium`, `mistral-small`, `pixtral-large`, `magistral-medium`, `magistral-small`
+- **Google Gemini**: All Gemini models
+
+### Multimodal Use Cases
+
+<AccordionGroup>
+  <Accordion title="Document OCR & Analysis">
+    Use vision models to extract text from scanned documents, invoices, receipts, and forms.
+    
+    **Best Models**: `gpt-4o`, `claude-sonnet-4`, `pixtral-large`
+  </Accordion>
+  
+  <Accordion title="Image Understanding">
+    Analyze images for content, objects, scenes, and context.
+    
+    **Best Models**: `gemini-2.5-pro`, `gpt-4o`, `Qwen2.5-VL-72B`
+  </Accordion>
+</AccordionGroup>
+
+## BYOK (Bring Your Own Key)
+
+<Note>
+BYOK is currently supported for **Telekom OTC** and **Mistral AI** providers only. Azure OpenAI and Google Gemini do not support BYOK at this time.
+</Note>
+
+Override API keys for specific agents using the `api_key` field:
+
+```yaml
+agents:
+  - name: customer_agent
+    agent_type: llm_agent
+    llm_config:
+      model: mistral-large  # BYOK supported
+      api_key: your-mistral-api-key  # BYOK
+      temperature: 0.7
+```
+
+<Warning>
+**Security Notes**: API Keys are currently stored in plain text when you save an agent. In v0.3 we are introducing a secure key vault, which can hold an API Key to be used globally across all provider calls.
+</Warning>
+
+## Model Configuration Reference
+
+### LLMConfig Schema
+
+```yaml
+llm_config:
+  model: string              # Model name (required for non-default)
+  temperature: float         # 0.0 - 2.0 (default: 0.7)
+  max_tokens: int           # Max output tokens (optional)
+  api_key: string           # Optional BYOK override
+```
+
+### Field Descriptions
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `model` | string | Environment default | Model name or display name |
+| `temperature` | float | 0.7 | Sampling temperature (0.0 = deterministic, 2.0 = creative) |
+| `max_tokens` | int | Model default | Maximum tokens to generate |
+| `api_key` | string | Environment variable | Optional API key override |
+
+### Temperature Guidelines
+
+<Steps>
+  <Step title="Low Temperature (0.0 - 0.3)">
+    **Use for**: Data extraction, classification, structured output
+    
+    **Behavior**: Deterministic, focused, consistent
+  </Step>
+  
+  <Step title="Medium Temperature (0.4 - 0.8)">
+    **Use for**: General conversation, Q&A, analysis
+    
+    **Behavior**: Balanced creativity and consistency
+  </Step>
+  
+  <Step title="High Temperature (0.9 - 2.0)">
+    **Use for**: Creative writing, brainstorming, diverse outputs
+    
+    **Behavior**: Creative, varied, less predictable
+  </Step>
+</Steps>
+
+## Token Limits & Context Windows
+
+Each model has specific token limits that affect how much context can be processed:
+
+```yaml
+# Example: Using a model with large context window
+agents:
+  - name: long_document_analyzer
+    agent_type: llm_agent
+    llm_config:
+      model: gemini-2.5-pro  # 1M token context window
+      temperature: 0.5
+    prompt_config:
+      include_history: true  # Can include extensive history
+```
+
+<Info>
+**Token Calculation**: Input tokens + Output tokens ≤ Max Total Tokens
+
+The framework automatically validates token limits and will raise errors if exceeded.
+</Info>
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Model Selection Strategy">
+    1. **Start with balanced models** (`gpt-4o`, `mistral-large-latest`)
+    2. **Use specialized models** for specific tasks (e.g., `codestral` for code)
+    3. **Consider cost vs. performance** tradeoffs
+    4. **Test with different temperatures** to find optimal settings
+  </Accordion>
+  
+  <Accordion title="Multimodal Workflows">
+    1. **Use vision models** only when processing images
+    2. **Optimize image sizes** before sending to API
+    3. **Consider token costs** for image processing
+    4. **Validate modality support** before deployment
+  </Accordion>
+  
+  <Accordion title="API Key Management">
+    1. **Implement key rotation** for production systems
+    2. **Monitor usage and costs** per key
+    3. **Use BYOK** for multi-tenant isolation
+  </Accordion>
+  
+  <Accordion title="Performance Optimization">
+    1. **Set appropriate max_tokens** to avoid waste
+    2. **Use smaller models** for simple tasks
+    3. **Monitor token usage** and optimize prompts
+  </Accordion>
+</AccordionGroup>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Model Not Found Error">
+    **Error**: `Unknown provider type` or `Model not found`
+    
+    **Solution**: 
+    - Check model name spelling (case-insensitive)
+    - Verify model is in supported list
+    - Use display name or full model name
+  </Accordion>
+  
+  <Accordion title="API Key Authentication Failed">
+    **Error**: `401 Unauthorized` or `Invalid API key`
+    
+    **Solution**:
+    - Verify API key is correct
+    - Check environment variables are set
+    - Ensure BYOK key has proper permissions
+    - Validate API base URL is correct
+  </Accordion>
+  
+  <Accordion title="Token Limit Exceeded">
+    **Error**: `Token limit exceeded` or `Context too long`
+    
+    **Solution**:
+    - Reduce `max_tokens` setting
+    - Limit conversation history (`include_history: 5`)
+    - Use model with larger context window
+    - Optimize prompt length
+  </Accordion>
+  
+  <Accordion title="Tool Calling Not Supported">
+    **Error**: `Model does not support tools`
+    
+    **Solution**:
+    - Check model's `supports_tools` capability
+    - Use different model (e.g., avoid Magistral models)
+    - Remove tools from agent configuration
+  </Accordion>
+</AccordionGroup>
+
+## Examples
+
+### Multi-Provider System
+
+```yaml
+name: multi_provider_system
+description: System using different providers for different tasks
+architecture: workflow
+
+agents:
+  - name: fast_classifier
+    agent_type: llm_agent
+    llm_config:
+      model: mistral-small-latest  # Fast Mistral model
+      temperature: 0.2
+    prompt_config:
+      system_prompt: Classify user intent quickly
+  
+  - name: deep_analyzer
+    agent_type: llm_agent
+    llm_config:
+      model: gemini-2.5-pro  # Large context Gemini
+      temperature: 0.5
+    prompt_config:
+      system_prompt: Perform deep analysis with full context
+  
+  - name: image_processor
+    agent_type: llm_agent
+    llm_config:
+      model: gpt-4o  # Vision-capable model
+      temperature: 0.3
+    prompt_config:
+      system_prompt: Extract information from images
+
+edges:
+  - from: START
+    to: fast_classifier
+  - from: fast_classifier
+    to: deep_analyzer
+  - from: deep_analyzer
+    to: image_processor
+```
+
+### BYOK Multi-Tenant Example
+
+```yaml
+agents:
+  - name: tenant_a_agent
+    agent_type: llm_agent
+    llm_config:
+      model: mistral-large  # BYOK supported
+      api_key: ${TENANT_A_MISTRAL_KEY}  # Tenant A's Mistral key
+      temperature: 0.7
+  
+  - name: tenant_b_agent
+    agent_type: llm_agent
+    llm_config:
+      model: Qwen3-235B-A22B  # BYOK supported (Telekom OTC)
+      api_key: ${TENANT_B_TELEKOM_KEY}  # Tenant B's Telekom key
+      temperature: 0.7
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Prompt Configuration" icon="message" href="/documentation/agent_config/types_config/prompt-configuration">
+    Learn how to configure prompts and context
+  </Card>
+  <Card title="Agent Types" icon="robot" href="/documentation/agent_config/types_config/agent-types">
+    Explore different agent types and capabilities
+  </Card>
+  <Card title="Tool Integration" icon="wrench" href="/tools">
+    Add tools and function calling to agents
+  </Card>
+  <Card title="Architecture Patterns" icon="diagram-project" href="/architecture">
+    Design multi-agent workflows
+  </Card>
+</CardGroup>

@@ -1,0 +1,600 @@
+---
+title: "Release Notes"
+description: "Latest updates and improvements to Atthene Agents Studio"
+icon: "newspaper"
+---
+
+<Info>
+  **Try it now** at [atthene.ai](https://atthene.ai) or visit the [documentation](https://docs.atthene.ai) to learn more.
+</Info>
+
+---
+
+## v0.2.2
+
+<Note>
+  **Released**: November 28, 2025
+</Note>
+
+### Bug Fixes
+
+<AccordionGroup>
+  <Accordion title="Agent Handoff" icon="handshake" defaultOpen>
+    - **Fixed**: Improved agent handoff reliability and stability
+  </Accordion>
+
+  <Accordion title="UKnow Integration" icon="cloud">
+    - **Fixed**: Disabled syncing flag for UKnow to improve performance
+    - **Fixed**: Only see your own databases for better data isolation
+  </Accordion>
+
+  <Accordion title="Teams & Sharing" icon="users">
+    - **Fixed**: Disabled Teams feature temporarily for stability improvements
+    - **Fixed**: Agents sharing and Atthene usage tracking now working correctly
+  </Accordion>
+
+  <Accordion title="RAG & File Handling" icon="database">
+    - **Fixed**: Resolved RAG errors for more reliable retrieval
+    - **Fixed**: PDF and image handling in Atthene AMAS now working properly
+    - **Improved**: RAG Simple View for easier knowledge base management
+  </Accordion>
+
+  <Accordion title="UI & Editor" icon="mouse-pointer">
+    - **Fixed**: Right-click paste functionality in editor
+    - **Fixed**: Add Tools feature now working correctly
+    - **Fixed**: Failed messages are now properly saved
+  </Accordion>
+</AccordionGroup>
+
+### New Features
+
+<CardGroup cols={2}>
+  <Card title="Full History Injection" icon="clock-rotate-left" iconType="duotone">
+    Use `{{ full_history }}` to inject all conversation messages into prompts
+  </Card>
+  
+  <Card title="START Entry Point" icon="play" iconType="duotone">
+    START is now a valid entry point for workflow configurations
+  </Card>
+
+  <Card title="Agent Statistics" icon="chart-line" iconType="duotone">
+    View detailed agent statistics and access control information
+  </Card>
+  
+  <Card title="Agent Ownership" icon="user-shield" iconType="duotone">
+    View agent owners for better team collaboration and management
+  </Card>
+</CardGroup>
+
+---
+
+## v0.2.1
+
+<Note>
+  **Released**: November 25, 2025
+</Note>
+
+### Bug Fixes
+
+<AccordionGroup>
+  <Accordion title="UI Authorization Updates" icon="shield-check" defaultOpen>
+    - **Fixed**: Authorized UI not updating after successful authorization
+    - **Added**: Reset button to YAML configuration editor
+    - **Improved**: Frontend now properly updates authorization status and displays authorization pills
+  </Accordion>
+
+  <Accordion title="Context Persistence" icon="window">
+    - **Fixed**: Switching windows no longer causes loss of selected agent context
+    - **Improved**: Better state management across window navigation
+  </Accordion>
+
+  <Accordion title="Error Messages" icon="triangle-exclamation">
+    - **Improved**: Pydantic validation error messages are now clearer and more actionable
+    - **Enhanced**: Better error feedback for configuration issues
+  </Accordion>
+
+  <Accordion title="Agent Handoff" icon="handshake">
+    - **Fixed**: Resolved issues with agent handoff reliability
+    - **Note**: Improved structured output handling for handoff scenarios
+  </Accordion>
+</AccordionGroup>
+
+### New Features
+
+<CardGroup cols={2}>
+  <Card title="Gemini Support" icon="sparkles" iconType="duotone">
+    Added support for Google's Gemini models
+  </Card>
+  
+  <Card title="Configuration Cleanup" icon="broom" iconType="duotone">
+    Removed global knowledge bases and tools for cleaner configuration
+  </Card>
+</CardGroup>
+
+---
+
+## v0.2.0
+
+<Note>
+  **Released**: November 21, 2025 | **Milestone**: Major feature release
+</Note>
+
+This is a huge milestone in shaping the flexible future of agentic systems. Big thanks to the team!
+
+### YAML Configuration Enhancements
+
+<Accordion title="Intelligent YAML Suggestions" icon="lightbulb" defaultOpen>
+  **New**: Press `Ctrl + Space` in the YAML editor to show available syntax keys and configuration options.
+  
+  <Tip>
+    This feature dramatically speeds up agent configuration by providing context-aware suggestions as you type.
+  </Tip>
+</Accordion>
+
+### Model Provider Integrations
+
+<CardGroup cols={3}>
+  <Card title="Mistral AI" icon="wind" iconType="duotone">
+    Full support for Mistral models
+  </Card>
+  
+  <Card title="Telekom OTC Hub" icon="tower-broadcast" iconType="duotone">
+    Enterprise-grade model access
+  </Card>
+  
+  <Card title="More Providers" icon="plus" iconType="duotone">
+    Expanded model selection
+  </Card>
+</CardGroup>
+
+**Available Models:**
+
+```yaml
+agents:
+  - name: my_agent
+    agent_type: llm_agent
+    llm_config:
+      # Mistral AI models
+      model: mistral-large-latest
+      # model: mistral-medium-latest
+      # model: pixtral-large-latest  # Vision support
+      
+      # Telekom OTC models
+      # model: claude-sonnet-4
+      # model: Qwen2.5-VL-72B-Instruct  # Vision support
+      # model: gpt-oss-120b
+      
+      temperature: 0.7
+```
+
+<Info>
+  Check out the [model providers documentation](/model-selection) to see all available models and their capabilities.
+</Info>
+
+### Bring Your Own Key (BYOK)
+
+<Card title="Cost Control" icon="key" iconType="duotone" color="#6366F1">
+  Want more control over your cost base and token usage? We now support API keys for:
+  
+  - **Mistral AI**
+  - **Telekom OTC Hub**
+</Card>
+
+**How to use BYOK:**
+
+```yaml
+agents:
+  - name: my_agent
+    agent_type: llm_agent
+    llm_config:
+      model: mistral-large-latest
+      api_key: your-mistral-api-key-here  # Override default key
+      temperature: 0.7
+```
+
+<Tip>
+  BYOK gives you direct control over API usage, billing, and rate limits while using the Atthene platform. Perfect for multi-tenant systems or cost allocation per department.
+</Tip>
+
+### UKnow Integration
+
+<AccordionGroup>
+  <Accordion title="Cloud Storage Connections" icon="cloud" defaultOpen>
+    Connect your enterprise knowledge sources:
+    
+    - **SharePoint**: Access organizational documents
+    - **OneDrive**: Personal and shared file access
+    - **Google Drive**: Currently undergoing security re-certification
+  </Accordion>
+  
+  <Accordion title="Seamless Integration" icon="plug">
+    UKnow provides a unified interface for all your knowledge sources with:
+    
+    - Real-time synchronization
+    - Permission-aware access
+    - Automatic indexing
+    - Smart retrieval
+  </Accordion>
+</AccordionGroup>
+
+<Note>
+  **Known Issue**: Google Drive provider is currently marked as "insecure" while UKnow undergoes security re-issuance. Official support coming shortly.
+</Note>
+
+### Conditional Edges
+
+<Card title="Advanced Workflow Logic" icon="code-branch" iconType="duotone" color="#8b5cf6">
+  Level up your multi-agent experiences by embedding flow logic directly into edges.
+</Card>
+
+You now have two edge types to choose from:
+
+<Tabs>
+  <Tab title="Static Edges">
+    Direct connections between agents:
+    
+    ```yaml
+    edges:
+      # Simple static routing
+      - from: START
+        to: analyzer
+      
+      - from: analyzer
+        to: processor
+      
+      - from: processor
+        to: END
+    ```
+  </Tab>
+  
+  <Tab title="Boolean Conditional">
+    Yes/No routing decisions (approval gates, quality checks):
+    
+    ```yaml
+    edges:
+      - from: quality_checker
+        condition: |
+          Quality Check: {{ quality_checker.output }}
+          
+          Is the solution of sufficient quality?
+          
+          Respond with YES or NO.
+        condition_type: boolean
+        routing:
+          "yes": publisher
+          "no": reviser
+    ```
+  </Tab>
+  
+  <Tab title="Literal Conditional">
+    Dynamic routing to specific agents based on classification:
+    
+    ```yaml
+    edges:
+      - from: classifier
+        condition: |
+          User Request: {{ user_input }}
+          
+          Route to the appropriate agent:
+          - technical_support for technical issues
+          - billing_support for payment questions
+          - general_support for other inquiries
+          
+          Respond with ONLY the agent name.
+        condition_type: literal
+        possible_outputs:
+          - technical_support
+          - billing_support
+          - general_support
+    ```
+  </Tab>
+</Tabs>
+
+**Complete Example:**
+
+```yaml
+name: Support Router
+architecture: workflow
+
+agents:
+  - name: classifier
+    agent_type: llm_agent
+    prompt_config:
+      system_prompt: Classify incoming support requests
+  
+  - name: technical_support
+    agent_type: react_agent
+    tools: [search, documentation]
+  
+  - name: billing_support
+    agent_type: llm_agent
+
+edges:
+  - from: START
+    to: classifier
+  
+  # Conditional routing based on classification
+  - from: classifier
+    condition: "Route based on: {{ classifier.output }}"
+    condition_type: literal
+    possible_outputs: [technical_support, billing_support]
+```
+
+<Warning>
+  **Known Issue**: Boolean edge keys `yes` and `no` are interpreted as `True`/`False`.
+  
+  **Workaround**: Use quoted keys in your YAML:
+  ```yaml
+  routing:
+    "yes": agent_name
+    "no": other_agent
+  ```
+</Warning>
+
+### Structured Output with BAML
+
+<Card title="Industry-Leading Reliability" icon="shield-check" iconType="duotone" color="#10b981">
+  Struggling with reliability in producing structured JSON output? We've got you covered.
+</Card>
+
+Utilizing **BAML** (thanks to [BoundaryML](https://www.boundaryml.com/)), we guarantee the highest reliability in the industry for structured outputs.
+
+<Steps>
+  <Step title="Define Your Schema">
+    Specify the exact JSON structure you need
+  </Step>
+  
+  <Step title="Guaranteed Validation">
+    BAML ensures outputs match your schema every time
+  </Step>
+  
+  <Step title="Type Safety">
+    Get strongly-typed responses with full validation
+  </Step>
+  
+  <Step title="Error Recovery">
+    Automatic retry and correction for malformed outputs
+  </Step>
+</Steps>
+
+**Example Configuration:**
+
+```yaml
+agents:
+  - name: data_extractor
+    agent_type: llm_agent
+    prompt_config:
+      system_prompt: |
+        Extract structured data from customer inquiries.
+        Focus on identifying key information accurately.
+    
+    structured_output:
+      enabled: true
+      output_name: customer_data
+      schema:
+        customer_name:
+          type: str
+          description: Full name of the customer
+        
+        email:
+          type: str
+          description: Customer email address
+        
+        order_id:
+          type: str
+          description: Order or ticket ID if mentioned
+        
+        priority:
+          type: str
+          description: Priority level (high, medium, low)
+        
+        issue_category:
+          type: str
+          description: Category of the issue
+```
+
+**Output Format:**
+
+```json
+{
+  "customer_data": {
+    "customer_name": "John Doe",
+    "email": "john.doe@example.com",
+    "order_id": "ORD-12345",
+    "priority": "high",
+    "issue_category": "billing"
+  }
+}
+```
+
+<Tip>
+  Structured outputs are perfect for data extraction, classification, form filling, and any task requiring consistent JSON responses.
+</Tip>
+
+### Enhanced Tooling
+
+<CardGroup cols={2}>
+  <Card title="Microsoft Outlook" icon="envelope" iconType="duotone">
+    - Send and receive emails
+    - Manage calendar events
+    - Access contacts
+    - Create tasks
+  </Card>
+  
+  <Card title="Microsoft Teams" icon="users" iconType="duotone">
+    - Send messages to channels
+    - Create and manage teams
+    - Schedule meetings
+    - Share files
+  </Card>
+</CardGroup>
+
+<Card title="What's Next?" icon="comments" iconType="duotone" color="#f59e0b" href="mailto:lorenz.stirnweis@arttacsolutions.de">
+  More tools are coming! Which integration do you want to see next? Let us know at **lorenz.stirnweis@arttacsolutions.de**
+</Card>
+
+### OCR & Vision Capabilities
+
+<Card title="Multimodal Processing" icon="image" iconType="duotone" color="#ec4899">
+  Got images for your agentic system? No problem!
+</Card>
+
+Using multi-modal models like **GPT-4o** and **Mistral OCR**, you can now:
+
+<AccordionGroup>
+  <Accordion title="Extract Text from Images" icon="file-image" defaultOpen>
+    - Scanned documents
+    - Screenshots
+    - Photos of text
+    - Handwritten notes
+  </Accordion>
+  
+  <Accordion title="Analyze Visual Content" icon="eye">
+    - Identify objects and scenes
+    - Extract structured data from forms
+    - Understand charts and diagrams
+    - Process receipts and invoices
+  </Accordion>
+  
+  <Accordion title="Multimodal Understanding" icon="brain">
+    - Combine text and image context
+    - Answer questions about images
+    - Generate descriptions
+    - Compare visual elements
+  </Accordion>
+</AccordionGroup>
+
+### Enhanced Prompt Configuration
+
+<Card title="Fine-Grained Control" icon="sliders" iconType="duotone" color="#0ea5e9">
+  New configuration options for precise prompt engineering
+</Card>
+
+<Tabs>
+  <Tab title="include_user_input">
+    Control whether user messages are included in the prompt:
+    
+    ```yaml
+    agents:
+      - name: "assistant"
+        prompt_config:
+          include_user_input: true
+    ```
+  </Tab>
+  
+  <Tab title="include_history">
+    Include recent conversation history:
+    
+    ```yaml
+    agents:
+      - name: "assistant"
+        prompt_config:
+          include_history: true
+          history_length: 5  # Last 5 messages
+    ```
+  </Tab>
+  
+  <Tab title="include_full_history">
+    Include the entire conversation history:
+    
+    ```yaml
+    agents:
+      - name: "assistant"
+        prompt_config:
+          include_full_history: true
+    ```
+    
+    <Warning>
+      Use carefully with long conversations to avoid token limits
+    </Warning>
+  </Tab>
+  
+  <Tab title="few_shot_examples">
+    Provide examples to guide agent behavior:
+    
+    ```yaml
+    agents:
+      - name: "classifier"
+        prompt_config:
+          few_shot_examples:
+            - input: "I need help with my order"
+              output: "support"
+            - input: "What are your prices?"
+              output: "sales"
+    ```
+  </Tab>
+</Tabs>
+
+---
+
+## Known Issues
+
+<Warning>
+  We're actively working on fixes for the following issues. Workarounds are provided where available.
+</Warning>
+
+<AccordionGroup>
+  <Accordion title="Boolean Edge Interpretation" icon="code-branch">
+    **Issue**: Boolean edge keys `yes` and `no` are interpreted as `True`/`False`
+    
+    **Workaround**: Use quoted keys in your YAML configuration:
+    ```yaml
+    edges:
+      - from: "decision_agent"
+        to:
+          "yes": "approval_agent"
+          "no": "rejection_agent"
+    ```
+  </Accordion>
+  
+  <Accordion title="AMAS Chat First Message" icon="message">
+    **Issue**: First message in AMAS Chat appears after the first agent message
+    
+    **Status**: Fix in progress
+  </Accordion>
+  
+  <Accordion title="Google Drive Security" icon="google">
+    **Issue**: Google Drive provider is marked as "insecure"
+    
+    **Reason**: UKnow is currently undergoing security re-issuance
+    
+    **Status**: Will be officially supported shortly
+  </Accordion>
+  
+  <Accordion title="OneDrive Configuration" icon="microsoft">
+    **Issue**: OneDrive configuration also queries from SharePoint sites
+    
+    **Workaround**: Only include drive IDs ending with `.../me/<your_email>` to limit scope to personal OneDrive
+    
+    ```yaml
+    knowledge_base:
+      provider: "uknow"
+      config:
+        drive_id: "https://graph.microsoft.com/v1.0/me/your.email@company.com"
+    ```
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Get Started
+
+<CardGroup cols={2}>
+  <Card title="Try Atthene" icon="rocket" iconType="duotone" color="#6366F1" href="https://atthene.ai">
+    Visit **atthene.ai** to start building
+  </Card>
+  
+  <Card title="View Roadmap" icon="map" iconType="duotone" color="#0ea5e9" href="/documentation/platform/roadmap">
+    See what's coming next
+  </Card>
+  
+  <Card title="Give Feedback" icon="comment" iconType="duotone" color="#f59e0b" href="mailto:lorenz.stirnweis@arttacsolutions.de">
+    Share your thoughts with us
+  </Card>
+</CardGroup>
+
+---
+
+<Card title="Follow for Updates" icon="bell" iconType="duotone" color="#10b981">
+  Stay tuned for more AI content and further updates on the Atthene platform!
+</Card>

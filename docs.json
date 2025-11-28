@@ -21,33 +21,44 @@
             "icon": "rocket",
             "pages": [
               "index",
-              "guides/getting-started/quickstart",
-              "guides/getting-started/connecting-your-agent"
+              "documentation/getting-started/quickstart",
+              "documentation/getting-started/connecting-your-agent"
             ]
           },
           {
             "group": "Agent Configuration",
             "icon": "gear",
             "pages": [
-              "guides/yaml-configuration",
-              "guides/agent-types",
-              "guides/agent-capabilities"
+              "documentation/yaml-configuration",
+              {
+                "group": "Agent Types & Configuration",
+                "pages": [
+                  "documentation/agent_config/types_config/agent-types",
+                  "documentation/agent_config/types_config/model-selection",
+                  "documentation/agent_config/types_config/prompt-configuration"
+                ]
+              },
+              "documentation/agent_config/agent-capabilities",
+              "documentation/agent_config/knowledge-base-setup"
             ]
           },
           {
             "group": "Knowledge Bases",
             "icon": "database",
             "pages": [
-              "guides/knowledge-base/overview",
-              "guides/knowledge-base/milvus",
-              "guides/knowledge-base/uknow-cloud-storage"
+              "documentation/knowledge-base/overview",
+              "documentation/knowledge-base/milvus",
+              "documentation/knowledge-base/uknow-cloud-storage",
+              "documentation/yaml-configuration"
             ]
           },
           {
             "group": "Platform",
             "icon": "cube",
             "pages": [
-              "guides/platform/roadmap"
+              "documentation/platform/roadmap",
+              "documentation/platform/release-notes",
+              "documentation/platform/known-issues"
             ]
           },
           {
@@ -63,11 +74,11 @@
             "group": "Integration",
             "icon": "plug",
             "pages": [
-              "guides/integration/rest-api-tutorial",
-              "guides/integration/connecting-services",
-              "guides/integration/embedding-agents",
-              "guides/integration/chatbot-integration",
-              "guides/integration/custom-tools"
+              "documentation/integration/rest-api-tutorial",
+              "documentation/integration/connecting-services",
+              "documentation/integration/embedding-agents",
+              "documentation/integration/chatbot-integration",
+              "documentation/integration/custom-tools"
             ]
           }
         ]
