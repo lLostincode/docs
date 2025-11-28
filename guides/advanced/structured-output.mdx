@@ -1,0 +1,570 @@
+---
+title: "Structured Output"
+description: "Generate validated, structured data from your agents for seamless integration with databases, APIs, and downstream systems"
+---
+
+Structured output enables your agents to return data in a predefined schema instead of free-form text. This is essential for integrating agents with databases, APIs, or any system that requires consistent data formats.
+
+## Overview
+
+When you enable structured output, your agent will:
+
+1. Process the input normally
+2. Extract information according to your schema
+3. Return validated, typed data matching your specification
+4. Ensure type safety and consistency
+
+<Info>
+Structured output uses runtime schema generation and validation to ensure your agents return properly formatted data.
+</Info>
+
+## When to Use Structured Output
+
+<CardGroup cols={2}>
+  <Card title="Data Extraction" icon="database">
+    Extract structured information from unstructured text (resumes, invoices, documents)
+  </Card>
+  
+  <Card title="API Integration" icon="plug">
+    Generate responses that match your API schema requirements
+  </Card>
+  
+  <Card title="Database Inserts" icon="table">
+    Create records with validated fields for database operations
+  </Card>
+  
+  <Card title="Multi-Agent Pipelines" icon="diagram-project">
+    Pass typed data between agents in complex workflows
+  </Card>
+</CardGroup>
+
+## Basic Configuration
+
+Add the `structured_output` field to your agent configuration:
+
+```yaml
+agents:
+  - name: "data_extractor"
+    agent_type: "llm_agent"
+    system_prompt: "Extract contact information from the provided text."
+    
+    structured_output:
+      enabled: true
+      schema:
+        name:
+          type: "str"
+          description: "Full name of the person"
+        email:
+          type: "str"
+          description: "Email address"
+        phone:
+          type: "str"
+          description: "Phone number"
+```
+
+## Type Notation
+
+Define field types using our type notation syntax:
+
+### Basic Types
+
+<ParamField path="string" type="type">
+  Text data
+  
+  ```yaml
+  name:
+    type: "str"
+    description: "Person's full name"
+  ```
+</ParamField>
+
+<ParamField path="int" type="type">
+  Integer numbers
+  
+  ```yaml
+  age:
+    type: "int"
+    description: "Age in years"
+  ```
+</ParamField>
+
+<ParamField path="float" type="type">
+  Decimal numbers
+  
+  ```yaml
+  confidence:
+    type: "float"
+    description: "Confidence score between 0.0 and 1.0"
+  ```
+</ParamField>
+
+<ParamField path="bool" type="type">
+  Boolean values (true/false)
+  
+  ```yaml
+  is_verified:
+    type: "bool"
+    description: "Whether the information is verified"
+  ```
+</ParamField>
+
+### Collection Types
+
+<ParamField path="list[T]" type="type">
+  List of items of type T
+  
+  ```yaml
+  skills:
+    type: "list[str]"
+    description: "List of technical skills"
+  
+  scores:
+    type: "list[float]"
+    description: "List of test scores"
+  ```
+</ParamField>
+
+<ParamField path="dict[K, V]" type="type">
+  Dictionary mapping keys of type K to values of type V
+  
+  ```yaml
+  metadata:
+    type: "dict[str, str]"
+    description: "Additional metadata fields"
+  
+  scores_by_subject:
+    type: "dict[str, float]"
+    description: "Subject name to score mapping"
+  ```
+</ParamField>
+
+<Note>
+**Enum types are not currently supported.** Use `str` type with clear descriptions for fields that should have restricted values. Validation must be handled in your system prompt or downstream processing.
+</Note>
+
+## Complete Examples
+
+### Resume Parser
+
+Extract structured information from resumes:
+
+```yaml
+name: "Resume Parser"
+description: "Extract structured data from resumes"
+architecture: "workflow"
+save_messages: true
+
+agents:
+  - name: "resume_extractor"
+    agent_type: "llm_agent"
+    
+    system_prompt: |
+      You are a resume parsing specialist. Extract all relevant information 
+      from the provided resume text and structure it according to the schema.
+      
+      Be thorough and accurate. If information is not present, leave fields empty.
+    
+    structured_output:
+      enabled: true
+      schema:
+        full_name:
+          type: "str"
+          description: "Candidate's full name"
+        
+        email:
+          type: "str"
+          description: "Email address"
+        
+        phone:
+          type: "str"
+          description: "Phone number"
+        
+        years_of_experience:
+          type: "int"
+          description: "Total years of professional experience"
+        
+        skills:
+          type: "list[str]"
+          description: "List of technical and professional skills"
+        
+        education_level:
+          type: "str"
+          description: "Highest education level achieved (e.g., high_school, bachelors, masters, phd, other)"
+        
+        previous_companies:
+          type: "list[str]"
+          description: "List of previous employers"
+        
+        certifications:
+          type: "list[str]"
+          description: "Professional certifications"
+
+edges:
+  - from: "__start__"
+    to: "resume_extractor"
+  - from: "resume_extractor"
+    to: "__end__"
+
+entry_point: "resume_extractor"
+```
+
+<RequestExample>
+```json Input
+{
+  "message": "John Smith\nEmail: john.smith@email.com\nPhone: (555) 123-4567\n\nExperience:\n- Senior Software Engineer at TechCorp (2020-2024)\n- Software Engineer at StartupXYZ (2018-2020)\n\nSkills: Python, JavaScript, React, Node.js, AWS, Docker\n\nEducation: Master of Science in Computer Science, MIT\n\nCertifications: AWS Solutions Architect, Kubernetes Administrator"
+}
+```
+</RequestExample>
+
+<ResponseExample>
+```json Output
+{
+  "full_name": "John Smith",
+  "email": "john.smith@email.com",
+  "phone": "(555) 123-4567",
+  "years_of_experience": 6,
+  "skills": ["Python", "JavaScript", "React", "Node.js", "AWS", "Docker"],
+  "education_level": "masters",
+  "previous_companies": ["TechCorp", "StartupXYZ"],
+  "certifications": ["AWS Solutions Architect", "Kubernetes Administrator"]
+}
+```
+</ResponseExample>
+
+### Sentiment Analysis
+
+Analyze sentiment with confidence scores:
+
+```yaml
+agents:
+  - name: "sentiment_analyzer"
+    agent_type: "llm_agent"
+    
+    system_prompt: |
+      Analyze the sentiment of the provided text. Classify the overall sentiment
+      as one of: positive, negative, neutral, or mixed.
+      Provide a confidence score and extract key emotional keywords.
+      Rate intensity as: low, medium, or high.
+    
+    structured_output:
+      enabled: true
+      schema:
+        sentiment:
+          type: "str"
+          description: "Overall sentiment classification (positive, negative, neutral, or mixed)"
+        
+        confidence:
+          type: "float"
+          description: "Confidence score from 0.0 to 1.0"
+        
+        emotional_keywords:
+          type: "list[str]"
+          description: "Key words or phrases indicating emotion"
+        
+        intensity:
+          type: "str"
+          description: "Intensity of the sentiment (low, medium, or high)"
+```
+
+### Product Review Analysis
+
+Extract detailed product feedback:
+
+```yaml
+agents:
+  - name: "review_analyzer"
+    agent_type: "llm_agent"
+    
+    system_prompt: |
+      Analyze product reviews and extract structured feedback data.
+      Identify specific aspects mentioned and their ratings.
+      Classify sentiment as: very_negative, negative, neutral, positive, or very_positive.
+    
+    structured_output:
+      enabled: true
+      schema:
+        overall_rating:
+          type: "int"
+          description: "Overall rating from 1 to 5"
+        
+        pros:
+          type: "list[str]"
+          description: "Positive aspects mentioned"
+        
+        cons:
+          type: "list[str]"
+          description: "Negative aspects mentioned"
+        
+        would_recommend:
+          type: "bool"
+          description: "Whether the reviewer recommends the product"
+        
+        aspect_ratings:
+          type: "dict[str, int]"
+          description: "Ratings for specific aspects (quality, price, service, etc.)"
+        
+        sentiment:
+          type: "str"
+          description: "Overall sentiment (very_negative, negative, neutral, positive, or very_positive)"
+```
+
+## Multi-Agent Data Passing
+
+Use structured output to pass typed data between agents in workflows. Downstream agents can access structured outputs from previous agents using template variables in their system prompts.
+
+### Accessing Structured Output in Prompts
+
+Use the `{{ agent_name.output_name.field }}` syntax to inject structured output into agent prompts:
+
+```yaml
+agents:
+  - name: "data_extractor"
+    agent_type: "llm_agent"
+    structured_output:
+      enabled: true
+      schema:
+        company_name:
+          type: "str"
+          description: "Company name"
+        revenue:
+          type: "float"
+          description: "Annual revenue in millions"
+  
+  - name: "analyzer"
+    agent_type: "llm_agent"
+    system_prompt: |
+      Analyze the company data:
+      - Company: {{ data_extractor.output.company_name }}
+      - Revenue: ${{ data_extractor.output.revenue }}M
+      
+      Provide insights on market position and growth potential.
+```
+
+**Supported template variables:**
+- `{{ agent_name.output.field }}` - Access specific field from structured output
+- `{{ agent_name.output.nested.field }}` - Access nested fields
+- `{{ agent_name.output }}` - Access entire structured output as JSON
+- `{{ user_input }}` - Latest user message
+- `{{ history[N] }}` - Last N messages from conversation
+
+<Tip>
+**Complex data types** (lists, dicts) are automatically serialized to JSON when injected into prompts.
+</Tip>
+
+### Complete Multi-Agent Example
+
+Use structured output to pass typed data between agents in workflows:
+
+```yaml
+name: "Competitive Analysis Pipeline"
+description: "Multi-agent system with structured data passing"
+architecture: "workflow"
+
+agents:
+  # Agent 1: Research with structured output
+  - name: "researcher"
+    agent_type: "react_agent"
+    tools: ["tavily_search"]
+    
+    structured_output:
+      enabled: true
+      schema:
+        competitors:
+          type: "list[str]"
+          description: "List of competitor company names"
+        
+        market_positions:
+          type: "dict[str, str]"
+          description: "Company to market position mapping"
+        
+        key_products:
+          type: "list[str]"
+          description: "Notable products in the market"
+  
+  # Agent 2: Analysis consuming structured data
+  - name: "analyzer"
+    agent_type: "llm_agent"
+    
+    system_prompt: |
+      Analyze the competitive landscape data:
+      
+      Competitors: {{ researcher.output.competitors }}
+      Market Positions: {{ researcher.output.market_positions }}
+      Key Products: {{ researcher.output.key_products }}
+      
+      Identify emerging trends, competitive threats, and market opportunities.
+    
+    structured_output:
+      enabled: true
+      schema:
+        emerging_trends:
+          type: "list[str]"
+          description: "Market trends identified"
+        
+        threats:
+          type: "list[str]"
+          description: "Competitive threats"
+        
+        opportunities:
+          type: "list[str]"
+          description: "Market opportunities"
+  
+  # Agent 3: Report generation
+  - name: "report_writer"
+    agent_type: "llm_agent"
+    
+    system_prompt: |
+      Create a comprehensive competitive intelligence report using
+      the research data and analysis provided.
+
+edges:
+  - from: "__start__"
+    to: "researcher"
+  - from: "researcher"
+    to: "analyzer"
+  - from: "analyzer"
+    to: "report_writer"
+  - from: "report_writer"
+    to: "__end__"
+
+entry_point: "researcher"
+```
+
+## Best Practices
+
+<Tip>
+**Clear Descriptions**: Always provide detailed descriptions for each field. The agent uses these to understand what to extract.
+</Tip>
+
+<Tip>
+**Appropriate Types**: Choose the most specific type possible. For fields with restricted values, use `str` type and specify allowed values in the description and system prompt.
+</Tip>
+
+<Tip>
+**System Prompt Alignment**: Ensure your system prompt explicitly mentions the structured output requirements.
+</Tip>
+
+<Warning>
+**Type Validation**: All output is validated against your schema. Invalid data will cause errors. Test your schemas thoroughly.
+</Warning>
+
+<Tip>
+**Nested Structures**: For complex nested objects, consider breaking them into multiple agents or using `dict` types with clear descriptions.
+</Tip>
+
+## Configuration Reference
+
+### Schema Structure
+
+The `structured_output` field has the following structure:
+
+<ParamField path="structured_output" type="object">
+  Configuration for structured output generation
+  
+  <Expandable title="Properties">
+    <ParamField path="enabled" type="boolean" required>
+      Enable or disable structured output for this agent
+      
+      When `true`, the agent will return data matching the defined schema instead of free-form text.
+      
+      **Default**: `false`
+    </ParamField>
+    
+    <ParamField path="schema" type="object" required>
+      Schema definition mapping field names to field specifications
+      
+      Each key is a field name, and each value is an object with `type` and `description`.
+      
+      **Required when** `enabled: true`
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+### Field Specification
+
+Each field in the schema must have:
+
+<ParamField path="type" type="string" required>
+  Type notation for the field
+  
+  See [Type Notation Reference](/guides/advanced/reference/type-notation) for all supported types.
+  
+  **Supported types**: `str`, `int`, `float`, `bool`, `list[T]`, `dict[K, V]`
+</ParamField>
+
+<ParamField path="description" type="string" required>
+  Human-readable description of what this field represents
+  
+  The agent uses this description to understand what data to extract. Be specific and clear.
+</ParamField>
+
+### Agent Type Support
+
+<Check>
+**llm_agent**: ✅ Fully supported - LLM agents can generate structured output for any schema
+</Check>
+
+<Check>
+**react_agent**: ✅ Fully supported - ReAct agents generate structured output after completing their tool-calling iterations
+</Check>
+
+<Warning>
+**supervisor**: ❌ Not supported - Supervisor agents focus on coordination and do not produce structured output
+</Warning>
+
+## Validation and Error Handling
+
+The system automatically validates structured output:
+
+<Check>
+**Type Checking**: Values must match the declared type
+</Check>
+
+<Check>
+**Required Fields**: All fields in the schema must be present in the output
+</Check>
+
+<Check>
+**Format Validation**: Basic format checking for strings, numbers, etc.
+</Check>
+
+### Common Errors
+
+| Error | Cause | Solution |
+|-------|-------|----------|
+| `Invalid type notation` | Unsupported type syntax | Check [Type Notation Reference](/guides/advanced/reference/type-notation) |
+| `Missing required field` | Agent didn't provide all fields | Improve system prompt to mention all fields |
+| `Type validation failed` | Value doesn't match expected type | Ensure agent outputs correct type for the field |
+| `Type mismatch` | Wrong data type | Ensure agent outputs correct type (e.g., number not string) |
+
+### Example Error Response
+
+If validation fails, you'll receive a detailed error:
+
+```json
+{
+  "error": {
+    "type": "StructuredOutputValidationError",
+    "message": "Field 'age' has invalid value 'thirty'. Expected type: int",
+    "field": "age",
+    "expected": "int",
+    "received": "thirty"
+  }
+}
+```
+
+## Limitations
+
+<Note>
+- Structured output is currently supported for `llm_agent` and `react_agent` types
+- Complex nested objects may require careful prompt engineering
+- Very large schemas (>20 fields) may impact performance
+- All fields are required (no optional fields)
+- Output must be valid JSON
+</Note>
+
+## Next Steps
+
+<Card title="Conditional Edges" icon="code-branch" href="/guides/advanced/conditional-edges">
+  Learn how to route agents based on structured output values
+</Card>

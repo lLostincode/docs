@@ -1,0 +1,195 @@
+---
+title: "Knowledge Base Overview"
+description: "Connect your agents to domain-specific information through vector databases and cloud storage"
+---
+
+Knowledge bases provide agents with access to domain-specific information, documents, and organizational knowledge. AMAS supports two types of knowledge bases, each optimized for different use cases.
+
+## Available Knowledge Base Types
+
+<CardGroup cols={2}>
+  <Card title="Milvus" icon="database" href="/guides/knowledge-base/milvus">
+    **Vector Database** ✅
+    
+    Production-ready vector database with semantic search capabilities. Upload documents and perform semantic search over embeddings.
+    
+    **Best for:** Custom document collections, uploaded files, fine-grained control
+  </Card>
+  
+  <Card title="UKnow" icon="cloud" href="/guides/knowledge-base/uknow-cloud-storage">
+    **Cloud Storage** ✅
+    
+    Connect Google Drive, Dropbox, OneDrive, and SharePoint via OAuth. Search cloud documents without manual uploads.
+    
+    **Best for:** Existing cloud storage, live document access, no file management
+  </Card>
+</CardGroup>
+
+## Comparison
+
+| Feature | Milvus | UKnow |
+|---------|--------|-------|
+| **Data Source** | Uploaded files | Cloud storage (OAuth) |
+| **Setup** | Upload documents to collections | Connect cloud account |
+| **Search Type** | Semantic vector search | Semantic search via UKnow API |
+| **File Management** | Manual upload/delete | Automatic sync from cloud |
+| **Customization** | Full control (chunking, embeddings) | Managed by UKnow |
+| **Best For** | Custom knowledge bases | Existing cloud documents |
+
+## When to Use Each Type
+
+### Use Milvus When:
+
+<Check>
+You need full control over document processing and chunking
+</Check>
+
+<Check>
+Building custom knowledge bases from uploaded files
+</Check>
+
+<Check>
+Want to fine-tune embedding models and retrieval parameters
+</Check>
+
+<Check>
+Need to manage document lifecycle (add, update, delete)
+</Check>
+
+### Use UKnow When:
+
+<Check>
+Documents already exist in Google Drive, SharePoint, etc.
+</Check>
+
+<Check>
+Want automatic sync with cloud storage
+</Check>
+
+<Check>
+Need to search across multiple cloud providers
+</Check>
+
+<Check>
+Prefer OAuth-based access over file uploads
+</Check>
+
+## Configuration Basics
+
+### Milvus Configuration
+
+```yaml
+knowledge_bases:
+  - name: "company_docs"
+    knowledge_base_type: "milvus"
+    id: "kb_abc123"
+    config:
+      top_k: 10
+      metric_type: "COSINE"
+```
+
+### UKnow Configuration
+
+```yaml
+knowledge_bases:
+  - name: "sharepoint_docs"
+    knowledge_base_type: "uknow"
+    enabled: true
+    config:
+      username: "user@company.com"
+      drive_key: "oauth_key_123"
+      path_filter: "/documents/"
+```
+
+## Using Multiple Knowledge Bases
+
+Agents can use multiple knowledge bases simultaneously:
+
+```yaml
+agents:
+  - name: "comprehensive_assistant"
+    agent_type: "llm_agent"
+    
+    knowledge_bases:
+      # Vector database for uploaded docs
+      - name: "internal_kb"
+        knowledge_base_type: "milvus"
+        id: "kb_001"
+        config:
+          top_k: 5
+      
+      # Cloud storage for live docs
+      - name: "sharepoint"
+        knowledge_base_type: "uknow"
+        enabled: true
+        config:
+          username: "user@company.com"
+          drive_key: "key_123"
+          path_filter: "/"
+    
+    system_prompt: |
+      You have access to both internal documentation and live SharePoint files.
+      Search both knowledge bases to provide comprehensive answers.
+```
+
+## How Knowledge Bases Work
+
+<Steps>
+  <Step title="Agent Receives Query">
+    User asks a question that requires domain knowledge
+  </Step>
+  
+  <Step title="Semantic Search">
+    Agent searches configured knowledge bases using semantic similarity
+  </Step>
+  
+  <Step title="Retrieve Relevant Documents">
+    Top-k most relevant documents/chunks are retrieved
+  </Step>
+  
+  <Step title="Context Injection">
+    Retrieved content is added to agent's context
+  </Step>
+  
+  <Step title="Generate Response">
+    Agent generates response using both its knowledge and retrieved context
+  </Step>
+</Steps>
+
+## Best Practices
+
+<Tip>
+**Start Small**: Begin with one knowledge base type and expand as needed
+</Tip>
+
+<Tip>
+**Combine Types**: Use Milvus for stable internal docs and UKnow for dynamic cloud content
+</Tip>
+
+<Tip>
+**Tune Retrieval**: Adjust `top_k` and search parameters based on your use case
+</Tip>
+
+<Warning>
+**Token Limits**: More knowledge bases = more retrieved content. Monitor token usage and adjust retrieval settings accordingly.
+</Warning>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Milvus Setup" icon="database" href="/guides/knowledge-base/milvus">
+    Configure vector database knowledge bases
+  </Card>
+  
+  <Card title="UKnow Setup" icon="cloud" href="/guides/knowledge-base/uknow-cloud-storage">
+    Connect cloud storage accounts
+  </Card>
+  
+  <Card title="Agent Configuration" icon="gear" href="/guides/yaml-configuration">
+    Learn about complete agent configuration
+  </Card>
+  
+  <Card title="Agent Capabilities" icon="wand-magic-sparkles" href="/guides/agent-capabilities">
+    Explore all agent capabilities
+  </Card>
+</CardGroup>

@@ -8,7 +8,7 @@ The Knowledge Bases API allows you to create and manage knowledge bases that age
 ## Key Features
 
 - **AI-Powered Retrieval**: Vector-based semantic search
-- **Multiple Processing Engines**: Milvus and Cognee support
+- **Milvus Processing**: Production-ready vector database engine
 - **Collection Integration**: Build from organized file collections
 - **Status Monitoring**: Track processing and health
 - **Agent Integration**: Direct use in agent configurations
@@ -44,28 +44,18 @@ All endpoints require authentication using your API key:
   </Card>
 </CardGroup>
 
-## Processing Engines
+## Processing Engine
 
-<Tabs>
-  <Tab title="Milvus">
-    **Vector Database Engine**
-    - High-performance vector similarity search
-    - Scalable for large document collections
-    - Advanced indexing algorithms
-    - Real-time updates and queries
-    
-    Best for: Large-scale deployments, high-performance requirements
-  </Tab>
-  <Tab title="Cognee">
-    **Graph-Based Engine**
-    - Knowledge graph construction
-    - Relationship extraction
-    - Contextual understanding
-    - Multi-hop reasoning
-    
-    Best for: Complex reasoning, relationship-heavy content
-  </Tab>
-</Tabs>
+**Milvus Vector Database**
+- High-performance vector similarity search
+- Scalable for large document collections
+- Advanced HNSW indexing algorithms
+- Real-time updates and queries
+- Production-ready for enterprise deployments
+
+<Info>
+Milvus is currently the only supported processing engine. Additional engines may be added in future releases.
+</Info>
 
 ## Knowledge Base Lifecycle
 
@@ -138,7 +128,10 @@ system_prompt: "You are a helpful support agent..."
 knowledge_bases:
   - name: "product_kb"
     knowledge_base_type: "milvus"
-    knowledge_base_id: "kb_123"
+    id: "kb_123"
+    config:
+      top_k: 10
+      metric_type: "COSINE"
 ```
 
 ### Retrieval Configuration
