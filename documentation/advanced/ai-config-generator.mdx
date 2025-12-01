@@ -1,233 +1,148 @@
 ---
 title: "AI Config Generator"
-description: "Generate complete AMAS agent configurations from natural language descriptions using AI"
+description: "Create agent configurations in seconds by describing what you want in plain English"
 ---
 
-The AI Config Generator allows you to create complete AMAS YAML configurations from simple natural language descriptions. Instead of manually writing YAML, describe what you want your agent system to do, and the AI will generate a production-ready configuration.
+The AI Config Generator creates complete YAML configurations from your plain English descriptions. No need to memorize YAML syntax or configuration options—just describe what you want your agent to do.
 
-## Overview
+## What You'll Learn
 
-The AI Config Generator uses advanced language models to:
+This guide shows you how to:
+- Access the AI Config Generator in Atthene Agents Studio
+- Write descriptions that produce good results
+- Use generated configurations in your projects
 
-1. Understand your natural language description
-2. Determine the appropriate agent architecture
-3. Select relevant tools and capabilities
-4. Generate a complete, valid YAML configuration
-5. Apply best practices automatically
-
-<Info>
-The generator uses advanced AI and structured output to ensure valid configurations that follow AMAS best practices.
-</Info>
-
-## When to Use
-
-<CardGroup cols={2}>
-  <Card title="Quick Prototyping" icon="rocket">
-    Rapidly create agent configurations to test ideas and iterate quickly
-  </Card>
-  
-  <Card title="Learning" icon="graduation-cap">
-    Learn AMAS configuration patterns by seeing how the AI structures different use cases
-  </Card>
-  
-  <Card title="Complex Workflows" icon="diagram-project">
-    Generate multi-agent workflows with proper routing and data passing
-  </Card>
-  
-  <Card title="Best Practices" icon="star">
-    Get configurations that follow AMAS best practices and conventions
-  </Card>
-</CardGroup>
-
-## How It Works
-
-The AI Config Generator is available through the AMAS platform interface. Simply provide a natural language description of what you want your agent system to do, and the generator will create a complete YAML configuration.
-
-## Writing Effective Descriptions
-
-### Good Descriptions
-
-<Check>
-**Specific use case**: "Create a customer support ticket routing system that categorizes tickets and assigns them to specialized agents"
-</Check>
-
-<Check>
-**Mentions data needs**: "Extract product reviews and analyze sentiment, rating, pros, and cons as structured data"
-</Check>
-
-<Check>
-**Describes workflow**: "First classify content safety, then route safe content to publishing and unsafe content to moderation"
-</Check>
-
-<Check>
-**Includes tools**: "Use web search to research competitors, then analyze the data and generate a report"
-</Check>
-
-### Avoid
-
-<Warning>
-**Too vague**: "Create an agent" - Not enough information about what the agent should do
-</Warning>
-
-<Warning>
-**Too complex**: Describing every single detail - Let the AI determine implementation details
-</Warning>
-
-<Warning>
-**Conflicting requirements**: "Make it fast but also very thorough with multiple validation steps"
-</Warning>
-
-## Example Use Cases
-
-### Data Extraction
-
-```json Request
-{
-  "description": "Create a resume parser that extracts candidate name, email, phone, years of experience, skills list, and education level from resume text"
-}
-```
-
-The AI will generate a configuration with:
-- LLM agent with structured output
-- Schema for all required fields
-- Appropriate type notations (str, int, list[str])
-- System prompt for accurate extraction
-
-### Content Moderation
-
-```json Request
-{
-  "description": "Build a content moderation system that analyzes user posts, classifies them as safe, questionable, or unsafe, and routes them accordingly. Safe posts get published immediately, questionable posts go to human review, and unsafe posts are rejected."
-}
-```
-
-The AI will generate:
-- Classifier agent with structured output
-- Conditional routing based on safety level
-- Multiple handler agents for each path
-- Workflow architecture with proper edges
-
-### Research Pipeline
-
-```json Request
-{
-  "description": "Design a competitive intelligence system: Agent 1 uses web search to gather competitor data, Agent 2 analyzes trends and threats, Agent 3 generates a comprehensive report. Pass structured data between agents."
-}
-```
-
-The AI will generate:
-- Multi-agent workflow architecture
-- ReAct agent with web search tool
-- Structured output for data passing
-- Template variables for dependency injection
-- Sequential workflow edges
-
-## Using Generated Configurations
-
-### 1. Review and Validate
-
-Always review the generated configuration before use:
+## How to Use the AI Config Generator
 
 <Steps>
-  <Step title="Check agent types">
-    Verify the AI selected appropriate agent types (llm_agent, react_agent, supervisor)
+  <Step title="Open the Generator">
+    In Atthene Agents Studio, click the **✨ Generate Config** button in the top toolbar.
   </Step>
   
-  <Step title="Review system prompts">
-    Ensure system prompts are clear and aligned with your requirements
+  <Step title="Describe Your Agent">
+    In the modal that appears, describe what you want your agent to do.
+    
+    <Frame>
+      ![Config Generator Modal](/screens/config_generator.png)
+    </Frame>
+    
+    Be specific about:
+    - What task the agent should perform
+    - What data it needs to extract or analyze
+    - What tools it should use (if any)
+    
+    For example:
+    ```
+    Create a customer support system that reads incoming support tickets and 
+    extracts the customer name, issue category, and urgency level. Then route 
+    to the appropriate specialist agent.
+    ```
   </Step>
   
-  <Step title="Validate structured output">
-    Check that schemas include all necessary fields with correct types
+  <Step title="Generate">
+    Click **Generate Config** and wait a few seconds. The AI will create a complete YAML configuration.
+    
+    <Frame>
+      ![Generated YAML Config](/screens/generated_config.png)
+    </Frame>
   </Step>
   
-  <Step title="Verify workflow logic">
-    Confirm edges and routing match your intended flow
+  <Step title="Review and Test">
+    The generated configuration appears in your YAML editor. Review it, then click **Load Configuration** to test it.
   </Step>
 </Steps>
 
-### 2. Test the Configuration
+## Writing Good Descriptions
 
-Test the generated configuration in the AMAS platform to ensure it works as expected.
+### ✅ Good Examples
 
-### 3. Deploy
+**Data Extraction**
+```
+Extract name, email, phone number, and years of experience from resumes
+```
 
-Once validated, deploy the configuration to create your agent system.
+**Customer Support**
+```
+Read customer support tickets, classify them as technical, billing, or general, 
+and route each type to the appropriate specialist agent
+```
 
-## Iterative Refinement
+**Content Review**
+```
+Review blog posts for quality. If quality is good, approve it. 
+If quality is poor, send it back for revision.
+```
 
-<Tip>
-If the generated configuration isn't quite right, refine your description and regenerate. Be more specific about what needs to change.
-</Tip>
-
-**Example refinement:**
-
-Initial: "Create a support system"
-
-Refined: "Create a support system that uses structured output to extract ticket category, priority, and summary, then routes to specialized agents based on category"
-
-## Best Practices
-
-<Tip>
-**Start Simple**: Begin with a basic description, review the output, then add complexity in subsequent generations
-</Tip>
-
-<Tip>
-**Specify Tools**: If you need specific tools (web search, knowledge base, etc.), mention them in your description
-</Tip>
-
-<Tip>
-**Mention Data Structure**: If you need structured output, describe the fields you want to extract
-</Tip>
+### ❌ Avoid
 
 <Warning>
-**Always Validate**: Never deploy generated configurations without reviewing and testing them first
+**Too vague**: "Create an AI agent" — What should it do?
+</Warning>
+
+<Warning>
+**Too long**: Paragraph after paragraph of requirements — Keep it to 2-3 sentences
+</Warning>
+
+<Warning>
+**Implementation details**: "Use GPT-4 with temperature 0.7" — Let the AI handle the technical details
+</Warning>
+
+## Try These Examples
+
+Copy and paste these into the generator to see what it creates:
+
+### Example 1: Contact Extractor
+```
+Extract name, email, and phone number from business cards and meeting notes
+```
+
+### Example 2: Email Classifier
+```
+Classify incoming emails as urgent, normal, or low priority based on content and sender
+```
+
+### Example 3: Quality Check
+```
+Review code submissions and check if they meet our standards. 
+If they pass, approve them. If not, send back with improvement suggestions.
+```
+
+## Tips for Best Results
+
+<Tip>
+**Be specific about data**: If you need to extract specific information, list the exact fields you want (name, email, address, etc.)
+</Tip>
+
+<Tip>
+**Mention tools when needed**: If your agent needs to search the web or access a knowledge base, say so in your description
+</Tip>
+
+<Tip>
+**Describe the workflow**: If you need multiple steps ("first do X, then do Y"), describe them in order
+</Tip>
+
+<Tip>
+**Start simple**: Generate a basic version first, test it, then add complexity
+</Tip>
+
+## Common Issues
+
+<Warning>
+**"Not what I wanted"**: Your description might be too vague. Try being more specific about what the agent should do and what data it needs.
+</Warning>
+
+<Warning>
+**"Too complex"**: The generator created more than you need. Simplify your description to just the core task.
 </Warning>
 
 <Tip>
-**Learn from Output**: Study the generated configurations to learn AMAS patterns and best practices
+**"Almost perfect"**: You can manually edit the generated YAML to fine-tune it. The generator gives you a solid starting point.
 </Tip>
 
-## Limitations
+## What's Next?
 
-<Note>
-- The AI generates based on common patterns and may not cover all edge cases
-- Complex custom logic may require manual adjustments
-- Tool availability depends on your AMAS installation
-- Generated prompts are starting points and may need refinement
-- Very specific domain requirements may need manual configuration
-</Note>
+Now that you can generate configurations:
 
-## Troubleshooting
-
-<Warning>
-**Generation Failed**: If configuration generation fails, try rephrasing your description or simplifying requirements
-</Warning>
-
-<Tip>
-**Unexpected Results**: If the generated configuration doesn't match expectations, be more specific in your description about agents, tools, and workflow
-</Tip>
-
-<Note>
-**Complex Requirements**: Very specific domain requirements may need manual adjustments after generation
-</Note>
-
-## Next Steps
-
-<CardGroup cols={2}>
-  <Card title="YAML Configuration" icon="file-code" href="/documentation/yaml-configuration">
-    Learn about AMAS YAML configuration structure
-  </Card>
-  
-  <Card title="Agent Types" icon="robot" href="/documentation/agent_config/types_config/agent-types">
-    Understand different agent types and their capabilities
-  </Card>
-  
-  <Card title="Structured Output" icon="table" href="/documentation/advanced/structured-output">
-    Learn how to use structured output in your agents
-  </Card>
-  
-  <Card title="Conditional Edges" icon="code-branch" href="/documentation/advanced/conditional-edges">
-    Understand workflow routing and conditional logic
-  </Card>
-</CardGroup>
+<Card title="Test Your Agent" icon="play" href="/documentation/getting-started/quickstart">
+  Learn how to test and run your generated agent
+</Card>

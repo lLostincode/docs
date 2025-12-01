@@ -52,14 +52,29 @@
             "group": "Multi Agent Systems",
             "icon": "brain-circuit",
             "pages": [
-              "documentation/advanced/conditional-edges"
+              "documentation/advanced/workflow-patterns",
+              "documentation/advanced/conditional-edges",
+              "documentation/advanced/supervisor-pattern"
             ]
           },
           {
             "group": "Atthene Agents Studio",
+            "icon": "window",
+            "pages": [
+              "documentation/studio/platform-overview",
+              "documentation/studio/settings",
+              "documentation/studio/playground",
+              "documentation/studio/my-agents",
+              "documentation/studio/knowledge-base",
+              "documentation/studio/tools",
+              "documentation/studio/prompts",
+              "documentation/advanced/ai-config-generator"
+            ]
+          },
+          {
+            "group": "Knowledge Base",
             "icon": "database",
             "pages": [
-              "documentation/advanced/ai-config-generator",
               "documentation/knowledge-base/overview",
               "documentation/knowledge-base/milvus",
               "documentation/knowledge-base/uknow-cloud-storage"

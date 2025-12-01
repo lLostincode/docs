@@ -1,0 +1,314 @@
+---
+title: "Supervisor Pattern"
+description: "Coordinate multiple specialized agents using the supervisor architecture"
+---
+
+The supervisor pattern enables you to build multi-agent systems where a central supervisor agent coordinates and delegates tasks to specialized worker agents. This is ideal for complex workflows requiring task decomposition and intelligent routing.
+
+## What is a Supervisor?
+
+A supervisor agent acts as an intelligent orchestrator that:
+- Routes user requests to the most appropriate specialist agent
+- Manages handoffs between multiple agents
+- Evaluates worker outputs and decides next steps
+- Coordinates multi-step workflows across different domains
+
+<Info>
+Use `architecture: "supervisor"` to enable supervisor-based multi-agent coordination. The supervisor dynamically routes tasks without requiring explicit edges.
+</Info>
+
+## When to Use Supervisors
+
+<CardGroup cols={2}>
+  <Card title="Best For" icon="users">
+    - Multi-domain systems (e.g., research + analysis + writing)
+    - Complex workflows requiring task delegation
+    - Systems with specialized agent teams
+    - Dynamic routing based on request type
+  </Card>
+  
+  <Card title="Capabilities" icon="check">
+    - ✅ Streaming support
+    - ✅ Tool calling (for handoffs)
+    - ✅ Memory support
+    - ✅ Dynamic agent routing
+    - ✅ Agent handoffs
+    - ✅ Workflow coordination
+  </Card>
+</CardGroup>
+
+## Supervisor Configuration
+
+### Basic Structure
+
+```yaml
+name: "System Name"
+architecture: "supervisor"  # Enable supervisor pattern
+
+agents:
+  - name: "supervisor"
+    agent_type: "supervisor"
+    supervised_agents: ["agent1", "agent2", "agent3"]
+    return_to_supervisor: false
+    max_handoffs: 15
+    supervisor_prompt: |
+      Your coordination instructions...
+  
+  - name: "agent1"
+    agent_type: "react_agent"
+    # worker agent config...
+  
+  - name: "agent2"
+    agent_type: "llm_agent"
+    # worker agent config...
+
+entry_point: "supervisor"
+```
+
+### Supervisor Parameters
+
+<ParamField path="supervised_agents" type="array" required>
+  List of agent names that this supervisor coordinates. These are the worker agents the supervisor can delegate to.
+  
+  ```yaml
+  supervised_agents: ["research_agent", "analysis_agent", "writer_agent"]
+  ```
+</ParamField>
+
+<ParamField path="return_to_supervisor" type="boolean" default="false">
+  Controls coordination flow:
+  - `false`: One-way delegation (worker responds directly to user)
+  - `true`: Iterative coordination (worker returns to supervisor for next steps)
+</ParamField>
+
+<ParamField path="max_handoffs" type="integer" default="15">
+  Maximum number of agent handoffs to prevent infinite coordination loops
+</ParamField>
+
+<ParamField path="supervisor_prompt" type="string">
+  System prompt defining the supervisor's coordination strategy. Should clearly describe each worker's role and delegation instructions.
+</ParamField>
+
+## Coordination Patterns
+
+### One-Way Delegation
+
+Set `return_to_supervisor: false` for simple routing:
+
+```
+User → Supervisor → Worker Agent → User
+```
+
+The supervisor analyzes the request, routes to the appropriate worker, and the worker responds directly to the user.
+
+**Use when:**
+- Tasks are simple and don't require multi-step coordination
+- Each agent can complete its work independently
+- You want minimal overhead
+
+### Iterative Coordination
+
+Set `return_to_supervisor: true` for multi-step workflows:
+
+```
+User → Supervisor → Worker 1 → Supervisor → Worker 2 → Supervisor → User
+```
+
+The supervisor evaluates each worker's output and orchestrates the next step.
+
+**Use when:**
+- Tasks require multiple agents working in sequence
+- Supervisor needs to evaluate intermediate results
+- Complex workflows with conditional routing
+
+## Complete Example
+
+Here's a research team supervisor coordinating three specialized agents:
+
+```yaml
+name: "Research Team Supervisor"
+description: "Supervisor coordinates research, analysis, and synthesis specialists"
+architecture: "supervisor"
+save_messages: true
+persistent_state: true
+
+agents:
+  # Supervisor Agent
+  - name: "research_supervisor"
+    agent_type: "supervisor"
+    description: "Intelligent supervisor coordinating research team specialists"
+    supervised_agents: ["research_agent", "analysis_agent", "synthesis_agent"]
+    return_to_supervisor: false
+    max_handoffs: 15
+    
+    streaming_config:
+      enable_streaming: true
+      show_output_to_user: true
+
+    supervisor_prompt: |
+      You are a research team supervisor coordinating specialized agents.
+
+      Your team consists of:
+      - research_agent: Expert at web search and information gathering
+      - analysis_agent: Specialist in data analysis and pattern recognition
+      - synthesis_agent: Expert at summarizing findings
+
+      For ANY user request, immediately delegate to the appropriate agent.
+      Always provide clear reasoning when transferring.
+
+  # Research Agent
+  - name: "research_agent"
+    agent_type: "react_agent"
+    description: "Specialized in research and information gathering"
+    
+    tools:
+      - "tavily_search"
+      - "tavily_extract"
+    
+    tool_calling:
+      enabled: true
+      max_iterations: 5
+    
+    streaming_config:
+      show_output_to_user: true
+      show_reasoning: true
+    
+    system_prompt: |
+      You are a Research Specialist in a multi-agent team.
+      
+      Your expertise includes:
+      - Web search and information gathering
+      - Fact-checking and source verification
+      - Identifying reliable sources
+      
+      Always provide detailed, well-sourced research results.
+
+  # Analysis Agent
+  - name: "analysis_agent"
+    agent_type: "react_agent"
+    description: "Specialized in data analysis and pattern recognition"
+    
+    tools:
+      - "calculator"
+    
+    tool_calling:
+      enabled: true
+      max_iterations: 3
+    
+    streaming_config:
+      show_output_to_user: true
+    
+    system_prompt: |
+      You are an Analysis Specialist in a multi-agent team.
+      
+      Your expertise includes:
+      - Data analysis and statistical processing
+      - Pattern recognition and trend identification
+      - Insight generation from complex information
+      
+      Focus on extracting meaningful insights.
+
+  # Synthesis Agent
+  - name: "synthesis_agent"
+    agent_type: "llm_agent"
+    description: "Specialized in synthesizing information"
+    
+    streaming_config:
+      show_output_to_user: true
+    
+    system_prompt: |
+      You are a Synthesis Specialist in a multi-agent team.
+      
+      Your expertise includes:
+      - Combining research and analysis into coherent narratives
+      - Creating well-structured, comprehensive reports
+      - Ensuring completeness and coherence
+      
+      Create comprehensive, well-organized final responses.
+
+entry_point: "research_supervisor"
+```
+
+## Best Practices
+
+<Tip>
+**Clear role definitions**: In the supervisor_prompt, clearly describe each worker agent's expertise and when to use them
+</Tip>
+
+<Tip>
+**Mix agent types**: Combine ReAct agents (for tool use) with LLM agents (for synthesis) under a supervisor for powerful multi-domain systems
+</Tip>
+
+<Tip>
+**Immediate delegation**: Instruct the supervisor to delegate immediately without attempting to answer directly
+</Tip>
+
+<Warning>
+Set appropriate `max_handoffs` limits to prevent infinite coordination loops
+</Warning>
+
+<Tip>
+**Use return_to_supervisor: true** when the supervisor needs to evaluate intermediate results and orchestrate multi-step workflows. Set to `false` for simpler one-way delegation.
+</Tip>
+
+## Supervisor vs Workflow Architecture
+
+| Feature | Supervisor | Workflow |
+|---------|-----------|----------|
+| **Routing** | Dynamic (supervisor decides) | Static (predefined edges) |
+| **Edges Required** | ❌ No | ✅ Yes |
+| **Complexity** | Lower config, smarter routing | More config, explicit control |
+| **Best For** | Task delegation, dynamic routing | Sequential flows, conditional logic |
+| **Coordination** | Supervisor manages handoffs | Edges define transitions |
+
+<Check>Use supervisors when you need intelligent task delegation and don't want to define all possible paths</Check>
+
+<Check>Use workflows when you need explicit control over agent transitions and conditional routing</Check>
+
+## Common Use Cases
+
+<AccordionGroup>
+  <Accordion title="Content Creation Team">
+    **Setup**: Supervisor + research agent + writer agent + editor agent
+    
+    The supervisor routes tasks: research gathers info, writer creates content, editor polishes.
+  </Accordion>
+  
+  <Accordion title="Customer Support System">
+    **Setup**: Supervisor + technical support + billing support + general support
+    
+    The supervisor classifies requests and routes to the appropriate specialist.
+  </Accordion>
+  
+  <Accordion title="Data Analysis Pipeline">
+    **Setup**: Supervisor + data collector + analyzer + visualizer
+    
+    The supervisor coordinates: collector gathers data, analyzer processes it, visualizer creates reports.
+  </Accordion>
+  
+  <Accordion title="Multi-Domain Expert System">
+    **Setup**: Supervisor + multiple domain-specific ReAct agents
+    
+    Each agent is an expert in a specific domain (legal, medical, technical). Supervisor routes based on domain.
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Agent Types" icon="robot" href="/documentation/agent_config/types_config/agent-types">
+    Learn about different agent types to use as workers
+  </Card>
+  
+  <Card title="Workflow Patterns" icon="diagram-project" href="/documentation/advanced/workflow-patterns">
+    Compare with workflow-based multi-agent patterns
+  </Card>
+  
+  <Card title="YAML Configuration" icon="file-code" href="/documentation/yaml-configuration">
+    Complete YAML reference for all parameters
+  </Card>
+  
+  <Card title="Tool Configuration" icon="screwdriver-wrench" href="/documentation/studio/tools">
+    Configure tools for ReAct worker agents
+  </Card>
+</CardGroup>

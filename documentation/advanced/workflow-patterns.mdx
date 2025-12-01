@@ -1,0 +1,394 @@
+---
+title: "Workflow Patterns"
+description: "Build multi-agent systems using workflow architecture with sequential and parallel agent coordination"
+---
+
+Workflow architecture lets you build multi-agent systems by defining explicit edges between agents. You control the exact flow of execution, from simple sequential chains to complex branching logic.
+
+## What is Workflow Architecture?
+
+Unlike the supervisor pattern where a central agent makes routing decisions, workflow architecture uses predefined edges to control agent transitions. You explicitly define which agent runs after which.
+
+```yaml
+architecture: "workflow"
+
+edges:
+  - from: "__start__"
+    to: "agent_a"
+  - from: "agent_a"
+    to: "agent_b"
+  - from: "agent_b"
+    to: "__end__"
+```
+
+<Info>
+Workflow architecture requires explicit edge definitions. Use this when you need precise control over agent execution order.
+</Info>
+
+## Core Concepts
+
+### Special Nodes
+
+- **`__start__` or `START`**: Entry point of the workflow
+- **`__end__` or `END`**: Exit point of the workflow
+
+Every workflow must have edges from `__start__` and to `__end__`.
+
+### Edge Definition
+
+```yaml
+edges:
+  - from: "source_agent"
+    to: "target_agent"
+```
+
+Each edge defines a transition from one agent to another.
+
+## Sequential Workflow Pattern
+
+The simplest pattern: agents execute in a fixed linear order.
+
+### Single Agent Flow
+
+```yaml
+name: "Basic Assistant"
+description: "Simple conversational assistant"
+architecture: "workflow"
+save_messages: true
+persistent_state: true
+
+agents:
+  - name: "assistant"
+    agent_type: "llm_agent"
+    description: "A helpful AI assistant"
+    system_prompt: "You are a helpful AI assistant."
+    
+    llm_config:
+      temperature: 0.7
+      max_tokens: 500
+    
+    streaming_config:
+      show_output_to_user: true
+
+edges:
+  - from: "__start__"
+    to: "assistant"
+  - from: "assistant"
+    to: "__end__"
+
+entry_point: "assistant"
+```
+
+**Flow:**
+```
+START → Assistant → END
+```
+
+### Multi-Agent Sequential Chain
+
+```yaml
+name: "Content Creation Pipeline"
+description: "Research → Write → Edit sequential workflow"
+architecture: "workflow"
+save_messages: true
+persistent_state: true
+
+agents:
+  - name: "researcher"
+    agent_type: "react_agent"
+    description: "Gathers information via web search"
+    
+    tools:
+      - "tavily_search"
+    
+    tool_calling:
+      enabled: true
+      max_iterations: 5
+    
+    streaming_config:
+      show_output_to_user: true
+      show_reasoning: true
+    
+    system_prompt: |
+      You are a research specialist. Gather comprehensive information 
+      on the given topic using web search.
+
+  - name: "writer"
+    agent_type: "llm_agent"
+    description: "Creates content from research"
+    
+    streaming_config:
+      show_output_to_user: true
+    
+    system_prompt: |
+      You are a content writer. Using the research provided, 
+      create engaging, well-structured content.
+
+  - name: "editor"
+    agent_type: "llm_agent"
+    description: "Polishes and refines content"
+    
+    streaming_config:
+      show_output_to_user: true
+    
+    system_prompt: |
+      You are an editor. Review and polish the content for 
+      clarity, grammar, and flow.
+
+edges:
+  - from: "__start__"
+    to: "researcher"
+  - from: "researcher"
+    to: "writer"
+  - from: "writer"
+    to: "editor"
+  - from: "editor"
+    to: "__end__"
+
+entry_point: "researcher"
+```
+
+**Flow:**
+```
+START → Researcher → Writer → Editor → END
+```
+
+## Parallel Branch Pattern
+
+Multiple agents can receive input from the same source agent.
+
+```yaml
+name: "Multi-Language Content Generator"
+description: "Generate content in multiple languages simultaneously"
+architecture: "workflow"
+save_messages: true
+persistent_state: true
+
+agents:
+  - name: "writer"
+    agent_type: "llm_agent"
+    description: "Creates original English content"
+    
+    streaming_config:
+      show_output_to_user: true
+    
+    system_prompt: "You are a content writer. Create engaging content."
+
+  - name: "spanish_translator"
+    agent_type: "llm_agent"
+    description: "Translates content to Spanish"
+    
+    streaming_config:
+      show_output_to_user: true
+    
+    system_prompt: |
+      You are a Spanish translator. Translate the provided content 
+      to Spanish while maintaining tone and style.
+
+  - name: "french_translator"
+    agent_type: "llm_agent"
+    description: "Translates content to French"
+    
+    streaming_config:
+      show_output_to_user: true
+    
+    system_prompt: |
+      You are a French translator. Translate the provided content 
+      to French while maintaining tone and style.
+
+edges:
+  - from: "__start__"
+    to: "writer"
+  - from: "writer"
+    to: "spanish_translator"
+  - from: "writer"
+    to: "french_translator"
+  - from: "spanish_translator"
+    to: "__end__"
+  - from: "french_translator"
+    to: "__end__"
+
+entry_point: "writer"
+```
+
+**Flow:**
+```
+                 ┌──> Spanish Translator ──┐
+START → Writer ──┤                          ├──> END
+                 └──> French Translator ───┘
+```
+
+<Note>
+Both translators receive the writer's output but execute independently.
+</Note>
+
+## Tool-Enabled Sequential Workflow
+
+Combine ReAct agents with tools in a workflow:
+
+```yaml
+name: "Research Assistant"
+description: "AI assistant with web search and analysis capabilities"
+architecture: "workflow"
+save_messages: true
+persistent_state: true
+
+agents:
+  - name: "research_agent"
+    agent_type: "react_agent"
+    description: "AI assistant with tool calling capabilities"
+    
+    system_prompt: |
+      You are a helpful research assistant with access to web search.
+      When you need information, use your tools to find accurate data.
+    
+    tools:
+      - "tavily_search"
+      - "tavily_extract"
+      - "calculator"
+    
+    llm_config:
+      temperature: 0.1
+      max_tokens: 2000
+    
+    tool_calling:
+      enabled: true
+      max_iterations: 10
+    
+    streaming_config:
+      enable_streaming: true
+      show_output_to_user: true
+
+edges:
+  - from: "__start__"
+    to: "research_agent"
+  - from: "research_agent"
+    to: "__end__"
+
+entry_point: "research_agent"
+```
+
+<Tip>
+ReAct agents can use tools within their execution. The workflow continues after the agent completes all tool iterations.
+</Tip>
+
+## When to Use Workflows
+
+<CardGroup cols={2}>
+  <Card title="Use Workflows When" icon="check">
+    - You need precise control over execution order
+    - Flow is predictable and sequential
+    - You want to combine specialized agents
+    - You need parallel processing branches
+  </Card>
+  
+  <Card title="Use Supervisor When" icon="users">
+    - Routing decisions are dynamic
+    - You have many possible paths
+    - Task delegation is based on content
+    - You want simpler configuration
+  </Card>
+</CardGroup>
+
+## Workflow vs Supervisor Comparison
+
+| Feature | Workflow | Supervisor |
+|---------|----------|-----------|
+| **Edge Definition** | ✅ Required | ❌ Not needed |
+| **Routing Control** | Explicit (predefined) | Dynamic (supervisor decides) |
+| **Configuration** | More verbose | More concise |
+| **Best For** | Sequential flows, parallel branches | Task delegation, dynamic routing |
+| **Conditional Logic** | Via conditional edges | Built-in (supervisor reasoning) |
+| **Complexity** | Low-medium | Medium-high |
+
+## Best Practices
+
+<Tip>
+**Start simple**: Begin with sequential flows before adding complexity
+</Tip>
+
+<Tip>
+**Clear agent roles**: Each agent should have a well-defined responsibility in the workflow
+</Tip>
+
+<Tip>
+**Stream intermediate results**: Set `show_output_to_user: true` on agents you want users to see
+</Tip>
+
+<Warning>
+Every workflow must have a path from `__start__` to `__end__`. Ensure no agents are unreachable.
+</Warning>
+
+<Tip>
+**Agent output flows forward**: Each agent receives the previous agent's output in the workflow. Design prompts accordingly.
+</Tip>
+
+## Advanced Patterns
+
+For more complex routing logic:
+
+<CardGroup cols={2}>
+  <Card title="Conditional Edges" icon="code-branch" href="/documentation/advanced/conditional-edges">
+    Add dynamic routing based on agent output
+  </Card>
+  
+  <Card title="Supervisor Pattern" icon="users" href="/documentation/advanced/supervisor-pattern">
+    Use intelligent task delegation instead of fixed edges
+  </Card>
+</CardGroup>
+
+## Common Use Cases
+
+<AccordionGroup>
+  <Accordion title="Content Pipeline">
+    **Pattern**: Sequential chain
+    
+    Research → Draft → Edit → Publish
+    
+    Each agent specializes in one stage of content creation.
+  </Accordion>
+  
+  <Accordion title="Multi-Language Support">
+    **Pattern**: Parallel branches
+    
+    Writer → [Translator 1, Translator 2, Translator 3]
+    
+    Generate content once, translate to multiple languages simultaneously.
+  </Accordion>
+  
+  <Accordion title="Data Processing Pipeline">
+    **Pattern**: Sequential chain with tools
+    
+    Collector (web search) → Analyzer (calculator) → Reporter (synthesis)
+    
+    Each agent uses specific tools for its task.
+  </Accordion>
+  
+  <Accordion title="Quality Assurance Flow">
+    **Pattern**: Sequential with conditional edges
+    
+    Writer → Reviewer → [Approve → Publish | Reject → Writer]
+    
+    Add conditional edges for dynamic routing based on quality checks.
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Conditional Edges" icon="code-branch" href="/documentation/advanced/conditional-edges">
+    Add dynamic routing to workflows
+  </Card>
+  
+  <Card title="Supervisor Pattern" icon="users" href="/documentation/advanced/supervisor-pattern">
+    Learn about supervisor-based coordination
+  </Card>
+  
+  <Card title="Agent Types" icon="robot" href="/documentation/agent_config/types_config/agent-types">
+    Understand different agent types for workflows
+  </Card>
+  
+  <Card title="YAML Configuration" icon="file-code" href="/documentation/yaml-configuration">
+    Complete reference for workflow configuration
+  </Card>
+</CardGroup>

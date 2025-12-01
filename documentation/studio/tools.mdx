@@ -1,0 +1,373 @@
+---
+title: "Tool Management"
+description: "Configure capabilities for your agents like web search, code execution, and custom integrations"
+---
+
+Tools give your agents the ability to perform actions beyond just responding with text. They can search the web, execute code, query databases, and more.
+
+<Frame>
+  ![Tools Overview](/screens/tools_overview.png)
+</Frame>
+
+## Tools Interface
+
+The Tools page has two main tabs:
+
+### All Tools Tab
+Browse all available tools in the platform:
+- Built-in tools (web search, code execution, etc.)
+- Community tools
+- Enterprise tools
+
+### My Tools Tab
+Tools you've configured and saved:
+- Custom tools you created
+- Configured instances of built-in tools
+- Tools used across your agents
+
+## Browsing Available Tools
+
+<Frame>
+  ![Tools List](/screens/tools_list.png)
+</Frame>
+
+Each tool card shows:
+- **Tool name** and description
+- **Category** (Search, Data, Code, etc.)
+- **Configuration** button to set it up
+- **Documentation** link for usage details
+
+### Filtering Tools
+
+Use the filter panel to find tools quickly:
+- **All**: Show everything (toolkits and basic tools)
+- **Toolkits**: Show only toolkit tools (require OAuth connections)
+- **Basic Tools**: Show only standard tools (web search, code execution, etc.)
+
+## Configuring a Tool
+
+<Steps>
+  <Step title="Find Your Tool">
+    Browse or search for the tool you need
+    
+    <Frame>
+      ![Configure Tool](/screens/configure_tools.png)
+    </Frame>
+  </Step>
+  
+  <Step title="Click Configure">
+    Opens a configuration dialog specific to that tool
+  </Step>
+  
+  <Step title="Enter Required Settings">
+    Each tool needs different information:
+    - **API keys** (for external services)
+    - **Endpoints** (for custom APIs)
+    - **Parameters** (default settings)
+  </Step>
+  
+  <Step title="Test the Tool">
+    Most tools let you test the configuration before saving
+  </Step>
+  
+  <Step title="Save Configuration">
+    Your tool is now ready to use in agents
+  </Step>
+</Steps>
+
+<Tip>
+Configured tools appear in **My Tools** tab for quick access
+</Tip>
+
+## Using Tools in Agents
+
+Once configured, add tools to your agent's YAML:
+
+```yaml
+agents:
+  - name: "research_agent"
+    agent_type: "react_agent"
+    tools: ["tavily_search", "wikipedia"]  # Add tool names here
+    system_prompt: "You are a research assistant."
+```
+
+<Info>
+Only `react_agent` type can use tools. Standard `llm_agent` cannot execute tools.
+</Info>
+
+**→ [Agent Types Reference](/documentation/agent_config/types_config/agent-types)** - Learn about ReAct agents and tool execution
+
+## Toolkits
+
+Toolkits are collections of related tools that require OAuth authentication. For example, the **Microsoft Outlook** toolkit includes tools for reading emails, sending emails, and managing calendar events.
+
+<Note>
+Toolkits require OAuth authentication to connect external services like Microsoft Outlook or Teams.
+</Note>
+
+### Available Toolkits
+
+Current toolkits:
+- **Microsoft Outlook**: Email and calendar management
+- **Microsoft Teams**: Channel messages and collaboration
+
+### Authorizing a Toolkit
+
+Before using toolkit tools in your agents, you need to authorize a connection:
+
+<Steps>
+  <Step title="Click on the Toolkit">
+    Find the toolkit in the All Tools tab and click on it
+  </Step>
+  
+  <Step title="Click Add Connection">
+    <Frame>
+      ![Authorize Connection](/screens/authorize.png)
+    </Frame>
+    
+    Opens the authorization flow
+  </Step>
+  
+  <Step title="Choose Integration">
+    Select which OAuth integration to use:
+    - **Default**: ATTHENE's provided OAuth app (easiest)
+    - **Custom**: Your organization's OAuth app (if configured in Settings → Integrations)
+    
+    **→ [Settings - Integrations](/documentation/studio/settings#integrations)** - Configure custom OAuth apps
+  </Step>
+  
+  <Step title="Authenticate">
+    Follow the OAuth flow to grant permissions
+    
+    You'll be redirected to Microsoft/Google to sign in
+  </Step>
+  
+  <Step title="Connection Created">
+    Your connection is now saved and can be used by agents
+  </Step>
+</Steps>
+
+### Using Toolkit Tools in Agents
+
+Once you have a connection, you can use toolkit tools in your YAML:
+
+```yaml
+agents:
+  - name: "email_assistant"
+    agent_type: "react_agent"
+    tools: 
+      - "microsoft_outlook_read_email"
+      - "microsoft_outlook_send_email"
+    system_prompt: "You are an email assistant."
+```
+
+#### Specifying a Connection
+
+By default, agents use the first available connection for a toolkit. To use a specific connection:
+
+```yaml
+agents:
+  - name: "email_assistant"
+    agent_type: "react_agent"
+    tools: 
+      - name: "microsoft_outlook_read_email"
+        connection_id: "conn_123abc"  # Specify connection
+    system_prompt: "You are an email assistant."
+```
+
+<Info>
+If you don't specify a connection, the agent uses the default connection for that toolkit. If no connection exists, the tool will fail.
+</Info>
+
+### Managing Connections
+
+**View Connections**: Click on a toolkit to see all your connections
+
+**Set Default**: Make a connection the default for that toolkit
+
+**Delete Connection**: Remove a connection you no longer need
+
+<Warning>
+Deleting a connection will break any agents using it. Make sure to update your agents first.
+</Warning>
+
+## Common Tools
+
+### Web Search (Tavily)
+Search the internet for current information:
+- News and articles
+- Company information
+- Real-time data
+
+**Configuration needed**: Tavily API key
+
+### Wikipedia Search
+Search Wikipedia articles:
+- Historical information
+- General knowledge
+- Quick facts
+
+**Configuration needed**: None (works out of the box)
+
+### Code Execution
+Run Python code:
+- Data processing
+- Calculations
+- File operations
+
+**Configuration needed**: Execution limits
+
+### File Operations
+Read and write files:
+- Document processing
+- Data extraction
+- Report generation
+
+**Configuration needed**: Storage permissions
+
+## Creating Custom Tools
+
+Want to give your agents access to your own APIs or services?
+
+<Steps>
+  <Step title="Go to My Tools">
+    Click the **My Tools** tab
+  </Step>
+  
+  <Step title="Click Create Custom Tool">
+    Opens the tool creation wizard
+  </Step>
+  
+  <Step title="Define Tool Details">
+    Provide:
+    - **Name**: How agents will reference it
+    - **Description**: What it does (helps the agent know when to use it)
+    - **Parameters**: What inputs it needs
+  </Step>
+  
+  <Step title="Configure Endpoint">
+    For API-based tools:
+    - API endpoint URL
+    - Authentication method
+    - Request/response format
+  </Step>
+  
+  <Step title="Test and Save">
+    Test with sample inputs, then save
+  </Step>
+</Steps>
+
+## Tool Configuration Best Practices
+
+<Tip>
+**Clear descriptions**: Write tool descriptions that help agents understand when to use them
+</Tip>
+
+<Tip>
+**Set limits**: For tools like code execution, set reasonable limits (timeout, memory, etc.)
+</Tip>
+
+
+<Warning>
+**Test thoroughly**: Always test tools before using in production agents
+</Warning>
+
+## Tool Security
+
+Tools can access external services and data. Keep them secure:
+
+### API Keys
+- Never hardcode in YAML
+- Rotate regularly
+- Store securely
+
+### Permissions
+- Only grant necessary permissions
+- Review tool access logs
+- Disable unused tools
+
+### Monitoring
+- Track tool usage in Tracing
+- Review execution logs
+
+## Troubleshooting
+
+<Warning>
+**"Tool not found"**: Check spelling in your YAML. Tool names are case-sensitive
+</Warning>
+
+
+<Warning>
+**"Tool timeout"**: External service may be slow. Increase timeout in tool config
+</Warning>
+
+<Tip>
+**Rate limits**: Many external services have rate limits. Configure retry logic in your tool settings
+</Tip>
+
+## Tool Usage Examples
+
+### Research Agent with Web Search
+
+```yaml
+name: "Research Assistant"
+architecture: "workflow"
+
+agents:
+  - name: "researcher"
+    agent_type: "react_agent"
+    tools: ["tavily_search"]
+    system_prompt: |
+      You are a research assistant. When asked about current events or facts,
+      use web search to find accurate information.
+```
+
+### Data Processing with Code Execution
+
+```yaml
+agents:
+  - name: "data_processor"
+    agent_type: "react_agent"
+    tools: ["python_repl"]
+    system_prompt: |
+      You process data using Python. Write and execute code to:
+      - Clean data
+      - Perform calculations
+      - Generate reports
+```
+
+### Multi-Tool Agent
+
+```yaml
+agents:
+  - name: "assistant"
+    agent_type: "react_agent"
+    tools: ["tavily_search", "wikipedia", "calculator"]
+    system_prompt: |
+      You are a helpful assistant with access to:
+      - Web search for current information
+      - Wikipedia for general knowledge
+      - Calculator for math
+      
+      Use the appropriate tool for each task.
+```
+
+## What's Next?
+
+<CardGroup cols={2}>
+  <Card title="Agent Types" icon="robot" href="/documentation/agent_config/types_config/agent-types">
+    ReAct agents and tool execution
+  </Card>
+  
+  <Card title="Agent Capabilities" icon="sparkles" href="/documentation/agent_config/agent-capabilities">
+    Complete guide to agent capabilities and tools
+  </Card>
+  
+  <Card title="Custom Tools" icon="code" href="/documentation/integration/custom-tools">
+    Build your own tools for agents
+  </Card>
+  
+  <Card title="Settings" icon="key" href="/documentation/studio/settings">
+    Manage API keys and OAuth integrations
+  </Card>
+</CardGroup>

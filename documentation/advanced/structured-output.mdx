@@ -142,34 +142,22 @@ Define field types using our type notation syntax:
 **Enum types are not currently supported.** Use `str` type with clear descriptions for fields that should have restricted values. Validation must be handled in your system prompt or downstream processing.
 </Note>
 
-## Complete Examples
+## Quick Start Example
 
-### Resume Parser
-
-Extract structured information from resumes:
+Extract contact information from text:
 
 ```yaml
-name: "Resume Parser"
-description: "Extract structured data from resumes"
-architecture: "workflow"
-save_messages: true
-
 agents:
-  - name: "resume_extractor"
+  - name: "contact_extractor"
     agent_type: "llm_agent"
-    
-    system_prompt: |
-      You are a resume parsing specialist. Extract all relevant information 
-      from the provided resume text and structure it according to the schema.
-      
-      Be thorough and accurate. If information is not present, leave fields empty.
+    system_prompt: "Extract contact information from the provided text."
     
     structured_output:
       enabled: true
       schema:
-        full_name:
+        name:
           type: "str"
-          description: "Candidate's full name"
+          description: "Person's full name"
         
         email:
           type: "str"
@@ -179,133 +167,24 @@ agents:
           type: "str"
           description: "Phone number"
         
-        years_of_experience:
-          type: "int"
-          description: "Total years of professional experience"
-        
-        skills:
-          type: "list[str]"
-          description: "List of technical and professional skills"
-        
-        education_level:
+        company:
           type: "str"
-          description: "Highest education level achieved (e.g., high_school, bachelors, masters, phd, other)"
-        
-        previous_companies:
-          type: "list[str]"
-          description: "List of previous employers"
-        
-        certifications:
-          type: "list[str]"
-          description: "Professional certifications"
-
-edges:
-  - from: "__start__"
-    to: "resume_extractor"
-  - from: "resume_extractor"
-    to: "__end__"
-
-entry_point: "resume_extractor"
+          description: "Company name"
 ```
 
-<RequestExample>
-```json Input
+**Input:**
+```
+John Smith from Acme Corp can be reached at john@acme.com or 555-1234
+```
+
+**Output:**
+```json
 {
-  "message": "John Smith\nEmail: john.smith@email.com\nPhone: (555) 123-4567\n\nExperience:\n- Senior Software Engineer at TechCorp (2020-2024)\n- Software Engineer at StartupXYZ (2018-2020)\n\nSkills: Python, JavaScript, React, Node.js, AWS, Docker\n\nEducation: Master of Science in Computer Science, MIT\n\nCertifications: AWS Solutions Architect, Kubernetes Administrator"
+  "name": "John Smith",
+  "email": "john@acme.com",
+  "phone": "555-1234",
+  "company": "Acme Corp"
 }
-```
-</RequestExample>
-
-<ResponseExample>
-```json Output
-{
-  "full_name": "John Smith",
-  "email": "john.smith@email.com",
-  "phone": "(555) 123-4567",
-  "years_of_experience": 6,
-  "skills": ["Python", "JavaScript", "React", "Node.js", "AWS", "Docker"],
-  "education_level": "masters",
-  "previous_companies": ["TechCorp", "StartupXYZ"],
-  "certifications": ["AWS Solutions Architect", "Kubernetes Administrator"]
-}
-```
-</ResponseExample>
-
-### Sentiment Analysis
-
-Analyze sentiment with confidence scores:
-
-```yaml
-agents:
-  - name: "sentiment_analyzer"
-    agent_type: "llm_agent"
-    
-    system_prompt: |
-      Analyze the sentiment of the provided text. Classify the overall sentiment
-      as one of: positive, negative, neutral, or mixed.
-      Provide a confidence score and extract key emotional keywords.
-      Rate intensity as: low, medium, or high.
-    
-    structured_output:
-      enabled: true
-      schema:
-        sentiment:
-          type: "str"
-          description: "Overall sentiment classification (positive, negative, neutral, or mixed)"
-        
-        confidence:
-          type: "float"
-          description: "Confidence score from 0.0 to 1.0"
-        
-        emotional_keywords:
-          type: "list[str]"
-          description: "Key words or phrases indicating emotion"
-        
-        intensity:
-          type: "str"
-          description: "Intensity of the sentiment (low, medium, or high)"
-```
-
-### Product Review Analysis
-
-Extract detailed product feedback:
-
-```yaml
-agents:
-  - name: "review_analyzer"
-    agent_type: "llm_agent"
-    
-    system_prompt: |
-      Analyze product reviews and extract structured feedback data.
-      Identify specific aspects mentioned and their ratings.
-      Classify sentiment as: very_negative, negative, neutral, positive, or very_positive.
-    
-    structured_output:
-      enabled: true
-      schema:
-        overall_rating:
-          type: "int"
-          description: "Overall rating from 1 to 5"
-        
-        pros:
-          type: "list[str]"
-          description: "Positive aspects mentioned"
-        
-        cons:
-          type: "list[str]"
-          description: "Negative aspects mentioned"
-        
-        would_recommend:
-          type: "bool"
-          description: "Whether the reviewer recommends the product"
-        
-        aspect_ratings:
-          type: "dict[str, int]"
-          description: "Ratings for specific aspects (quality, price, service, etc.)"
-        
-        sentiment:
-          type: "str"
-          description: "Overall sentiment (very_negative, negative, neutral, positive, or very_positive)"
 ```
 
 ## Multi-Agent Data Passing
@@ -351,84 +230,52 @@ agents:
 **Complex data types** (lists, dicts) are automatically serialized to JSON when injected into prompts.
 </Tip>
 
-### Complete Multi-Agent Example
+### Multi-Agent Example
 
-Use structured output to pass typed data between agents in workflows:
+Pass structured data between agents:
 
 ```yaml
-name: "Competitive Analysis Pipeline"
-description: "Multi-agent system with structured data passing"
+name: "Data Pipeline"
 architecture: "workflow"
 
 agents:
-  # Agent 1: Research with structured output
-  - name: "researcher"
-    agent_type: "react_agent"
-    tools: ["tavily_search"]
+  - name: "extractor"
+    agent_type: "llm_agent"
+    system_prompt: "Extract key metrics from the report."
     
     structured_output:
       enabled: true
       schema:
-        competitors:
-          type: "list[str]"
-          description: "List of competitor company names"
-        
-        market_positions:
-          type: "dict[str, str]"
-          description: "Company to market position mapping"
-        
-        key_products:
-          type: "list[str]"
-          description: "Notable products in the market"
+        revenue:
+          type: "float"
+          description: "Annual revenue in millions"
+        growth_rate:
+          type: "float"
+          description: "Year-over-year growth percentage"
   
-  # Agent 2: Analysis consuming structured data
   - name: "analyzer"
     agent_type: "llm_agent"
-    
     system_prompt: |
-      Analyze the competitive landscape data:
+      Analyze the company metrics:
+      Revenue: ${{ extractor.output.revenue }}M
+      Growth: {{ extractor.output.growth_rate }}%
       
-      Competitors: {{ researcher.output.competitors }}
-      Market Positions: {{ researcher.output.market_positions }}
-      Key Products: {{ researcher.output.key_products }}
-      
-      Identify emerging trends, competitive threats, and market opportunities.
-    
-    structured_output:
-      enabled: true
-      schema:
-        emerging_trends:
-          type: "list[str]"
-          description: "Market trends identified"
-        
-        threats:
-          type: "list[str]"
-          description: "Competitive threats"
-        
-        opportunities:
-          type: "list[str]"
-          description: "Market opportunities"
-  
-  # Agent 3: Report generation
-  - name: "report_writer"
-    agent_type: "llm_agent"
-    
-    system_prompt: |
-      Create a comprehensive competitive intelligence report using
-      the research data and analysis provided.
+      Provide insights on performance and recommendations.
 
 edges:
   - from: "__start__"
-    to: "researcher"
-  - from: "researcher"
+    to: "extractor"
+  - from: "extractor"
     to: "analyzer"
   - from: "analyzer"
-    to: "report_writer"
-  - from: "report_writer"
     to: "__end__"
 
-entry_point: "researcher"
+entry_point: "extractor"
 ```
+
+<Tip>
+**Template variables**: Use `{{ agent_name.output.field }}` to access structured output from previous agents
+</Tip>
 
 ## Best Practices
 

@@ -1,0 +1,202 @@
+---
+title: "Knowledge Base Management"
+description: "Connect data sources and build RAG systems for your agents"
+---
+
+The Knowledge Base section is where you upload documents, create collections, and build retrieval systems that your agents can query. Give your agents access to your company's data, documentation, and knowledge.
+
+## Two Main Sections
+
+### Cloud Storage
+Connect external storage providers to automatically sync and index documents:
+- SharePoint
+- OneDrive  
+- Google Drive
+
+<Frame>
+  ![Cloud Storage](/screens/cloud_storage.png)
+</Frame>
+
+### RAG Pipeline
+Build the retrieval system in 4 steps:
+1. **Data Sources** - Upload files or connect to storage
+2. **Collections** - Organize data into collections
+3. **Knowledge Bases** - Configure retrieval settings
+4. **Retrieval Methods** - Set up how agents search your data
+
+## Connecting Cloud Storage
+
+<Steps>
+  <Step title="Click Cloud Storage Tab">
+    At the top of the Knowledge Base page
+  </Step>
+  
+  <Step title="Click Connect Cloud Storage">
+    <Frame>
+      ![Uknow Cloud](/screens/uknow_cloud_storage.png)
+    </Frame>
+  </Step>
+  
+  <Step title="Choose Your Provider">
+    Select SharePoint, OneDrive, or Google Drive
+    
+    <Frame>
+      ![SharePoint Connection](/screens/uknow_sharepoint.png)
+    </Frame>
+  </Step>
+  
+  <Step title="Authenticate">
+    Follow OAuth flow to grant access
+  </Step>
+  
+  <Step title="Select Folders">
+    Choose which folders to sync and index
+  </Step>
+</Steps>
+
+<Info>
+Files are automatically synced and indexed. Updates to documents are reflected in your knowledge bases.
+</Info>
+
+## Building a RAG Pipeline
+
+### Step 1: Data Sources
+
+Upload files or connect to storage:
+- **Upload Files**: PDF, DOCX, TXT, Markdown
+- **Cloud Storage**: Auto-sync from connected providers
+
+<Frame>
+  ![Milvus Data Sources](/screens/milvus.png)
+</Frame>
+
+**Supported file types:**
+- PDF
+- DOC, DOCX
+- TXT
+- MD (Markdown)
+
+### Step 2: Collections
+
+Group related data sources:
+- Create collections by topic or project
+- Add multiple data sources to a collection
+- Configure chunking and embedding settings
+
+**Collection settings:**
+- **Chunk size**: How to split documents (default: 1000 tokens)
+- **Chunk overlap**: Overlap between chunks (default: 200 tokens)
+- **Embedding model**: Which model to use for embeddings
+
+### Step 3: Knowledge Bases
+
+Configure retrieval for your collection:
+- Name your knowledge base
+- Set the search method (vector, keyword, hybrid)
+- Configure result limits
+
+**Knowledge base options:**
+- **Top K**: Number of results to return (default: 5)
+- **Score threshold**: Minimum relevance score (0.0 - 1.0)
+- **Reranking**: Enable reranking for better results
+
+### Step 4: Retrieval Methods
+
+Set up how agents query your data:
+- **Similarity search**: Vector-based semantic search
+- **Keyword search**: Traditional keyword matching
+- **Hybrid search**: Combine vector + keyword for best results
+
+## Using Knowledge Bases in Agents
+
+Once created, add knowledge bases to your agents:
+
+```yaml
+agents:
+  - name: "support_agent"
+    agent_type: "llm_agent"
+    
+    knowledge_bases:
+      - name: "product_docs"
+        top_k: 5
+        score_threshold: 0.7
+```
+
+Or use the **+** button in Playground to insert knowledge bases.
+
+**→ [Knowledge Base Setup](/documentation/agent_config/knowledge-base-setup)** - Complete YAML configuration reference and advanced retrieval options
+
+## Managing Your Data
+
+### Updating Documents
+
+**Cloud storage**: Files auto-sync when changed
+
+**Manual uploads**: 
+1. Go to Data Sources
+2. Click the data source
+3. Upload new version or delete old files
+
+### Deleting Data
+
+**Delete a data source**: Removes from all collections
+
+**Delete a collection**: Knowledge bases using it will stop working
+
+**Delete a knowledge base**: Agents using it will fail
+
+<Warning>
+Always check which agents are using a knowledge base before deleting it
+</Warning>
+
+## Best Practices
+
+<Tip>
+**Organize by topic**: Create collections for different knowledge domains (product docs, policies, code, etc.)
+</Tip>
+
+<Tip>
+**Use cloud storage for dynamic content**: If your docs change frequently, connect cloud storage instead of manual uploads
+</Tip>
+
+<Tip>
+**Test retrieval quality**: Use the search preview in Knowledge Bases to test if you're getting relevant results
+</Tip>
+
+<Tip>
+**Start with hybrid search**: Combines the best of vector and keyword search for most use cases
+</Tip>
+
+## Common Issues
+
+<Warning>
+**"No results found"**: Check your score threshold - it might be too high. Try lowering to 0.5 or 0.6
+</Warning>
+
+<Warning>
+**"Irrelevant results"**: Increase the score threshold or reduce top_k to get more focused results
+</Warning>
+
+<Warning>
+**"Cloud sync failed"**: Re-authenticate your cloud storage connection in Settings → Integrations
+</Warning>
+
+## What's Next?
+
+<CardGroup cols={2}>
+  <Card title="Knowledge Base Setup" icon="code" href="/documentation/agent_config/knowledge-base-setup">
+    YAML configuration and advanced retrieval options
+  </Card>
+  
+  <Card title="Playground" icon="play" href="/documentation/studio/playground">
+    Add knowledge bases to agents
+  </Card>
+  
+  <Card title="Milvus" icon="database" href="/documentation/knowledge-base/milvus">
+    Vector database details
+  </Card>
+  
+  <Card title="Uknow Cloud Storage" icon="cloud" href="/documentation/knowledge-base/uknow-cloud-storage">
+    Cloud storage integration
+  </Card>
+</CardGroup>
