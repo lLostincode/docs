@@ -1,0 +1,252 @@
+---
+title: "Multi-Agent Systems"
+description: "Build complex AI systems by coordinating multiple specialized agents"
+---
+
+Multi-agent systems in AMAS allow you to build complex AI applications by coordinating multiple specialized agents. Instead of one agent handling everything, you distribute tasks across agents with specific capabilities.
+
+## Why Use Multiple Agents?
+
+<CardGroup cols={2}>
+  <Card title="Specialization" icon="bullseye">
+    Each agent focuses on a specific task (research, analysis, writing) leading to better results
+  </Card>
+  
+  <Card title="Modularity" icon="cubes">
+    Update or replace individual agents without affecting the entire system
+  </Card>
+  
+  <Card title="Scalability" icon="chart-line">
+    Add new capabilities by adding new specialized agents
+  </Card>
+  
+  <Card title="Maintainability" icon="wrench">
+    Simpler prompts and configurations per agent make systems easier to debug and improve
+  </Card>
+</CardGroup>
+
+## Architecture Types
+
+AMAS supports multiple architectures for coordinating agents:
+
+### Supervisor Architecture
+
+A central supervisor agent coordinates and routes tasks to specialized worker agents.
+
+```yaml
+architecture: "supervisor"
+```
+
+**Use when:**
+- You need dynamic task routing based on request content
+- Your system handles multiple domains (e.g., research + analysis + writing)
+- The routing logic is complex and benefits from LLM decision-making
+
+**Learn more:** [Supervisor Pattern →](/documentation/advanced/supervisor-pattern)
+
+### Workflow Architecture
+
+Explicit edges define the exact flow of execution between agents.
+
+```yaml
+architecture: "workflow"
+```
+
+**Use when:**
+- You have a predefined sequence of steps
+- You need deterministic, repeatable workflows
+- You want precise control over execution order
+
+**Learn more:** [Sequential Patterns →](/documentation/advanced/sequential-patterns)
+
+## Key Concepts
+
+### Structured Output
+
+Agents can produce typed, validated data that subsequent agents consume. This enables reliable data passing between agents.
+
+```yaml
+agents:
+  - name: "analyzer"
+    structured_output:
+      enabled: true
+      schema:
+        sentiment:
+          type: "str"
+          description: "Sentiment category"
+        confidence:
+          type: "float"
+          description: "Confidence score"
+```
+
+**Learn more:** [Structured Output →](/documentation/advanced/structured-output)
+
+### Agent Communication
+
+Agents access previous agents' outputs using template variables in their prompts:
+
+```yaml
+agents:
+  - name: "writer"
+    prompt_config:
+      system_prompt: |
+        Sentiment: {{ analyzer.output.sentiment }}
+        Confidence: {{ analyzer.output.confidence }}
+        
+        Write a response based on this analysis.
+```
+
+### Conditional Routing
+
+In workflow architecture, you can add dynamic routing based on agent outputs:
+
+```yaml
+edges:
+  - from: "classifier"
+    condition: "Route based on {{classifier.output.category}}"
+    condition_type: "literal"
+    possible_outputs: ["tech_support", "billing_support", "general_support"]
+```
+
+**Learn more:** [Conditional Edges →](/documentation/advanced/conditional-edges)
+
+## Common Patterns
+
+### Research → Analysis → Writing Pipeline
+
+Sequential workflow where each agent builds on the previous:
+
+```yaml
+architecture: "workflow"
+
+agents:
+  - name: "researcher"
+    agent_type: "react_agent"
+    tools: ["tavily_search"]
+  
+  - name: "analyst"
+    agent_type: "llm_agent"
+    prompt_config:
+      system_prompt: "Analyze: {{ researcher.output }}"
+  
+  - name: "writer"
+    agent_type: "llm_agent"
+    prompt_config:
+      system_prompt: "Write based on: {{ analyst.output }}"
+
+edges:
+  - from: "__start__"
+    to: "researcher"
+  - from: "researcher"
+    to: "analyst"
+  - from: "analyst"
+    to: "writer"
+  - from: "writer"
+    to: "__end__"
+```
+
+### Classification → Routing → Specialized Handling
+
+Supervisor dynamically routes to specialists:
+
+```yaml
+architecture: "supervisor"
+
+agents:
+  - name: "supervisor"
+    agent_type: "supervisor"
+    supervised_agents: ["tech_agent", "billing_agent", "general_agent"]
+    supervisor_prompt: |
+      Route technical issues to tech_agent, billing to billing_agent, 
+      everything else to general_agent.
+  
+  - name: "tech_agent"
+    # Technical support specialist
+  
+  - name: "billing_agent"
+    # Billing specialist
+  
+  - name: "general_agent"
+    # General inquiries
+```
+
+### Quality Gate with Revision Loop
+
+Workflow with conditional routing for quality checks:
+
+```yaml
+architecture: "workflow"
+
+agents:
+  - name: "writer"
+    agent_type: "llm_agent"
+    structured_output:
+      enabled: true
+      schema:
+        content:
+          type: "str"
+          description: "Written content"
+  
+  - name: "reviewer"
+    agent_type: "llm_agent"
+    structured_output:
+      enabled: true
+      schema:
+        approved:
+          type: "bool"
+          description: "Whether content meets quality standards"
+
+edges:
+  - from: "__start__"
+    to: "writer"
+  - from: "writer"
+    to: "reviewer"
+  - from: "reviewer"
+    condition: "Is the content approved? {{reviewer.output.approved}}"
+    condition_type: "boolean"
+    routing:
+      yes: "__end__"
+      no: "writer"
+```
+
+## Best Practices
+
+<Tip>
+**Use structured output for data passing**: Define clear schemas for agent outputs that subsequent agents depend on. This ensures type safety and validation.
+</Tip>
+
+<Tip>
+**Keep agents focused**: Each agent should have a single, well-defined responsibility. Don't create "do everything" agents.
+</Tip>
+
+<Tip>
+**Test agents individually**: Validate each agent works correctly before integrating into multi-agent systems.
+</Tip>
+
+<Warning>
+**Avoid circular dependencies**: Don't create loops where agents depend on each other's outputs without a clear exit condition.
+</Warning>
+
+<Tip>
+**Use descriptive agent names**: Name agents by their role (e.g., `sentiment_analyzer`, `content_writer`) not generic names like `agent_1`.
+</Tip>
+
+## What's Next?
+
+<CardGroup cols={2}>
+  <Card title="Sequential Patterns" icon="arrow-right" href="/documentation/advanced/sequential-patterns">
+    Build linear multi-agent pipelines with structured data passing
+  </Card>
+  
+  <Card title="Supervisor Pattern" icon="users" href="/documentation/advanced/supervisor-pattern">
+    Coordinate agents with dynamic routing and task delegation
+  </Card>
+  
+  <Card title="Conditional Edges" icon="code-branch" href="/documentation/advanced/conditional-edges">
+    Add dynamic routing logic to your workflows
+  </Card>
+  
+  <Card title="Structured Output" icon="table" href="/documentation/advanced/structured-output">
+    Generate typed, validated data for agent-to-agent communication
+  </Card>
+</CardGroup>

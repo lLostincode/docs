@@ -6,78 +6,49 @@ description: "Configure capabilities for your agents like web search, code execu
 Tools give your agents the ability to perform actions beyond just responding with text. They can search the web, execute code, query databases, and more.
 
 <Frame>
-  ![Tools Overview](/screens/tools_overview.png)
+  ![Tools Overview](/images/tools_overview.png)
 </Frame>
+
+The Tools page shows all available tools in a grid layout. Each card displays the tool's name, description, and available actions (Configure, Copy, Authenticate).
 
 ## Tools Interface
 
 The Tools page has two main tabs:
 
 ### All Tools Tab
-Browse all available tools in the platform:
-- Built-in tools (web search, code execution, etc.)
-- Community tools
-- Enterprise tools
 
-### My Tools Tab
-Tools you've configured and saved:
-- Custom tools you created
-- Configured instances of built-in tools
-- Tools used across your agents
-
-## Browsing Available Tools
-
-<Frame>
-  ![Tools List](/screens/tools_list.png)
-</Frame>
+Browse all available tools:
+- **Basic Tools**: Ready-to-use tools like web search, Wikipedia, calculator
+- **Toolkits**: OAuth-based integrations like Microsoft Outlook and Teams
 
 Each tool card shows:
-- **Tool name** and description
-- **Category** (Search, Data, Code, etc.)
-- **Configuration** button to set it up
-- **Documentation** link for usage details
-
-### Filtering Tools
-
-Use the filter panel to find tools quickly:
-- **All**: Show everything (toolkits and basic tools)
-- **Toolkits**: Show only toolkit tools (require OAuth connections)
-- **Basic Tools**: Show only standard tools (web search, code execution, etc.)
-
-## Configuring a Tool
-
-<Steps>
-  <Step title="Find Your Tool">
-    Browse or search for the tool you need
-    
-    <Frame>
-      ![Configure Tool](/screens/configure_tools.png)
-    </Frame>
-  </Step>
-  
-  <Step title="Click Configure">
-    Opens a configuration dialog specific to that tool
-  </Step>
-  
-  <Step title="Enter Required Settings">
-    Each tool needs different information:
-    - **API keys** (for external services)
-    - **Endpoints** (for custom APIs)
-    - **Parameters** (default settings)
-  </Step>
-  
-  <Step title="Test the Tool">
-    Most tools let you test the configuration before saving
-  </Step>
-  
-  <Step title="Save Configuration">
-    Your tool is now ready to use in agents
-  </Step>
-</Steps>
+- Tool name and description
+- Configuration status badge (Config Required, Configurable, or Ready to Use)
+- Toolkit badge (for toolkit tools)
+- Authorization status (for toolkits)
+- Action buttons (Configure, Copy, Authenticate, or View Details)
 
 <Tip>
-Configured tools appear in **My Tools** tab for quick access
+Use the **Filters** button to toggle between All, Toolkits, or Basic Tools only.
 </Tip>
+
+### My Tools Tab
+Manage your custom tools and configured tool instances
+
+## Adding Tools to Your YAML
+
+When you click the **+** button in the Playground, you'll see a list of available tools:
+
+<Frame>
+  ![Tools List for YAML Insertion](/images/tools_list.png)
+</Frame>
+
+This modal shows all available tools that you can insert into your agent configuration.
+
+<Note>
+This is for quick YAML insertion in the Playground. Browse by toolkit or search for specific tools.
+</Note>
+
 
 ## Using Tools in Agents
 
@@ -122,18 +93,10 @@ Before using toolkit tools in your agents, you need to authorize a connection:
   
   <Step title="Click Add Connection">
     <Frame>
-      ![Authorize Connection](/screens/authorize.png)
+      ![Authorize Connection](/images/authorize.png)
     </Frame>
     
     Opens the authorization flow
-  </Step>
-  
-  <Step title="Choose Integration">
-    Select which OAuth integration to use:
-    - **Default**: ATTHENE's provided OAuth app (easiest)
-    - **Custom**: Your organization's OAuth app (if configured in Settings → Integrations)
-    
-    **→ [Settings - Integrations](/documentation/studio/settings#integrations)** - Configure custom OAuth apps
   </Step>
   
   <Step title="Authenticate">
@@ -146,6 +109,10 @@ Before using toolkit tools in your agents, you need to authorize a connection:
     Your connection is now saved and can be used by agents
   </Step>
 </Steps>
+
+<Info>
+Connections use the default integration configured in Settings. You cannot choose a different integration during connection creation.
+</Info>
 
 ### Using Toolkit Tools in Agents
 
@@ -171,7 +138,7 @@ agents:
     agent_type: "react_agent"
     tools: 
       - name: "microsoft_outlook_read_email"
-        connection_id: "conn_123abc"  # Specify connection
+        connection: "conn_123abc"  # Specify connection
     system_prompt: "You are an email assistant."
 ```
 
@@ -191,104 +158,104 @@ If you don't specify a connection, the agent uses the default connection for tha
 Deleting a connection will break any agents using it. Make sure to update your agents first.
 </Warning>
 
-## Common Tools
+## Available Tools
 
-### Web Search (Tavily)
-Search the internet for current information:
-- News and articles
-- Company information
-- Real-time data
+### Basic Tools
 
-**Configuration needed**: Tavily API key
+**Tavily Search** (`tavily_search`)
+- Web search optimized for accurate, trusted results
+- Real-time information with citations
+- Configurable: max_results, timeout, include_answer, etc.
 
-### Wikipedia Search
-Search Wikipedia articles:
-- Historical information
-- General knowledge
-- Quick facts
+**Tavily Extract** (`tavily_extract`)
+- Extract content from specific URLs
+- Clean and parsed HTML content
 
-**Configuration needed**: None (works out of the box)
+**Wikipedia Search** (`wikipedia_search`)
+- Search Wikipedia articles
+- No configuration needed
 
-### Code Execution
-Run Python code:
-- Data processing
-- Calculations
-- File operations
+**YouTube Search** (`youtube_search`)
+- Search for YouTube videos
+- Get video metadata and transcripts
 
-**Configuration needed**: Execution limits
+**Arxiv Search** (`arxiv_search`)  
+- Search academic papers on Arxiv
+- Research and scientific content
 
-### File Operations
-Read and write files:
-- Document processing
-- Data extraction
-- Report generation
+**Python REPL** (`python_repl`)
+- Execute Python code in a sandboxed environment
+- Mathematical calculations
+- Access to: math, datetime, json, re, random modules
+- **No external libraries** (no pandas, numpy, etc.)
 
-**Configuration needed**: Storage permissions
+**Calculator** (`calculator`)
+- Perform mathematical calculations
+- Simple arithmetic and computations
 
-## Creating Custom Tools
+### Microsoft Outlook Toolkit
 
-Want to give your agents access to your own APIs or services?
+Requires OAuth authorization via connection:
 
-<Steps>
-  <Step title="Go to My Tools">
-    Click the **My Tools** tab
-  </Step>
-  
-  <Step title="Click Create Custom Tool">
-    Opens the tool creation wizard
-  </Step>
-  
-  <Step title="Define Tool Details">
-    Provide:
-    - **Name**: How agents will reference it
-    - **Description**: What it does (helps the agent know when to use it)
-    - **Parameters**: What inputs it needs
-  </Step>
-  
-  <Step title="Configure Endpoint">
-    For API-based tools:
-    - API endpoint URL
-    - Authentication method
-    - Request/response format
-  </Step>
-  
-  <Step title="Test and Save">
-    Test with sample inputs, then save
-  </Step>
-</Steps>
+- **List Emails** (`microsoft_outlook_list_emails`)
+- **Send Email** (`microsoft_outlook_send_email`)
+- **List Calendar Events** (`microsoft_outlook_list_calendar_events`)
+- **Create Calendar Event** (`microsoft_outlook_create_calendar_event`)
+- **List Tasks** (`microsoft_outlook_list_tasks`)
+- **Create Task** (`microsoft_outlook_create_task`)
+- **Complete Task** (`microsoft_outlook_complete_task`)
+- **List Contacts** (`microsoft_outlook_list_contacts`)
+- **Create Contact** (`microsoft_outlook_create_contact`)
 
-## Tool Configuration Best Practices
+### Microsoft Teams Toolkit
 
-<Tip>
-**Clear descriptions**: Write tool descriptions that help agents understand when to use them
-</Tip>
+Requires OAuth authorization via connection:
 
-<Tip>
-**Set limits**: For tools like code execution, set reasonable limits (timeout, memory, etc.)
-</Tip>
+- **Send Message** (`teams_send_message`)
+- **Send Chat** (`teams_send_chat`)
+- **List Messages** (`teams_list_messages`)
+- **List Chats** (`teams_list_chats`)
+- **Create Meeting** (`teams_create_meeting`) - Can create recurring events
 
 
-<Warning>
-**Test thoroughly**: Always test tools before using in production agents
-</Warning>
+## Tool Configuration
+
+Some tools allow you to configure parameters like timeout, max results, etc.
+
+<Frame>
+  ![Configure Tool](/images/configure_tools.png)
+</Frame>
+
+### Configurable Tools
+
+Tools like Tavily Search have optional configuration parameters:
+
+- **`max_results`**: Number of search results to return
+- **`timeout`**: Request timeout in seconds
+- **`include_answer`**: Include AI-generated answer
+- And more tool-specific options
+
+<Note>
+Configuration parameters are set when you create a tool configuration instance. They're not stored in your YAML, but referenced by the tool name.
+</Note>
+
+### Non-Configurable Tools
+
+Tools like Wikipedia Search work out of the box with no configuration needed:
+
+```yaml
+tools: ["wikipedia_search"]
+```
 
 ## Tool Security
 
-Tools can access external services and data. Keep them secure:
+<Warning>
+Toolkit connections grant access to external services. Only create connections you trust.
+</Warning>
 
-### API Keys
-- Never hardcode in YAML
-- Rotate regularly
-- Store securely
-
-### Permissions
-- Only grant necessary permissions
-- Review tool access logs
-- Disable unused tools
-
-### Monitoring
-- Track tool usage in Tracing
-- Review execution logs
+<Tip>
+Monitor tool usage in your agent's execution logs and tracing.
+</Tip>
 
 ## Troubleshooting
 
@@ -322,18 +289,16 @@ agents:
       use web search to find accurate information.
 ```
 
-### Data Processing with Code Execution
+### Mathematical Calculations with Python
 
 ```yaml
 agents:
-  - name: "data_processor"
+  - name: "math_assistant"
     agent_type: "react_agent"
-    tools: ["python_repl"]
+    tools: ["python_repl", "calculator"]
     system_prompt: |
-      You process data using Python. Write and execute code to:
-      - Clean data
-      - Perform calculations
-      - Generate reports
+      You are a mathematical assistant. Use Python REPL for complex calculations 
+      and the calculator for simple arithmetic.
 ```
 
 ### Multi-Tool Agent

@@ -6,7 +6,7 @@ description: "Manage, version, and deploy your saved agents"
 The Agent Overview page is your control center for all saved agents. Here you can view agent performance, manage versions, and configure deployments.
 
 <Frame>
-  ![Agent Overview](/screens/agent_overview.png)
+  ![Agent Overview](/images/agent_overview.png)
 </Frame>
 
 ## Dashboard Overview
@@ -23,23 +23,17 @@ Each agent card shows:
 - Agent name and description
 - Current version number
 - Creation date
-- Quick action buttons (Edit, Delete, Settings)
+- Quick action buttons (Config, Settings, Delete)
 
 ### Quick Actions
 
-**Edit**: Opens the agent in the Playground for modifications
+**Config**: Opens the agent's current version in the Playground where you can edit the YAML configuration
 
-**Settings**: Access version management and deployment options
+**Settings**: Access version management, access control, statistics, and general settings
 
-**Delete**: Remove the agent permanently
+**Delete**: Remove the agent and all its versions permanently
 
 ## Managing Agent Versions
-
-Click the **Settings** icon on any agent to access version management:
-
-<Frame>
-  ![Agent Versions](/screens/agent_version.png)
-</Frame>
 
 ### Understanding Versions
 
@@ -51,7 +45,7 @@ Every time you save changes to an agent, a new version is created. This gives yo
 ### Version States
 
 <Frame>
-  ![Version Management](/screens/agent_versions.png)
+  ![Version Management](/images/agent_versions.png)
 </Frame>
 
 **Current Badge**: The version that's actively deployed and handles all API requests
@@ -94,7 +88,7 @@ Click the **Settings** button on any agent to access detailed configuration. The
 ### General
 
 <Frame>
-  ![Agent Settings General](/screens/agent_settings_general.png)
+  ![Agent Settings General](/images/agent_settings_general.png)
 </Frame>
 
 - **Public Access**: Enable WebSocket access for external clients
@@ -109,7 +103,7 @@ When Public Access is enabled, you must specify an allowed origin URL for securi
 ### Access Control
 
 <Frame>
-  ![Access Control Settings](/screens/access_control.png)
+  ![Access Control Settings](/images/access_control.png)
 </Frame>
 
 Control who can see and use your agent:
@@ -132,7 +126,7 @@ Control who can see and use your agent:
 ### Versions
 
 <Frame>
-  ![Version Management](/screens/agent_versions.png)
+  ![Version Management](/images/agent_versions.png)
 </Frame>
 
 - **View all versions**: See complete version history
@@ -143,7 +137,7 @@ Control who can see and use your agent:
 ### Statistics
 
 <Frame>
-  ![Agent Statistics](/screens/agent_statistics.png)
+  ![Agent Statistics](/images/agent_statistics.png)
 </Frame>
 
 View usage metrics for your agent:
@@ -175,7 +169,7 @@ When you edit a saved agent in the Playground:
     Opens the agent in Playground with current version loaded
     
     <Frame>
-      ![Loading Agent](/screens/agent_loading.png)
+      ![Loading Agent](/images/agent_loading.png)
     </Frame>
   </Step>
   

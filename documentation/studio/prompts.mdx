@@ -10,7 +10,7 @@ The Prompts section lets you create, organize, and manage your own reusable prom
 </Note>
 
 <Frame>
-  ![Prompts Library](/screens/prompts_library.png)
+  ![Prompts Library](/images/prompts_library.png)
 </Frame>
 
 ## Interface Overview
@@ -23,7 +23,7 @@ Organize your prompts into categories:
 - Filter prompts by category
 
 <Frame>
-  ![Prompt Categories](/screens/prompt_category.png)
+  ![Prompt Categories](/images/prompt_category.png)
 </Frame>
 
 ### Middle: Prompt List
@@ -36,7 +36,7 @@ Create and edit prompt content:
 - Save and manage versions
 
 <Frame>
-  ![Prompts Panel](/screens/prompts_panel.png)
+  ![Prompts Panel](/images/prompts_panel.png)
 </Frame>
 
 ## Creating Your First Prompt
@@ -46,7 +46,7 @@ Create and edit prompt content:
     Click **Add Category** in the categories sidebar
     
     <Frame>
-      ![Prompt Category](/screens/prompt_category.png)
+      ![Prompt Category](/images/prompt_category.png)
     </Frame>
     
     Give it a name like "Customer Support" or "Data Extraction"
@@ -70,15 +70,23 @@ Create and edit prompt content:
   </Step>
 </Steps>
 
-## Using Your Prompts
+## Using Prompts in Your Agents
 
-Once you've created prompts, insert them into agents:
+Reference saved prompts in your agent YAML using template variable syntax:
 
-1. Select the prompt from your library
-2. Click **Insert to Playground**
-3. The prompt opens in the Playground ready to use
+```yaml
+agents:
+  - name: "support_agent"
+    agent_type: "llm_agent"
+    prompt_config:
+      system_prompt: "{{ prompts.my_support_prompt }}"
+```
 
 Or use the **+** button in Playground to insert prompts directly into your YAML.
+
+<Info>
+**Advanced prompt features**: For YAML syntax, template variables, and dynamic prompts, see the [Prompt Configuration](/documentation/agent_config/types_config/prompt-configuration) reference.
+</Info>
 
 ## Organizing Your Prompts
 

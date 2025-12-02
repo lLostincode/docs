@@ -1,0 +1,352 @@
+---
+title: "Sequential Patterns"
+description: "Build multi-agent pipelines where agents execute in sequence and pass structured data between them"
+---
+
+Sequential patterns in workflow architecture allow you to build multi-agent pipelines where agents execute in a predefined order. Each agent processes data and passes its output to the next agent in the chain.
+
+## Sequential Execution
+
+In sequential patterns, agents execute one after another in a fixed order. You define explicit edges to control the flow:
+
+```yaml
+architecture: "workflow"
+
+edges:
+  - from: "__start__"
+    to: "agent_a"
+  - from: "agent_a"
+    to: "agent_b"
+  - from: "agent_b"
+    to: "__end__"
+```
+
+<Info>
+Sequential patterns are ideal when you have a clear, linear workflow and want each agent to build on the previous agent's output.
+</Info>
+
+## Core Concepts
+
+### Special Nodes
+
+- **`__start__`**: Entry point (first agent receives user input)
+- **`__end__`**: Exit point (final agent's output is returned to user)
+
+Every workflow must have edges from `__start__` and to `__end__`.
+
+### Passing Data Between Agents
+
+Each agent in the sequence receives the previous agent's output. You can access it in two ways:
+
+**1. Direct access (free-form text):**
+The previous agent's output is automatically available in the agent's context.
+
+**2. Structured output (typed data):**
+Define schemas for agent outputs and reference specific fields in subsequent agents.
+
+<Info>
+**Learn more about structured output:** [Structured Output →](/documentation/advanced/structured-output)
+</Info>
+
+## Basic Sequential Chain
+
+### Single Agent Flow
+
+```yaml
+name: "Basic Assistant"
+description: "Simple conversational assistant"
+architecture: "workflow"
+save_messages: true
+persistent_state: true
+
+agents:
+  - name: "assistant"
+    agent_type: "llm_agent"
+    description: "A helpful AI assistant"
+    system_prompt: "You are a helpful AI assistant."
+    
+    llm_config:
+      temperature: 0.7
+      max_tokens: 500
+    
+    streaming_config:
+      show_output_to_user: true
+
+edges:
+  - from: "__start__"
+    to: "assistant"
+  - from: "assistant"
+    to: "__end__"
+
+entry_point: "assistant"
+```
+
+**Flow:**
+```
+START → Assistant → END
+```
+
+### Sequential Chain with Structured Output
+
+Using structured output for reliable data passing:
+
+```yaml
+name: "Sentiment Analysis Pipeline"
+description: "Analyze → Classify → Respond based on sentiment"
+architecture: "workflow"
+save_messages: true
+persistent_state: true
+
+agents:
+  - name: "analyzer"
+    agent_type: "llm_agent"
+    description: "Analyzes sentiment of user input"
+    
+    structured_output:
+      enabled: true
+      schema:
+        sentiment:
+          type: "str"
+          description: "Sentiment category: positive, negative, or neutral"
+        confidence:
+          type: "float"
+          description: "Confidence score between 0.0 and 1.0"
+        key_topics:
+          type: "list[str]"
+          description: "Main topics mentioned in the input"
+    
+    prompt_config:
+      system_prompt: |
+        Analyze the sentiment and extract key topics from user input.
+    
+    streaming_config:
+      show_output_to_user: true
+
+  - name: "responder"
+    agent_type: "llm_agent"
+    description: "Generates response based on sentiment analysis"
+    
+    prompt_config:
+      system_prompt: |
+        Sentiment: {{ analyzer.output.sentiment }}
+        Confidence: {{ analyzer.output.confidence }}
+        Topics: {{ analyzer.output.key_topics }}
+        
+        Generate an appropriate response based on the sentiment analysis.
+        For positive sentiment, be enthusiastic. For negative, be empathetic.
+    
+    streaming_config:
+      show_output_to_user: true
+
+edges:
+  - from: "__start__"
+    to: "analyzer"
+  - from: "analyzer"
+    to: "responder"
+  - from: "responder"
+    to: "__end__"
+
+entry_point: "analyzer"
+```
+
+**Flow:**
+```
+START → Analyzer (structured output) → Responder (uses analyzer.output.*) → END
+```
+
+<Check>
+The `responder` agent accesses the analyzer's structured output using template variables: `{{ analyzer.output.sentiment }}`, `{{ analyzer.output.confidence }}`, etc.
+</Check>
+
+## Research → Analysis Pipeline
+
+Multi-agent workflow where a ReAct agent uses tools to gather data with structured output, then an LLM agent analyzes the findings:
+
+```yaml
+name: "Research and Analysis Pipeline"
+description: "Research with tools → Structured analysis → Insights"
+architecture: "workflow"
+save_messages: true
+persistent_state: true
+
+agents:
+  - name: "researcher"
+    agent_type: "react_agent"
+    description: "Gathers information using web search"
+    
+    tools:
+      - "tavily_search"
+    
+    tool_calling:
+      enabled: true
+      max_iterations: 5
+    
+    structured_output:
+      enabled: true
+      schema:
+        key_findings:
+          type: "list[str]"
+          description: "Main findings from research"
+        sources:
+          type: "list[str]"
+          description: "URLs of sources used"
+        confidence:
+          type: "float"
+          description: "Confidence in findings (0.0-1.0)"
+    
+    prompt_config:
+      system_prompt: |
+        Research the topic using web search. Extract key findings and sources.
+    
+    streaming_config:
+      show_output_to_user: true
+      show_reasoning: true
+
+  - name: "analyst"
+    agent_type: "llm_agent"
+    description: "Analyzes research findings and generates insights"
+    
+    prompt_config:
+      system_prompt: |
+        ## Research Findings
+        {{ researcher.output.key_findings }}
+        
+        ## Sources
+        {{ researcher.output.sources }}
+        
+        ## Confidence Level
+        {{ researcher.output.confidence }}
+        
+        Based on the research above, provide:
+        1. Key insights and patterns
+        2. Recommendations
+        3. Potential concerns or limitations
+    
+    streaming_config:
+      show_output_to_user: true
+
+edges:
+  - from: "__start__"
+    to: "researcher"
+  - from: "researcher"
+    to: "analyst"
+  - from: "analyst"
+    to: "__end__"
+
+entry_point: "researcher"
+```
+
+**Flow:**
+```
+START → Researcher (tools + structured output) → Analyst (uses researcher.output.*) → END
+```
+
+<Check>
+The `researcher` agent uses `tavily_search` to gather data and outputs structured findings. The `analyst` agent then references `{{ researcher.output.key_findings }}` and other fields to generate insights.
+</Check>
+
+## When to Use Sequential Patterns
+
+<Check>
+**Use sequential patterns when:**
+- You have a clear, linear workflow
+- Each step depends on the previous step's output
+- You want type-safe data passing between agents
+- The execution order is predictable
+</Check>
+
+<Info>
+**For dynamic routing**, see [Supervisor Pattern →](/documentation/advanced/supervisor-pattern) or [Conditional Edges →](/documentation/advanced/conditional-edges)
+</Info>
+
+## Best Practices
+
+<Tip>
+**Use structured output for data dependencies**: When an agent needs specific fields from a previous agent, define a schema to ensure type safety and validation.
+</Tip>
+
+<Tip>
+**Reference outputs explicitly**: Use `{{ agent_name.output.field }}` in prompts to access structured data from previous agents.
+</Tip>
+
+<Tip>
+**Stream intermediate results**: Set `show_output_to_user: true` on agents you want users to see during execution.
+</Tip>
+
+<Warning>
+Every workflow must have a path from `__start__` to `__end__`. Ensure all agents are reachable.
+</Warning>
+
+<Tip>
+**Keep schemas simple**: Start with basic types (`str`, `int`, `float`, `bool`) before using complex nested structures.
+</Tip>
+
+## Advanced Patterns
+
+For more complex routing logic:
+
+<CardGroup cols={2}>
+  <Card title="Conditional Edges" icon="code-branch" href="/documentation/advanced/conditional-edges">
+    Add dynamic routing based on agent output
+  </Card>
+  
+  <Card title="Supervisor Pattern" icon="users" href="/documentation/advanced/supervisor-pattern">
+    Use intelligent task delegation instead of fixed edges
+  </Card>
+</CardGroup>
+
+## Common Use Cases
+
+<AccordionGroup>
+  <Accordion title="Content Pipeline">
+    **Pattern**: Sequential chain
+    
+    Research → Draft → Edit → Publish
+    
+    Each agent specializes in one stage of content creation.
+  </Accordion>
+  
+  <Accordion title="Data Processing Pipeline">
+    **Pattern**: Sequential chain with tools
+    
+    Collector (web search) → Analyzer (calculator) → Reporter (synthesis)
+    
+    Each agent uses specific tools for its task.
+  </Accordion>
+  
+  <Accordion title="Sentiment Analysis Pipeline">
+    **Pattern**: Sequential with structured output
+    
+    Analyzer (structured output) → Responder (uses analyzer data)
+    
+    First agent produces typed data, second agent consumes it via template variables.
+  </Accordion>
+  
+  <Accordion title="Quality Assurance Flow">
+    **Pattern**: Sequential with conditional edges
+    
+    Writer → Reviewer → [Approve → Publish | Reject → Writer]
+    
+    Add conditional edges for dynamic routing based on quality checks.
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Conditional Edges" icon="code-branch" href="/documentation/advanced/conditional-edges">
+    Add dynamic routing to workflows
+  </Card>
+  
+  <Card title="Supervisor Pattern" icon="users" href="/documentation/advanced/supervisor-pattern">
+    Learn about supervisor-based coordination
+  </Card>
+  
+  <Card title="Agent Types" icon="robot" href="/documentation/agent_config/types_config/agent-types">
+    Understand different agent types for workflows
+  </Card>
+  
+  <Card title="YAML Configuration" icon="file-code" href="/documentation/yaml-configuration">
+    Complete reference for workflow configuration
+  </Card>
+</CardGroup>

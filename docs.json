@@ -52,7 +52,8 @@
             "group": "Multi Agent Systems",
             "icon": "brain-circuit",
             "pages": [
-              "documentation/advanced/workflow-patterns",
+              "documentation/advanced/multi-agent-introduction",
+              "documentation/advanced/sequential-patterns",
               "documentation/advanced/conditional-edges",
               "documentation/advanced/supervisor-pattern"
             ]

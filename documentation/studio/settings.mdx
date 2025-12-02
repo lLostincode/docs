@@ -10,7 +10,7 @@ The Settings page is where you manage API keys for accessing agents and configur
 ### API Keys
 
 <Frame>
-  ![API Keys](/screens/api_keys.png)
+  ![API Keys](/images/api_keys.png)
 </Frame>
 
 API Keys let external applications access your agents.
@@ -26,16 +26,8 @@ API Keys let external applications access your agents.
     Opens the key creation dialog
   </Step>
   
-  <Step title="Name Your Key">
-    Give it a descriptive name like "Production App" or "Testing Environment"
-  </Step>
-  
-  <Step title="Set Permissions">
-    Choose what this key can access:
-    - Read agents
-    - Execute agents
-    - Manage agents
-    - Access knowledge bases
+  <Step title="Set Expiration">
+    Choose when the key should expire (for security)
   </Step>
   
   <Step title="Copy the Key">
@@ -43,8 +35,12 @@ API Keys let external applications access your agents.
   </Step>
 </Steps>
 
+<Note>
+API keys have full access to your account. Anyone with the key can execute agents, access knowledge bases, and manage configurations.
+</Note>
+
 <Warning>
-Store API keys securely. Anyone with the key can access your agents based on the permissions you set.
+Store API keys securely. They grant full access to your account.
 </Warning>
 
 #### Using API Keys
@@ -64,16 +60,19 @@ curl -X POST https://amas.atthene.com/api/amas/conversations/execute \
 #### Managing Keys
 
 - **Rotate regularly**: Create new keys and delete old ones every few months
-- **Use separate keys**: Different keys for dev, staging, and production
 - **Monitor usage**: Check API key usage in the dashboard
 - **Revoke immediately**: If a key is compromised, delete it right away
+
+<Note>
+You can only have one valid API key at a time. Creating a new key will invalidate the previous one.
+</Note>
 
 ### Integrations
 
 Manage OAuth integrations for toolkits (Microsoft Outlook, Teams, etc.).
 
 <Frame>
-  ![All Integrations](/screens/all_integrations.png)
+  ![All Integrations](/images/all_integrations.png)
 </Frame>
 
 #### How Integrations Work
@@ -95,7 +94,7 @@ For now, we only support **Microsoft** as a provider. Support for Google, Slack,
 <Steps>
   <Step title="Click Add Integration">
     <Frame>
-      ![Add Company Integration](/screens/add_company_integration.png)
+      ![Add Company Integration](/images/add_company_integration.png)
     </Frame>
   </Step>
   
@@ -124,9 +123,6 @@ If you have multiple custom integrations for the same provider:
 2. Click **Set as Default**
 3. This integration will be used by default for all new connections
 
-<Info>
-Users can still choose which integration to use when authorizing a connection. The default integration is just a convenience.
-</Info>
 
 #### When to Use Custom Integrations
 
