@@ -225,229 +225,36 @@ edges:
 entry_point: "ticket_classifier"
 ```
 
-## Advanced Patterns
 
-### Content Moderation Pipeline
+## Using with Structured Output
 
-Implement a multi-stage moderation system:
+For reliable routing, use structured output to control conditional edges:
 
 ```yaml
-name: "Content Moderation System"
-description: "Moderate user-generated content with conditional routing"
-architecture: "workflow"
-
 agents:
-  - name: "content_analyzer"
+  - name: "classifier"
     agent_type: "llm_agent"
-    
-    system_prompt: |
-      Analyze user-submitted content for safety and appropriateness.
-      
-      Classify as:
-      - safe: Appropriate content, no issues
-      - questionable: Potentially problematic, needs human review
-      - unsafe: Clear policy violation
     
     structured_output:
       enabled: true
       schema:
-        safety_level:
+        category:
           type: "str"
-          description: "Content safety classification (safe, questionable, or unsafe)"
-        
-        risk_score:
-          type: "float"
-          description: "Risk score from 0.0 (safe) to 1.0 (high risk)"
-        
-        flagged_keywords:
-          type: "list[str]"
-          description: "Keywords that triggered flags"
-        
-        violation_types:
-          type: "list[str]"
-          description: "Types of policy violations detected"
-  
-  - name: "auto_approver"
-    agent_type: "llm_agent"
-    system_prompt: "Approve and publish safe content immediately."
-  
-  - name: "human_review_queue"
-    agent_type: "llm_agent"
-    system_prompt: |
-      Add questionable content to human moderator queue.
-      Provide context and flagged issues for review.
-  
-  - name: "auto_rejector"
-    agent_type: "llm_agent"
-    system_prompt: |
-      Reject unsafe content and generate user notification explaining
-      the policy violation and next steps.
+          description: "Category: technical, billing, or general"
+        priority:
+          type: "str"
+          description: "Priority: low, medium, or high"
 
 edges:
-  - from: "__start__"
-    to: "content_analyzer"
-  
-  # Three-way conditional routing
-  - from: "content_analyzer"
-    condition: "Route based on safety level: {{content_analyzer.output.safety_level}}"
+  - from: "classifier"
+    condition: "Route by category: {{classifier.output.category}}"
     condition_type: "literal"
-    possible_outputs: ["auto_approver", "human_review_queue", "auto_rejector"]
-  
-  - from: "auto_approver"
-    to: "__end__"
-  
-  - from: "human_review_queue"
-    to: "__end__"
-  
-  - from: "auto_rejector"
-    to: "__end__"
-
-entry_point: "content_analyzer"
+    possible_outputs: ["tech_team", "billing_team", "general_team"]
 ```
 
-### Iterative Refinement Loop
-
-Create feedback loops for continuous improvement:
-
-```yaml
-name: "Code Review System"
-description: "Iteratively review and improve code until it passes all checks"
-architecture: "workflow"
-
-agents:
-  - name: "code_generator"
-    agent_type: "react_agent"
-    tools: ["code_search", "documentation_lookup"]
-    system_prompt: "Generate code based on requirements."
-  
-  - name: "code_reviewer"
-    agent_type: "llm_agent"
-    
-    system_prompt: |
-      Review the generated code for:
-      - Correctness and functionality
-      - Code quality and best practices
-      - Security vulnerabilities
-      - Performance issues
-      
-      Determine if the code is ready for deployment.
-    
-    structured_output:
-      enabled: true
-      schema:
-        approved:
-          type: "bool"
-          description: "Whether code is approved for deployment"
-        
-        issues_found:
-          type: "list[str]"
-          description: "List of issues that need fixing"
-        
-        severity:
-          type: "str"
-          description: "Highest severity of issues found (minor, moderate, or critical)"
-        
-        review_iteration:
-          type: "int"
-          description: "Current review iteration number"
-  
-  - name: "code_improver"
-    agent_type: "llm_agent"
-    system_prompt: |
-      Fix the issues identified in the code review.
-      Address all problems while maintaining functionality.
-  
-  - name: "deployer"
-    agent_type: "llm_agent"
-    system_prompt: "Prepare approved code for deployment."
-
-edges:
-  - from: "__start__"
-    to: "code_generator"
-  
-  - from: "code_generator"
-    to: "code_reviewer"
-  
-  # Conditional: approve or iterate
-  - from: "code_reviewer"
-    condition: "Is the code approved? Check {{code_reviewer.output.approved}}"
-    condition_type: "boolean"
-    routing:
-      yes: "deployer"
-      no: "code_improver"
-  
-  # Loop back for another review
-  - from: "code_improver"
-    to: "code_reviewer"
-  
-  - from: "deployer"
-    to: "__end__"
-
-entry_point: "code_generator"
-```
-
-## Combining with Structured Output
-
-Conditional edges work best with structured output for reliable routing:
-
-```yaml
-agents:
-  - name: "decision_maker"
-    agent_type: "llm_agent"
-    
-    structured_output:
-      enabled: true
-      schema:
-        # Use str with clear options for reliable routing
-        next_action:
-          type: "str"
-          description: "Decision on next action (approve, reject, revise, or escalate)"
-        
-        # Additional context
-        confidence:
-          type: "float"
-          description: "Decision confidence 0.0-1.0"
-        
-        reasoning:
-          type: "str"
-          description: "Explanation for the decision"
-
-edges:
-  - from: "decision_maker"
-    condition: "What action should be taken? {{decision_maker.output.next_action}}"
-    condition_type: "literal"
-    possible_outputs: ["approval_agent", "rejection_agent", "revision_agent", "escalation_agent"]
-```
-
-## Built-in Conditional Logic
-
-### ReAct Agent Iteration Control
-
-ReAct agents have built-in conditional edges for tool calling:
-
-```python
-# Internal ReAct agent flow
-def should_continue(state):
-    if state.iteration >= max_iterations:
-        return END
-    
-    if last_message.tool_calls:
-        return "action"  # Execute tools
-    
-    return END  # Finish
-```
-
-Configure iteration limits:
-
-```yaml
-agents:
-  - name: "research_agent"
-    agent_type: "react_agent"
-    tools: ["web_search"]
-    
-    tool_calling:
-      max_iterations: 10  # Prevent infinite loops
-```
+<Tip>
+Structured output ensures consistent, predictable routing decisions
+</Tip>
 
 ## Best Practices
 
@@ -471,48 +278,23 @@ agents:
 **Test Edge Cases**: Test your conditional logic with edge cases and unexpected inputs.
 </Tip>
 
-## Common Patterns
+## Common Use Cases
 
-### Quality Gate Pattern
+**Quality Gates**: Check if work meets standards → approve or send for revision
 
-```
-Input → Process → Check Quality → [Pass: Publish | Fail: Revise] → Loop
-```
+**Classification**: Categorize inputs → route to specialized handlers
 
-Use for: Content review, code review, data validation
+**Escalation**: Try automated solution → escalate to human if needed
 
-### Classification Router Pattern
+**Iterative Refinement**: Generate → evaluate → improve until acceptable
 
-```
-Input → Classify → [Category A: Agent A | Category B: Agent B | Category C: Agent C]
-```
+<Warning>
+Conditional edges only work with `workflow` architecture, not with single agents
+</Warning>
 
-Use for: Support routing, content categorization, task delegation
-
-### Escalation Pattern
-
-```
-Input → Attempt → [Success: Complete | Failure: Escalate] → Higher Authority
-```
-
-Use for: Error handling, complexity management, human-in-the-loop
-
-### Progressive Refinement Pattern
-
-```
-Input → Generate → Evaluate → [Good: Accept | Poor: Improve] → Loop until Good
-```
-
-Use for: Iterative improvement, optimization, quality assurance
-
-## Limitations
-
-<Note>
-- Conditional edges require the `workflow` architecture
-- Maximum routing depth should be reasonable (avoid deeply nested conditions)
-- For literal edges: all agent names must be in `possible_outputs`
-- For boolean edges: both `yes` and `no` routes must be defined in `routing`
-</Note>
+<Warning>
+For literal edges, every value in `possible_outputs` must be a valid agent name
+</Warning>
 
 ## Next Steps
 

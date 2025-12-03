@@ -1,0 +1,236 @@
+---
+title: "Prompt Management"
+description: "Create and organize your reusable prompts"
+---
+
+The Prompts section lets you create, organize, and manage your own reusable prompts. Build your personal library of prompts that you can quickly insert into agents without rewriting them each time.
+
+<Note>
+**Looking for prompt configuration details?** This guide covers managing prompts in the UI. For YAML configuration, prompt templates, variables, and advanced features, see the [Prompt Configuration](/documentation/agent_config/types_config/prompt-configuration) reference.
+</Note>
+
+<Frame>
+  ![Prompts Library](/images/prompts_library.png)
+</Frame>
+
+## Interface Overview
+
+The Prompts page has three panels:
+
+### Left: Categories
+Organize your prompts into categories:
+- Create custom categories
+- Filter prompts by category
+
+<Frame>
+  ![Prompt Categories](/images/prompt_category.png)
+</Frame>
+
+### Middle: Prompt List
+View all prompts in the selected category
+
+### Right: Prompt Editor
+Create and edit prompt content:
+- Write your prompt text
+- Add metadata
+- Save and manage versions
+
+<Frame>
+  ![Prompts Panel](/images/prompts_panel.png)
+</Frame>
+
+## Creating Your First Prompt
+
+<Steps>
+  <Step title="Create a Category">
+    Click **Add Category** in the categories sidebar
+    
+    <Frame>
+      ![Prompt Category](/images/prompt_category.png)
+    </Frame>
+    
+    Give it a name like "Customer Support" or "Data Extraction"
+  </Step>
+  
+  <Step title="Create a Prompt">
+    Click **New Prompt** button at the top
+    
+    This creates a new prompt in the selected category
+  </Step>
+  
+  <Step title="Write Your Prompt">
+    In the editor panel:
+    - Give it a descriptive name
+    - Write the prompt text
+    - Add any notes or examples
+  </Step>
+  
+  <Step title="Save">
+    Click **Save** to add it to your library
+  </Step>
+</Steps>
+
+## Using Prompts in Your Agents
+
+Reference saved prompts in your agent YAML using template variable syntax:
+
+```yaml
+agents:
+  - name: "support_agent"
+    agent_type: "llm_agent"
+    prompt_config:
+      system_prompt: "{{ prompts.my_support_prompt }}"
+```
+
+Or use the **+** button in Playground to insert prompts directly into your YAML.
+
+<Info>
+**Advanced prompt features**: For YAML syntax, template variables, and dynamic prompts, see the [Prompt Configuration](/documentation/agent_config/types_config/prompt-configuration) reference.
+</Info>
+
+## Organizing Your Prompts
+
+### Create Categories
+
+Organize prompts by use case:
+- **Customer Support**: Ticket handling, FAQ responses
+- **Data Extraction**: Resume parsing, invoice processing
+- **Content Generation**: Blog posts, marketing copy
+- **Code Review**: Quality checks, security analysis
+- **Analysis**: Sentiment, classification, moderation
+
+### Category Management
+
+**Add Category**: Click the button in categories sidebar
+
+**Edit Category**: Click edit next to category name
+
+**Delete Category**: Prompts move to "Uncategorized"
+
+
+## Writing Effective Prompts
+
+### Be Specific
+
+**Bad example:**
+```
+You are a helpful assistant.
+```
+
+**Good example:**
+```
+You are a customer support agent for SaaS billing.
+Provide clear responses including:
+- Account status
+- Next steps  
+- Resolution timeline
+```
+
+### Include Examples
+
+Show expected output format:
+
+```
+Extract contact info from text.
+
+Example:
+Input: "John Smith at john@email.com, 555-1234"
+Output: {"name": "John Smith", "email": "john@email.com", "phone": "555-1234"}
+```
+
+### Set Boundaries
+
+```
+You are a technical support agent.
+
+Rules:
+- Never make up information
+- Never share credentials
+- Escalate if uncertain
+```
+
+## Managing Prompts
+
+### Edit a Prompt
+
+1. Select prompt from the list
+2. Make changes in the editor
+3. Click **Save**
+
+### Delete a Prompt
+
+1. Select the prompt
+2. Click **Delete** button
+3. Confirm deletion
+
+<Warning>
+Deleting a prompt cannot be undone
+</Warning>
+
+### Reuse Across Agents
+
+Once saved, prompts can be:
+- Inserted into multiple agents
+- Updated in one place
+- Versioned and tracked
+
+## Example Prompts to Create
+
+### Customer Support Classifier
+```
+Classify support tickets as: technical, billing, or general.
+Provide category and priority (low/medium/high).
+```
+
+### Resume Parser
+```
+Extract: name, email, phone, years of experience, skills, education.
+Format as JSON.
+```
+
+### Content Moderator
+```
+Review content for policy violations.
+Return: safe/questionable/unsafe with reasoning.
+```
+
+### Code Reviewer
+```
+Review code for:
+- Best practices
+- Security issues
+- Performance problems
+
+Provide specific suggestions.
+```
+
+
+## Tips for Building Your Library
+
+<Tip>
+**Start with common tasks**: Create prompts for tasks you do repeatedly
+</Tip>
+
+<Tip>
+**Use descriptive names**: "Support Ticket Classifier" not "Prompt 1"
+</Tip>
+
+<Tip>
+**Add context in categories**: Group related prompts together
+</Tip>
+
+<Tip>
+**Iterate and improve**: Update prompts based on agent performance
+</Tip>
+
+## What's Next?
+
+<CardGroup cols={2}>
+  <Card title="Prompt Configuration" icon="code" href="/documentation/agent_config/types_config/prompt-configuration">
+    YAML syntax, template variables, and advanced features
+  </Card>
+  
+  <Card title="Playground" icon="play" href="/documentation/studio/playground">
+    Test your prompts in the Playground
+  </Card>
+</CardGroup>

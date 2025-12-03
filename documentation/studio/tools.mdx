@@ -1,0 +1,338 @@
+---
+title: "Tool Management"
+description: "Configure capabilities for your agents like web search, code execution, and custom integrations"
+---
+
+Tools give your agents the ability to perform actions beyond just responding with text. They can search the web, execute code, query databases, and more.
+
+<Frame>
+  ![Tools Overview](/images/tools_overview.png)
+</Frame>
+
+The Tools page shows all available tools in a grid layout. Each card displays the tool's name, description, and available actions (Configure, Copy, Authenticate).
+
+## Tools Interface
+
+The Tools page has two main tabs:
+
+### All Tools Tab
+
+Browse all available tools:
+- **Basic Tools**: Ready-to-use tools like web search, Wikipedia, calculator
+- **Toolkits**: OAuth-based integrations like Microsoft Outlook and Teams
+
+Each tool card shows:
+- Tool name and description
+- Configuration status badge (Config Required, Configurable, or Ready to Use)
+- Toolkit badge (for toolkit tools)
+- Authorization status (for toolkits)
+- Action buttons (Configure, Copy, Authenticate, or View Details)
+
+<Tip>
+Use the **Filters** button to toggle between All, Toolkits, or Basic Tools only.
+</Tip>
+
+### My Tools Tab
+Manage your custom tools and configured tool instances
+
+## Adding Tools to Your YAML
+
+When you click the **+** button in the Playground, you'll see a list of available tools:
+
+<Frame>
+  ![Tools List for YAML Insertion](/images/tools_list.png)
+</Frame>
+
+This modal shows all available tools that you can insert into your agent configuration.
+
+<Note>
+This is for quick YAML insertion in the Playground. Browse by toolkit or search for specific tools.
+</Note>
+
+
+## Using Tools in Agents
+
+Once configured, add tools to your agent's YAML:
+
+```yaml
+agents:
+  - name: "research_agent"
+    agent_type: "react_agent"
+    tools: ["tavily_search", "wikipedia"]  # Add tool names here
+    system_prompt: "You are a research assistant."
+```
+
+<Info>
+Only `react_agent` type can use tools. Standard `llm_agent` cannot execute tools.
+</Info>
+
+**→ [Agent Types Reference](/documentation/agent_config/types_config/agent-types)** - Learn about ReAct agents and tool execution
+
+## Toolkits
+
+Toolkits are collections of related tools that require OAuth authentication. For example, the **Microsoft Outlook** toolkit includes tools for reading emails, sending emails, and managing calendar events.
+
+<Note>
+Toolkits require OAuth authentication to connect external services like Microsoft Outlook or Teams.
+</Note>
+
+### Available Toolkits
+
+Current toolkits:
+- **Microsoft Outlook**: Email and calendar management
+- **Microsoft Teams**: Channel messages and collaboration
+
+### Authorizing a Toolkit
+
+Before using toolkit tools in your agents, you need to authorize a connection:
+
+<Steps>
+  <Step title="Click on the Toolkit">
+    Find the toolkit in the All Tools tab and click on it
+  </Step>
+  
+  <Step title="Click Add Connection">
+    <Frame>
+      ![Authorize Connection](/images/authorize.png)
+    </Frame>
+    
+    Opens the authorization flow
+  </Step>
+  
+  <Step title="Authenticate">
+    Follow the OAuth flow to grant permissions
+    
+    You'll be redirected to Microsoft/Google to sign in
+  </Step>
+  
+  <Step title="Connection Created">
+    Your connection is now saved and can be used by agents
+  </Step>
+</Steps>
+
+<Info>
+Connections use the default integration configured in Settings. You cannot choose a different integration during connection creation.
+</Info>
+
+### Using Toolkit Tools in Agents
+
+Once you have a connection, you can use toolkit tools in your YAML:
+
+```yaml
+agents:
+  - name: "email_assistant"
+    agent_type: "react_agent"
+    tools: 
+      - "microsoft_outlook_read_email"
+      - "microsoft_outlook_send_email"
+    system_prompt: "You are an email assistant."
+```
+
+#### Specifying a Connection
+
+By default, agents use the first available connection for a toolkit. To use a specific connection:
+
+```yaml
+agents:
+  - name: "email_assistant"
+    agent_type: "react_agent"
+    tools: 
+      - name: "microsoft_outlook_read_email"
+        connection: "conn_123abc"  # Specify connection
+    system_prompt: "You are an email assistant."
+```
+
+<Info>
+If you don't specify a connection, the agent uses the default connection for that toolkit. If no connection exists, the tool will fail.
+</Info>
+
+### Managing Connections
+
+**View Connections**: Click on a toolkit to see all your connections
+
+**Set Default**: Make a connection the default for that toolkit
+
+**Delete Connection**: Remove a connection you no longer need
+
+<Warning>
+Deleting a connection will break any agents using it. Make sure to update your agents first.
+</Warning>
+
+## Available Tools
+
+### Basic Tools
+
+**Tavily Search** (`tavily_search`)
+- Web search optimized for accurate, trusted results
+- Real-time information with citations
+- Configurable: max_results, timeout, include_answer, etc.
+
+**Tavily Extract** (`tavily_extract`)
+- Extract content from specific URLs
+- Clean and parsed HTML content
+
+**Wikipedia Search** (`wikipedia_search`)
+- Search Wikipedia articles
+- No configuration needed
+
+**YouTube Search** (`youtube_search`)
+- Search for YouTube videos
+- Get video metadata and transcripts
+
+**Arxiv Search** (`arxiv_search`)  
+- Search academic papers on Arxiv
+- Research and scientific content
+
+**Python REPL** (`python_repl`)
+- Execute Python code in a sandboxed environment
+- Mathematical calculations
+- Access to: math, datetime, json, re, random modules
+- **No external libraries** (no pandas, numpy, etc.)
+
+**Calculator** (`calculator`)
+- Perform mathematical calculations
+- Simple arithmetic and computations
+
+### Microsoft Outlook Toolkit
+
+Requires OAuth authorization via connection:
+
+- **List Emails** (`microsoft_outlook_list_emails`)
+- **Send Email** (`microsoft_outlook_send_email`)
+- **List Calendar Events** (`microsoft_outlook_list_calendar_events`)
+- **Create Calendar Event** (`microsoft_outlook_create_calendar_event`)
+- **List Tasks** (`microsoft_outlook_list_tasks`)
+- **Create Task** (`microsoft_outlook_create_task`)
+- **Complete Task** (`microsoft_outlook_complete_task`)
+- **List Contacts** (`microsoft_outlook_list_contacts`)
+- **Create Contact** (`microsoft_outlook_create_contact`)
+
+### Microsoft Teams Toolkit
+
+Requires OAuth authorization via connection:
+
+- **Send Message** (`teams_send_message`)
+- **Send Chat** (`teams_send_chat`)
+- **List Messages** (`teams_list_messages`)
+- **List Chats** (`teams_list_chats`)
+- **Create Meeting** (`teams_create_meeting`) - Can create recurring events
+
+
+## Tool Configuration
+
+Some tools allow you to configure parameters like timeout, max results, etc.
+
+<Frame>
+  ![Configure Tool](/images/configure_tools.png)
+</Frame>
+
+### Configurable Tools
+
+Tools like Tavily Search have optional configuration parameters:
+
+- **`max_results`**: Number of search results to return
+- **`timeout`**: Request timeout in seconds
+- **`include_answer`**: Include AI-generated answer
+- And more tool-specific options
+
+<Note>
+Configuration parameters are set when you create a tool configuration instance. They're not stored in your YAML, but referenced by the tool name.
+</Note>
+
+### Non-Configurable Tools
+
+Tools like Wikipedia Search work out of the box with no configuration needed:
+
+```yaml
+tools: ["wikipedia_search"]
+```
+
+## Tool Security
+
+<Warning>
+Toolkit connections grant access to external services. Only create connections you trust.
+</Warning>
+
+<Tip>
+Monitor tool usage in your agent's execution logs and tracing.
+</Tip>
+
+## Troubleshooting
+
+<Warning>
+**"Tool not found"**: Check spelling in your YAML. Tool names are case-sensitive
+</Warning>
+
+
+<Warning>
+**"Tool timeout"**: External service may be slow. Increase timeout in tool config
+</Warning>
+
+<Tip>
+**Rate limits**: Many external services have rate limits. Configure retry logic in your tool settings
+</Tip>
+
+## Tool Usage Examples
+
+### Research Agent with Web Search
+
+```yaml
+name: "Research Assistant"
+architecture: "workflow"
+
+agents:
+  - name: "researcher"
+    agent_type: "react_agent"
+    tools: ["tavily_search"]
+    system_prompt: |
+      You are a research assistant. When asked about current events or facts,
+      use web search to find accurate information.
+```
+
+### Mathematical Calculations with Python
+
+```yaml
+agents:
+  - name: "math_assistant"
+    agent_type: "react_agent"
+    tools: ["python_repl", "calculator"]
+    system_prompt: |
+      You are a mathematical assistant. Use Python REPL for complex calculations 
+      and the calculator for simple arithmetic.
+```
+
+### Multi-Tool Agent
+
+```yaml
+agents:
+  - name: "assistant"
+    agent_type: "react_agent"
+    tools: ["tavily_search", "wikipedia", "calculator"]
+    system_prompt: |
+      You are a helpful assistant with access to:
+      - Web search for current information
+      - Wikipedia for general knowledge
+      - Calculator for math
+      
+      Use the appropriate tool for each task.
+```
+
+## What's Next?
+
+<CardGroup cols={2}>
+  <Card title="Agent Types" icon="robot" href="/documentation/agent_config/types_config/agent-types">
+    ReAct agents and tool execution
+  </Card>
+  
+  <Card title="Agent Capabilities" icon="sparkles" href="/documentation/agent_config/agent-capabilities">
+    Complete guide to agent capabilities and tools
+  </Card>
+  
+  <Card title="Custom Tools" icon="code" href="/documentation/integration/custom-tools">
+    Build your own tools for agents
+  </Card>
+  
+  <Card title="Settings" icon="key" href="/documentation/studio/settings">
+    Manage API keys and OAuth integrations
+  </Card>
+</CardGroup>

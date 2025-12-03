@@ -1,0 +1,188 @@
+---
+title: "Settings"
+description: "Manage API keys and OAuth integrations"
+---
+
+The Settings page is where you manage API keys for accessing agents and configure OAuth integrations for toolkits.
+
+## Settings Sections
+
+### API Keys
+
+<Frame>
+  ![API Keys](/images/api_keys.png)
+</Frame>
+
+API Keys let external applications access your agents.
+
+#### Creating an API Key
+
+<Steps>
+  <Step title="Navigate to API Keys">
+    Go to **Settings** → **API Keys**
+  </Step>
+  
+  <Step title="Click Create New Key">
+    Opens the key creation dialog
+  </Step>
+  
+  <Step title="Set Expiration">
+    Choose when the key should expire (for security)
+  </Step>
+  
+  <Step title="Copy the Key">
+    **Important**: Copy the key immediately. You won't see it again!
+  </Step>
+</Steps>
+
+<Note>
+API keys have full access to your account. Anyone with the key can execute agents, access knowledge bases, and manage configurations.
+</Note>
+
+<Warning>
+Store API keys securely. They grant full access to your account.
+</Warning>
+
+#### Using API Keys
+
+Include the API key in your requests:
+
+```bash
+curl -X POST https://amas.atthene.com/api/amas/conversations/execute \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "agent_id": "your-agent-id",
+    "message": "Hello!"
+  }'
+```
+
+#### Managing Keys
+
+- **Rotate regularly**: Create new keys and delete old ones every few months
+- **Monitor usage**: Check API key usage in the dashboard
+- **Revoke immediately**: If a key is compromised, delete it right away
+
+<Note>
+You can only have one valid API key at a time. Creating a new key will invalidate the previous one.
+</Note>
+
+### Integrations
+
+Manage OAuth integrations for toolkits (Microsoft Outlook, Teams, etc.).
+
+<Frame>
+  ![All Integrations](/images/all_integrations.png)
+</Frame>
+
+#### How Integrations Work
+
+Integrations control how users authenticate with external services (like Microsoft Outlook or Teams) when using toolkits.
+
+**ATTHENE's Default Integration**: If you don't configure a custom integration, ATTHENE provides a pre-configured OAuth app that works immediately. When users authorize a toolkit connection, they'll use ATTHENE's app by default.
+
+**Custom Integration**: You can add your own OAuth app credentials (Client ID & Secret) from your Azure portal. When users authorize connections, they can choose to use your custom integration instead. This gives your organization full control over OAuth permissions and policies.
+
+**Setting a Default**: If you create multiple custom integrations, you can mark one as "default." This integration will be pre-selected (but not required) when users authorize new connections.
+
+<Note>
+For now, we only support **Microsoft** as a provider. Support for Google, Slack, and other providers coming soon.
+</Note>
+
+#### Adding a Custom Integration
+
+<Steps>
+  <Step title="Click Add Integration">
+    <Frame>
+      ![Add Company Integration](/images/add_company_integration.png)
+    </Frame>
+  </Step>
+  
+  <Step title="Select Provider">
+    Choose **Microsoft** (only option for now)
+  </Step>
+  
+  <Step title="Enter OAuth Credentials">
+    Provide:
+    - **Integration Name**: e.g., "Company Outlook"
+    - **OAuth Client ID**: From your Azure app
+    - **OAuth Client Secret**: From your Azure app  
+    - **OAuth Scopes**: Required permissions (e.g., `Mail.Read`, `Mail.Send`)
+  </Step>
+  
+  <Step title="Create">
+    Your custom integration is now available for users to connect to
+  </Step>
+</Steps>
+
+#### Setting a Default Integration
+
+If you have multiple custom integrations for the same provider:
+
+1. Find the integration in the list
+2. Click **Set as Default**
+3. This integration will be used by default for all new connections
+
+
+#### When to Use Custom Integrations
+
+- **Organization policies**: Your company requires using internal OAuth apps
+- **Custom permissions**: You need specific Microsoft Graph scopes
+- **Compliance**: Data must stay within your Azure tenant
+
+<Info>
+Integrations configured here are used when creating **toolkit connections** in the Tools page. See [Tools - Toolkits](/documentation/studio/tools#toolkits) for how users authorize connections.
+</Info>
+
+## Security Best Practices
+
+<Tip>
+**Principle of Least Privilege**: Only grant the minimum permissions needed
+</Tip>
+
+<Tip>
+**Rotate Credentials**: Change API keys regularly
+</Tip>
+
+<Warning>
+**Never commit secrets**: Don't put API keys in YAML files or git repositories
+</Warning>
+
+<Tip>
+**Monitor Access**: Regularly review API key usage and integration logs
+</Tip>
+
+## Common Tasks
+
+### Revoking an API Key
+
+1. Go to Settings → API Keys
+2. Find the key to revoke
+3. Click the trash icon
+4. Confirm deletion
+
+<Warning>
+Applications using this key will immediately stop working
+</Warning>
+
+## Troubleshooting
+
+<Warning>
+**"Unauthorized" errors**: Check if your API key has expired or been revoked
+</Warning>
+
+## What's Next?
+
+<CardGroup cols={2}>
+  <Card title="REST API Tutorial" icon="code" href="/documentation/integration/rest-api-tutorial">
+    Learn how to use your API keys
+  </Card>
+  
+  <Card title="Custom Tools" icon="wrench" href="/documentation/integration/custom-tools">
+    Build tools that use your integrations
+  </Card>
+  
+  <Card title="Tools" icon="gear" href="/documentation/studio/tools">
+    Configure tools for your agents
+  </Card>
+</CardGroup>

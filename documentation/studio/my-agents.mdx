@@ -1,0 +1,256 @@
+---
+title: "Agent Management"
+description: "Manage, version, and deploy your saved agents"
+---
+
+The Agent Overview page is your control center for all saved agents. Here you can view agent performance, manage versions, and configure deployments.
+
+<Frame>
+  ![Agent Overview](/images/agent_overview.png)
+</Frame>
+
+## Dashboard Overview
+
+At the top, you'll see quick stats:
+- **Total Agents**: Number of agents you've created
+- **Active**: Agents currently deployed
+- **Runs**: Total execution count
+- **Total Tokens**: Cumulative token usage
+
+## Agent List
+
+Each agent card shows:
+- Agent name and description
+- Current version number
+- Creation date
+- Quick action buttons (Config, Settings, Delete)
+
+### Quick Actions
+
+**Config**: Opens the agent's current version in the Playground where you can edit the YAML configuration
+
+**Settings**: Access version management, access control, statistics, and general settings
+
+**Delete**: Remove the agent and all its versions permanently
+
+## Managing Agent Versions
+
+### Understanding Versions
+
+Every time you save changes to an agent, a new version is created. This gives you:
+- **Version history**: See all previous configurations
+- **Easy rollback**: Revert to an older version if needed
+- **Safe experimentation**: Test changes without losing the working version
+
+### Version States
+
+<Frame>
+  ![Version Management](/images/agent_versions.png)
+</Frame>
+
+**Current Badge**: The version that's actively deployed and handles all API requests
+
+**Historical Versions**: Previous configurations you can view or deploy
+
+### Deploying a Version
+
+<Steps>
+  <Step title="Go to Agent Settings">
+    Click the settings icon on your agent
+  </Step>
+  
+  <Step title="Navigate to Versions Tab">
+    View all available versions
+  </Step>
+  
+  <Step title="Click Deploy">
+    Click the **Deploy** button next to the version you want to activate
+  </Step>
+  
+  <Step title="Confirm">
+    This version becomes the "Current" version and handles all requests
+  </Step>
+</Steps>
+
+<Warning>
+Deploying a version immediately affects:
+- API endpoints
+- Embedded chatbots
+- WebSocket connections
+
+Test thoroughly in the Playground before deploying!
+</Warning>
+
+## Agent Settings
+
+Click the **Settings** button on any agent to access detailed configuration. The Settings modal has four tabs:
+
+### General
+
+<Frame>
+  ![Agent Settings General](/images/agent_settings_general.png)
+</Frame>
+
+- **Public Access**: Enable WebSocket access for external clients
+- **Agent Key**: Unique identifier for API/WebSocket connections
+- **Origin URL**: Allowed domain for public access (CORS)
+- **Agent Details**: View architecture, entry point, and last update time
+
+<Note>
+When Public Access is enabled, you must specify an allowed origin URL for security.
+</Note>
+
+### Access Control
+
+<Frame>
+  ![Access Control Settings](/images/access_control.png)
+</Frame>
+
+Control who can see and use your agent:
+
+**Share with Company**
+- When enabled, other users in your organization can view and use this agent in AMAS
+- Only you (the owner) can modify settings
+
+**Show in Atthene**
+- When enabled, agent appears in the Atthene frontend interface
+- Works alongside company sharing
+
+<Info>
+**Access Summary:**
+- **AMAS**: Shows your agents + shared company agents
+- **Atthene**: Shows agents with "Show in Atthene" enabled
+- **Public Chatbot**: Configured via Public Access in General tab
+</Info>
+
+### Versions
+
+<Frame>
+  ![Version Management](/images/agent_versions.png)
+</Frame>
+
+- **View all versions**: See complete version history
+- **Deploy button**: Activate a specific version (makes it "Current")
+- **View Config**: Open version's YAML in Playground
+- **Current badge**: Shows which version is actively deployed
+
+### Statistics
+
+<Frame>
+  ![Agent Statistics](/images/agent_statistics.png)
+</Frame>
+
+View usage metrics for your agent:
+
+**Overview**
+- Total Sessions
+- Total Answer Generations
+
+**Token Usage**
+- Input Tokens
+- Output Tokens  
+- Total Tokens
+
+**Averages**
+- Answers per Session
+- Tokens per Session
+- Tokens per Answer
+
+<Note>
+Playground preview sessions are not included in these statistics.
+</Note>
+
+## Creating New Versions
+
+When you edit a saved agent in the Playground:
+
+<Steps>
+  <Step title="Click Config on Agent Card">
+    Opens the agent in Playground with current version loaded
+    
+    <Frame>
+      ![Loading Agent](/images/agent_loading.png)
+    </Frame>
+  </Step>
+  
+  <Step title="Make Your Changes">
+    Edit the YAML configuration as needed
+  </Step>
+  
+  <Step title="Save as New Version">
+    Click **Save as New Version** button (only appears when editing)
+  </Step>
+  
+  <Step title="Version Created">
+    A new version is automatically created and appears in the Versions tab
+  </Step>
+</Steps>
+
+<Info>
+The Playground shows a version dropdown when editing an agent. This lets you switch between versions to view their configurations.
+</Info>
+
+## Best Practices
+
+<Tip>
+**Test before deploying**: Always test new versions in the Playground before deploying to production
+</Tip>
+
+<Tip>
+**Keep a stable version**: Maintain one tested version as "production" while experimenting with new ones
+</Tip>
+
+<Tip>
+**Monitor statistics**: Use the Statistics tab to track usage patterns and optimize performance
+</Tip>
+
+<Tip>
+**Check access control**: Review who can access your agent before enabling company sharing
+</Tip>
+
+## Sharing Agents
+
+To share an agent with your organization:
+
+1. Click **Settings** on the agent card
+2. Go to **Access Control** tab
+3. Enable **Share with Company**
+4. Optionally enable **Show in Atthene** to make it visible in the Atthene interface
+
+<Info>
+Shared agents are read-only for other users. Only the owner can modify settings or deploy versions.
+</Info>
+
+## Common Questions
+
+**Q: What happens to my API connections when I deploy a new version?**
+
+A: They immediately start using the new version. No downtime, but behavior may change based on your config updates.
+
+**Q: Can I restore a deleted agent?**
+
+A: No. Deletion is permanent. Make sure you export the YAML configuration if you might need it later.
+
+**Q: How many versions can I have?**
+
+A: Unlimited. All versions are stored and accessible.
+
+## What's Next?
+
+<CardGroup cols={2}>
+  <Card title="REST API Tutorial" icon="plug" href="/documentation/integration/rest-api-tutorial">
+    Connect your agents to applications
+  </Card>
+  
+  <Card title="Embedding Agents" icon="code" href="/documentation/integration/embedding-agents">
+    Add agents to your website
+  </Card>
+  
+  <Card title="YAML Configuration" icon="file-code" href="/documentation/yaml-configuration">
+    Learn complete YAML syntax
+  </Card>
+  
+  <Card title="Agent Types" icon="robot" href="/documentation/agent_config/types_config/agent-types">
+    Learn about agent architectures
+  </Card>
+</CardGroup>
