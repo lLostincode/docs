@@ -153,6 +153,10 @@ Access formatted conversation history (user-visible messages only, excludes inte
 | `{{ history }}` | Full user-visible history | `user: message\nassistant: response\n...` |
 | `{{ history[N] }}` | Last N messages | Same format, limited to N messages |
 
+<Warning>
+**Important**: Structured output from agents is **NOT** included in history variables. Use `{{ agent_name.output.field }}` template variables to access structured data.
+</Warning>
+
 **Example:**
 ```yaml
 prompt_config:
@@ -172,6 +176,10 @@ assistant: It's sunny with a high of 75°F.
 user: Should I bring an umbrella?
 assistant: No need for an umbrella today!
 ```
+
+<Warning>
+**Structured Output Exclusion**: The history variables only include user-visible text messages. Structured output data from agents with `structured_output` enabled is excluded from these history arrays and must be accessed via specific template variables.
+</Warning>
 
 <Info>
 **History vs include_history**: You can use `{{ history }}` template variable for formatted history in your system prompt, or use `include_history: true` to add messages to the message list. They serve different purposes.
@@ -1181,3 +1189,4 @@ edges:
     Explore different agent architectures
   </Card>
 </CardGroup>
+  

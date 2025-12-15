@@ -1,0 +1,359 @@
+---
+title: "Variables"
+description: "Learn more about using variables in AMAS"
+---
+
+# Variables System
+
+The AMAS Variables System provides a powerful way to define, populate, and use dynamic values throughout your agent configurations. Variables can be populated from user inputs, agent structured outputs, or defined with static defaults.
+
+## Overview
+
+Variables enable:
+- **Dynamic prompts** - Inject context into agent system prompts using `{{ variables.name }}`
+- **Input overrides** - User-provided inputs override variable defaults at runtime
+- **Automatic population** - Extract data from agent structured outputs via `variable_assignments`
+- **Persistence** - Variables persist across executions when using checkpoints
+
+---
+
+## Defining Variables
+
+Variables are defined in the `variables` section of your configuration:
+
+```yaml
+variables:
+  customer_name:
+    type: "str"
+    description: "Customer name extracted from conversation"
+  
+  priority:
+    type: "str"
+    default: "medium"
+  
+  max_retries:
+    type: "int"
+    default: 3
+```
+
+### Variable Properties
+
+| Property | Type | Required | Description |
+|----------|------|----------|-------------|
+| `type` | string | Yes | Data type: `str`, `int`, `float`, `bool`, `list`, `dict` |
+| `default` | any | No | Default value if not provided |
+| `description` | string | No | Human-readable description (shown in UI) |
+| `required` | boolean | No | If `true`, must be provided on first execution |
+| `require_every_execution` | boolean | No | If `true`, must be provided on every request |
+
+---
+
+## Variable Lifecycle
+
+Understanding when variables are required is crucial for proper configuration:
+
+### Session-Level Variables
+
+These are required on the **first execution only** and persist via checkpoints:
+
+```yaml
+variables:
+  current_user_id:
+    type: "str"
+    required: true
+    description: "User ID (persists after first execution)"
+```
+
+When the user provides `inputs: {"current_user_id": "user_123"}`, this value is stored in the variable and persists across subsequent executions.
+
+- Set once at session start
+- Persist across all subsequent executions in the session
+- Ideal for: user identity, session context, preferences
+
+### Request-Level Variables
+
+These must be provided on **every execution**:
+
+```yaml
+variables:
+  current_query:
+    type: "str"
+    require_every_execution: true
+    description: "User's query (must be provided every time)"
+```
+
+- Fresh value required for each request
+- Checkpoint values are ignored for these variables
+- Ideal for: user messages, request-specific data
+
+---
+
+## Providing Inputs
+
+Inputs are values provided at runtime that **override variable defaults**. The input key must match the variable name.
+
+### Via REST API
+
+Send inputs in the request body:
+
+```bash
+curl -X POST /api/v1/sessions/{session_id}/execute \
+  -H "Content-Type: application/json" \
+  -d '{
+    "message": "Help me with my order",
+    "inputs": {
+      "current_user_id": "user_123",
+      "current_department": "support",
+      "current_query": "Help me with my order"
+    }
+  }'
+```
+
+The `inputs` object keys correspond directly to variable names defined in your configuration.
+
+### Via Playground UI
+
+Use the **Variable Inputs** panel to provide values:
+
+1. Click the input field next to each variable
+2. Enter the value
+3. Variables with `required: true` must be filled before execution
+4. Variables with defaults show the default value as placeholder
+
+![Variable Inputs Panel](/images/variable-inputs-panel.png)
+
+<Callout type="info">
+The Variable Inputs panel shows all defined variables with their descriptions and current values.
+</Callout>
+
+---
+
+## Using Variables in Prompts
+
+Reference variables in agent prompts using Jinja2 syntax:
+
+```yaml
+agents:
+  - name: support_agent
+    prompt_config:
+      system_prompt: |
+        You are a support agent for {{ variables.company_name }}.
+        
+        Current User: {{ variables.current_user_id }}
+        Department: {{ variables.current_department }}
+        
+        Customer Query: "{{ variables.current_query }}"
+        Customer Name: {{ variables.customer_name }}
+        Priority Level: {{ variables.priority }}
+```
+
+### Template Syntax
+
+| Syntax | Description | Example |
+|--------|-------------|---------|
+| `{{ variables.name }}` | Access a variable value | `{{ variables.customer_name }}` |
+
+> **Note:** Always use `{{ variables.name }}` syntax. Inputs populate variables at runtime but are not accessed directly in templates.
+
+---
+
+## Variable Assignments
+
+The most powerful feature: automatically populate variables from agent structured outputs.
+
+### How It Works
+
+1. **Agent generates structured output** using `structured_output` configuration
+2. **Variable assignments map** output fields to variables
+3. **Downstream agents** receive populated variables in their prompts
+
+### Configuration
+
+```yaml
+agents:
+  - name: analyzer
+    structured_output:
+      enabled: true
+      schema:
+        customer:
+          type: "str"
+          description: "Customer name mentioned"
+        priority_level:
+          type: "str"
+          description: "Urgency level (low, medium, high, urgent)"
+        order_number:
+          type: "str"
+          description: "Order ID if mentioned"
+    
+    # Map structured output fields to variables
+    variable_assignments:
+      customer_name: "analyzer.output.customer"
+      priority: "analyzer.output.priority_level"
+      order_id: "analyzer.output.order_number"
+```
+
+### Assignment Syntax
+
+```
+variable_name: "agent_name.output.field_name"
+```
+
+- `variable_name` - The variable to populate (must be defined in `variables`)
+- `agent_name` - The agent that produces the output
+- `output` - Fixed keyword indicating structured output
+- `field_name` - The field from the structured output schema
+
+### Nested Fields
+
+For nested structured outputs:
+
+```yaml
+structured_output:
+  schema:
+    customer:
+      type: "object"
+      properties:
+        name:
+          type: "str"
+        email:
+          type: "str"
+
+variable_assignments:
+  customer_name: "analyzer.output.customer.name"
+  customer_email: "analyzer.output.customer.email"
+```
+
+---
+
+## Best Practices
+
+### 1. Use Descriptive Names
+
+```yaml
+# ✅ Good
+variables:
+  customer_email:
+    type: "str"
+    description: "Customer's email address for follow-up"
+
+# ❌ Avoid
+variables:
+  ce:
+    type: "str"
+```
+
+### 2. Provide Helpful Descriptions
+
+Descriptions appear in the UI and help users understand what to provide:
+
+```yaml
+variables:
+  current_query:
+    type: "str"
+    require_every_execution: true
+    description: "The user's question or request for this interaction"
+```
+
+### 3. Set Sensible Defaults
+
+```yaml
+variables:
+  priority:
+    type: "str"
+    default: "medium"  # Reasonable fallback
+  
+  max_retries:
+    type: "int"
+    default: 3
+```
+
+### 4. Separate Session vs Request Variables
+
+Clearly distinguish between persistent and per-request variables:
+
+```yaml
+variables:
+  # SESSION-LEVEL (comment for clarity)
+  # Provided once on first execution, then persists
+  user_id:
+    type: "str"
+    required: true
+  
+  # REQUEST-LEVEL (comment for clarity)
+  # Must be provided on every execution
+  current_message:
+    type: "str"
+    require_every_execution: true
+```
+
+### 5. Validate Required Variables
+
+Use `required: true` for critical session variables:
+
+```yaml
+variables:
+  api_key:
+    type: "str"
+    required: true
+    description: "API key for external service (required)"
+```
+
+---
+
+## Troubleshooting
+
+### Variable Not Populated
+
+**Symptom**: Variable shows empty or default value in prompt
+
+**Causes**:
+1. Agent didn't produce structured output
+2. Assignment path is incorrect
+3. Field name doesn't match schema
+
+**Solution**: Check the agent's structured output schema matches the assignment path:
+
+```yaml
+# Schema defines "customer_name"
+structured_output:
+  schema:
+    customer_name:  # ← Field name
+      type: "str"
+
+# Assignment must match
+variable_assignments:
+  customer: "agent.output.customer_name"  # ← Must match schema field
+```
+
+### Required Variable Error
+
+**Symptom**: "Required variable 'X' not provided"
+
+**Cause**: Variable with `required: true` wasn't provided in inputs
+
+**Solution**: Provide the variable in your API request or UI:
+
+```json
+{
+  "inputs": {
+    "user_id": "your_value_here"
+  }
+}
+```
+
+### Variables Not Persisting
+
+**Symptom**: Variables reset between executions
+
+**Cause**: `persistent_state` not enabled or using new session
+
+**Solution**: Enable checkpoints in configuration:
+
+```yaml
+persistent_state: true
+```
+
+---
+
+## API Reference
+TODO

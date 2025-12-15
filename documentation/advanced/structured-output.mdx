@@ -18,6 +18,10 @@ When you enable structured output, your agent will:
 Structured output uses runtime schema generation and validation to ensure your agents return properly formatted data.
 </Info>
 
+<Warning>
+**Important**: Structured output is **NOT** included in the conversation history array. This means structured output from previous agents is only accessible through template variables in prompts (e.g., `{{ agent_name.output.field }}`) and will not appear in the `{{ history }}` or `{{ history[N] }}` variables.
+</Warning>
+
 ## When to Use Structured Output
 
 <CardGroup cols={2}>
@@ -224,7 +228,11 @@ agents:
 - `{{ agent_name.output.nested.field }}` - Access nested fields
 - `{{ agent_name.output }}` - Access entire structured output as JSON
 - `{{ user_input }}` - Latest user message
-- `{{ history[N] }}` - Last N messages from conversation
+- `{{ history[N] }}` - Last N messages from conversation (structured output NOT included)
+
+<Warning>
+**Critical**: Structured output is excluded from history variables. Use the specific `{{ agent_name.output.field }}` template variables to access structured data from previous agents.
+</Warning>
 
 <Tip>
 **Complex data types** (lists, dicts) are automatically serialized to JSON when injected into prompts.

@@ -53,6 +53,7 @@
             "icon": "brain-circuit",
             "pages": [
               "documentation/advanced/multi-agent-introduction",
+              "documentation/advanced/variables-system",
               "documentation/advanced/sequential-patterns",
               "documentation/advanced/conditional-edges",
               "documentation/advanced/supervisor-pattern"
@@ -69,16 +70,7 @@
               "documentation/studio/knowledge-base",
               "documentation/studio/tools",
               "documentation/studio/prompts",
-              "documentation/advanced/ai-config-generator"
-            ]
-          },
-          {
-            "group": "Knowledge Base",
-            "icon": "database",
-            "pages": [
-              "documentation/knowledge-base/overview",
-              "documentation/knowledge-base/milvus",
-              "documentation/knowledge-base/uknow-cloud-storage"
+              "documentation/studio/ai-config-generator"
             ]
           },
           {
