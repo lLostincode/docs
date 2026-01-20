@@ -3,239 +3,342 @@ title: "Embedding Chatbot"
 description: "Integrate your agents into chatbots and messaging platforms"
 ---
 
-TODO: Tutorial for embedding agents as public chatbot into public websites and sharepoints
+## Set up your public chatbot
 
+The public chatbot is an embeddable chat widget that you can integrate into your website. This guide walks you through the complete setup process.
 
+## Step 1: Enable public access
 
-## Overview
+Before embedding your chatbot, configure your agent's public settings.
 
-Embed our chatbot into your application with full customization options. The chatbot component accepts various configuration props to match your brand and use case.
+<Steps>
+  <Step title="Open agent settings">
+    Navigate to your agent and access the **Settings** section.
+    
+    <Frame>
+      <img src="/images/agent_settings.png" alt="Agent settings panel" />
+    </Frame>
+  </Step>
 
-## Basic Setup
+  <Step title="Enable public access">
+    In the settings panel, locate and toggle on the **Public Access** option to make your agent available for embedding.
+    
+    <Frame>
+      <img src="/images/agent_settings_opened.png" alt="Public access toggle" />
+    </Frame>
+  </Step>
+
+  <Step title="Add your domain">
+    Enter the domain where you'll be embedding the chatbot. This should be your website's URL (for example, `docs.yourcompany.com`). This ensures the chatbot only loads on authorized domains. You can use `http://localhost:port` for testing purposes.
+    
+    <Frame>
+      <img src="/images/agent_settings_enabled.png" alt="Domain allowlist configuration" />
+    </Frame>
+  </Step>
+
+  <Step title="Save and copy your Agent Key">
+    Press **Save URL** to confirm your settings. You'll see your **Agent Key** displayed, copy this key — you'll need it in the next step to embed the chatbot on your website.
+  </Step>
+</Steps>
+
+## Step 2: Embed the widget
+
+Add the Atthene chatbot to your website using the following code.
+
+### Add the container element
+
+Add this container to your HTML
 
 ```html
-<chatbot-component
-  connection-key="your-connection-key"
-  type="inPlace"
-/>
+<div id="atthene-chatbot-root"></div>
 ```
 
-## Configuration Parameters
+### Load and initialize the script
 
-### Required Parameters
-
-<ParamField path="connectionKey" type="string" required>
-  Your unique connection key for the chatbot instance.
-  
-  **Default:** `e97e32ea-579f-448c-a953-21586dccbc28`
-</ParamField>
-
-### Display & Behavior
-
-<ParamField path="type" type="string">
-  The display type of the chatbot.
-  
-  **Options:** `inPlace`, `popup`, `fullscreen`
-  
-  **Default:** `inPlace`
-</ParamField>
-
-<ParamField path="welcomeMessage" type="string">
-  The initial greeting message displayed to users when they open the chatbot.
-  
-  **Default:** Empty string
-</ParamField>
-
-<ParamField path="placeholder" type="string">
-  Placeholder text shown in the message input field.
-  
-  **Default:** Empty string
-</ParamField>
-
-<ParamField path="hintQuestions" type="array">
-  An array of suggested questions to help users get started.
-  
-  **Example:** `["How can I track my order?", "What are your business hours?"]`
-  
-  **Default:** `[]`
-</ParamField>
-
-### Legal & Compliance
-
-<ParamField path="disclaimer" type="string">
-  A disclaimer message shown to users before they interact with the chatbot.
-  
-  **Default:** Empty string
-</ParamField>
-
-<ParamField path="persistentDisclaimer" type="string">
-  A disclaimer that remains visible throughout the chat session.
-  
-  **Default:** `undefined`
-</ParamField>
-
-### Audio Configuration
-
-<ParamField path="enableAudio" type="boolean">
-  Enable or disable audio/voice capabilities in the chatbot.
-  
-  **Default:** `true`
-</ParamField>
-
-<ParamField path="playAudioByDefault" type="boolean">
-  Automatically play audio responses when they are generated.
-  
-  **Default:** `true`
-</ParamField>
-
-<ParamField path="voiceConfig" type="object">
-  Detailed configuration for the ElevenLabs text-to-speech engine.
-
-  <Expandable title="Voice Configuration Properties">
-    <ParamField path="voiceConfig.model_id" type="string">
-      The ElevenLabs TTS model to use.
-      
-      **Options:**
-      - `eleven_turbo_v2_5` (recommended for low-latency)
-      - `eleven_flash_v2_5` (fastest option)
-      - `eleven_turbo_v2`
-      - `eleven_flash_v2`
-      - `eleven_v3`
-      - `eleven_ttv_v3`
-      - `eleven_multilingual_v2`
-      - `eleven_multilingual_ttv_v2`
-      
-      **Default:** `eleven_turbo_v2_5`
-    </ParamField>
-
-    <ParamField path="voiceConfig.voice_id" type="string">
-      The voice character to use for speech synthesis.
-      
-      **Available Voices:**
-      - `JBFqnCBsd6RMkjVDRZzb` - George (default, versatile)
-      - `L0Dsvb3SLTyegXwtm47J` - Archer (British male, charming)
-      - `g6xIsTj2HwM6VR4iXFCw` - Jessica Anne Bogart (empathetic)
-      - `OYTbf65OHHFELVut7v2H` - Hope (bright, uplifting)
-      - `HDA9tsk27wYi3uq0fPcK` - Stuart (Australian, professional)
-      - `1SM7GgM6IMuvQlz2BwM3` - Mark (relaxed, laid back)
-      - `PT4nqlKZfc06VW1BuClj` - Angela (raw, relatable)
-      - `vBKc2FfBKJfcZNyEt1n6` - Finn (tenor, podcast-friendly)
-      - `56AoDkrOh6qfVPDXZ7Pt` - Cassidy (energetic)
-      - `NOpBlnGInO9m6vDvFkFC` - Grandpa Spuds Oxley (character voice)
-      
-      **Default:** `JBFqnCBsd6RMkjVDRZzb`
-    </ParamField>
-
-    <ParamField path="voiceConfig.speed" type="number">
-      Speaking speed multiplier.
-      
-      **Range:** `0.7` - `1.2`
-      
-      **Default:** `1.2`
-      
-      <Note>Extreme values may affect audio quality</Note>
-    </ParamField>
-
-    <ParamField path="voiceConfig.stability" type="number">
-      Voice stability and consistency. Lower values produce more emotional/dramatic speech, while higher values are more monotone and consistent.
-      
-      **Range:** `0.0` - `1.0`
-      
-      **Default:** `0.1`
-    </ParamField>
-
-    <ParamField path="voiceConfig.similarity_boost" type="number">
-      How closely the AI should adhere to the original voice characteristics.
-      
-      **Range:** `0.0` - `1.0`
-      
-      **Default:** `0.8`
-    </ParamField>
-
-    <ParamField path="voiceConfig.use_speaker_boost" type="boolean">
-      Boost similarity to the original speaker. Increases latency and is not available for Eleven v3 models.
-      
-      **Default:** `false`
-    </ParamField>
-
-    <ParamField path="voiceConfig.style_exaggeration" type="number">
-      Amplify the style of the original speaker. Increases latency and reduces stability.
-      
-      **Range:** `0.0` - `1.0`
-      
-      **Default:** `0.0`
-      
-      <Warning>Recommended to keep at 0.0 for best results</Warning>
-    </ParamField>
-  </Expandable>
-</ParamField>
-
-### Styling & Theming
-
-<ParamField path="font" type="string">
-  Custom font family to use throughout the chatbot interface.
-  
-  **Example:** `"Inter, sans-serif"`
-  
-  **Default:** Empty string (uses default font)
-</ParamField>
-
-<ParamField path="theme" type="object">
-  Custom theme configuration object for colors, spacing, and other visual properties.
-  
-  **Default:** `{}`
-</ParamField>
-
-<ParamField path="images" type="object">
-  Custom images for branding (logo, avatar, etc.).
-  
-  **Default:** `{}`
-</ParamField>
-
-### User Management
-
-<ParamField path="userToken" type="string">
-  Optional authentication token to identify and track individual users across sessions.
-  
-  **Default:** Empty string
-</ParamField>
-
-## Example Configuration
+Add this script after the container element:
 
 ```html
-<chatbot-component
-  connection-key="e97e32ea-579f-448c-a953-21586dccbc28"
-  type="inPlace"
-  welcome-message="Hello! How can I help you today?"
-  placeholder="Type your message here..."
-  :hint-questions="['How do I get started?', 'What features are available?']"
-  disclaimer="This chatbot uses AI and may occasionally produce inaccurate information."
-  :enable-audio="true"
-  :play-audio-by-default="true"
-  font="Inter, system-ui, sans-serif"
-  :voice-config="{
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const scriptElement = document.createElement('script');
+    scriptElement.src = 'https://static.arttacsolutions.com/js/atthene.js/1.2.0-amas/atthene.umd.js';
+    scriptElement.async = true;
+
+    scriptElement.onload = function() {
+      setTimeout(function() {
+        try {
+          if (window.atthene && typeof window.atthene.initialize === 'function') {
+            window.atthene.initialize({
+              agentKey: 'YOUR_AGENT_KEY',
+              elementId: 'atthene-chatbot-root',
+              type: 'floatingButton',
+              placeholder: 'Write a message...',
+              welcomeMessage: 'Hi! How can I help you?'
+            });
+          }
+        } catch (error) {
+          console.error('Failed to initialize Atthene chatbot:', error);
+        }
+      }, 200);
+    };
+
+    scriptElement.onerror = function(error) {
+      console.error('Failed to load Atthene chatbot script:', error);
+    };
+
+    document.head.appendChild(scriptElement);
+  });
+</script>
+```
+
+Replace `YOUR_AGENT_KEY` with the Agent Key you copied from the agent settings.
+
+<Check>
+When the page loads, you see the chatbot launcher button and you can open a conversation.
+</Check>
+
+### Widget types
+
+Atthene supports two display modes:
+
+<CardGroup cols={2}>
+  <Card title="Floating Button" icon="comment">
+    A collapsible chat widget that appears as a button in the bottom corner of your page (position configurable). Users click to expand the chat interface.
+    
+    <Frame>
+      <img src="/images/floating_button.png" alt="Floating button widget collapsed in bottom left corner" />
+    </Frame>
+  </Card>
+
+  <Card title="In-Place" icon="window">
+    The chat interface is rendered directly in the page, always visible and expanded. Ideal for dedicated support pages or embedded chat sections.
+    
+    <Frame>
+      <img src="/images/inPlace.png" alt="In-place widget rendered opened in the center" />
+    </Frame>
+  </Card>
+</CardGroup>
+
+Set the display mode using the `type` property in your configuration (see [Technical configuration](#technical) below).
+
+## Step 3: Configure your chatbot (optional)
+
+You can customize the chatbot's appearance and behavior by passing additional parameters to `window.atthene.initialize()`.
+
+### Configuration reference
+
+The `initialize` function accepts an `AttheneOptions` object organized into the following categories:
+
+#### Technical
+
+Core technical configuration for the chatbot widget:
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `agentKey` | `string` | Your agent identifier (required) |
+| `connectionKey` | `string` | Deprecated connection key for non-AMAS agents |
+| `elementId` | `string` | ID of the container element (default: `atthene-chatbot-root`) |
+| `type` | `'floatingButton' \| 'inPlace' \| 'modal'` | Chat widget display type - see [Widget types](#widget-types) for visual examples (default: `floatingButton`) |
+| `userToken` | `string` | Token for user identification and session management |
+
+#### Content
+
+Content and messaging configuration:
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `placeholder` | `string` | Custom placeholder text for the message input field |
+| `welcomeMessage` | `string` | Custom message displayed when chat opens |
+| `disclaimer` | `string` | Legal disclaimer displayed at the start of the chat |
+| `persistentDisclaimer` | `string` | Disclaimer that remains visible throughout the chat |
+| `hintQuestions` | `string[]` | Array of suggested questions to help users get started |
+| `feedbackInputPlaceholder` | `string` | Placeholder for feedback input field |
+| `feedbackInputCaptionText` | `string` | Caption text for feedback section |
+
+##### Images
+
+The `images` object allows you to customize branding:
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `images.assistant` | `string` | URL to custom assistant avatar image |
+| `images.assistantNoBackground` | `boolean` | Whether the assistant image has no background (default: `false`) |
+
+#### Styling / Theming
+
+Visual appearance and styling configuration:
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `launcherTooltip` | `string` | Tooltip text shown when hovering over the launcher button |
+| `launcherRight` | `boolean` | Position launcher on the right side (default: `false`) |
+| `launcherExtraShadow` | `boolean` | Add extra shadow effect to the launcher button (default: `false`) |
+| `font` | `string` | Custom font family for the chat widget |
+
+##### Theme
+
+The `theme` object allows you to customize colors and appearance:
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `theme.dark` | `boolean` | Enable dark mode (default: `false`) |
+| `theme.accentColor` | `string` | Primary accent color (hex format) |
+| `theme.assistantMessage.bg` | `string` | Background color for assistant messages |
+| `theme.assistantMessage.text` | `string` | Text color for assistant messages |
+| `theme.userMessage.bg` | `string` | Background color for user messages |
+| `theme.userMessage.text` | `string` | Text color for user messages |
+
+#### Audio
+
+<Note>
+Audio features are only available if you have subscribed to the appropriate tier and saved an ElevenLabs API key in the platform settings.
+</Note>
+
+Audio input/output configuration:
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `enableAudio` | `boolean` | Enable audio input/output capability (default: `false`) |
+| `playAudioByDefault` | `boolean` | Auto-play audio responses when audio is enabled (default: `true`) |
+
+##### Voice configuration
+
+The `voiceConfig` object configures audio output voice settings (requires `enableAudio: true`):
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `voiceConfig.model_id` | `string` | Voice model to use (e.g., `eleven_turbo_v2_5`) |
+| `voiceConfig.voice_id` | `string` | Specific voice identifier |
+| `voiceConfig.speed` | `number` | Speech speed (0.5 to 2.0) |
+| `voiceConfig.stability` | `number` | Voice consistency (0.0 to 1.0) |
+| `voiceConfig.similarity_boost` | `number` | Voice similarity level (0.0 to 1.0) |
+| `voiceConfig.use_speaker_boost` | `boolean` | Enhance speaker clarity |
+| `voiceConfig.style_exaggeration` | `number` | Emotional expression level (0.0 to 1.0) |
+
+### Configuration examples
+
+#### Minimal setup
+
+Just the essentials:
+
+```javascript
+window.atthene.initialize({
+  agentKey: 'YOUR_AGENT_KEY',
+  elementId: 'atthene-chatbot-root',
+  welcomeMessage: 'Welcome to our support chatbot!'
+});
+```
+
+#### Customer support bot
+
+With hint questions and feedback:
+
+```javascript
+window.atthene.initialize({
+  agentKey: 'YOUR_AGENT_KEY',
+  elementId: 'atthene-chatbot-root',
+  type: 'floatingButton',
+  launcherTooltip: 'Need help? Chat with us!',
+  welcomeMessage: 'Hi! How can I assist you today?',
+  hintQuestions: [
+    'How do I reset my password?',
+    'What are your business hours?',
+    'How do I contact support?'
+  ],
+  feedbackInputPlaceholder: 'Tell us how we did...',
+  placeholder: 'Type your question here...'
+});
+```
+
+#### Fully customized with theming
+
+Complete customization with branding and theme:
+
+```html
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const scriptElement = document.createElement('script');
+    scriptElement.src = 'https://static.arttacsolutions.com/js/atthene.js/1.2.0-amas/atthene.umd.js';
+    scriptElement.async = true;
+
+    scriptElement.onload = function() {
+      setTimeout(function() {
+        if (!window.atthene || typeof window.atthene.initialize !== 'function') return;
+
+        window.atthene.initialize({
+          agentKey: 'YOUR_AGENT_KEY',
+          elementId: 'atthene-chatbot-root',
+          type: 'floatingButton',
+          placeholder: 'Write a message...',
+          welcomeMessage: 'Hello! How can I help you?',
+          launcherRight: false,
+          launcherExtraShadow: true,
+          hintQuestions: [
+            'What products do you offer?',
+            'How do I get started?',
+            'Where can I find documentation?'
+          ],
+          theme: {
+            dark: false,
+            accentColor: '#4e8cff',
+            assistantMessage: {
+              bg: '#f5f5f5',
+              text: '#333333'
+            },
+            userMessage: {
+              bg: '#4e8cff',
+              text: '#ffffff'
+            }
+          },
+          images: {
+            assistant: 'https://static.arttacsolutions.com/img/icon_atthene_interaction.svg',
+            assistantNoBackground: false
+          }
+        });
+      }, 200);
+    };
+
+    document.head.appendChild(scriptElement);
+  });
+</script>
+```
+
+#### With audio capabilities
+
+Enable voice interaction:
+
+```javascript
+window.atthene.initialize({
+  agentKey: 'YOUR_AGENT_KEY',
+  elementId: 'atthene-chatbot-root',
+  enableAudio: true,
+  playAudioByDefault: true,
+  voiceConfig: {
     model_id: 'eleven_turbo_v2_5',
     voice_id: 'JBFqnCBsd6RMkjVDRZzb',
-    speed: 1.2,
-    stability: 0.1,
+    speed: 1.0,
+    stability: 0.5,
     similarity_boost: 0.8,
     use_speaker_boost: false,
     style_exaggeration: 0.0
-  }"
-  user-token="user-12345"
-/>
+  }
+});
 ```
 
-## Best Practices
+## Troubleshooting
+
+- **Launcher does not appear**: Confirm you added the container element and that `elementId` matches the container `id`.
+- **Loads locally but not in production**: Verify your production domain is allowlisted in agent settings.
+- **Console shows a script error**: Confirm the `scriptElement.src` URL is reachable from your site.
+- **Agent Key error**: Ensure you copied the full Agent Key without extra spaces or characters.
+
+## Next steps
+
+- **Monitor performance**: Review agent analytics to see how visitors use the chatbot.
+- **Test thoroughly**: Verify the widget works across devices and browsers.
+- **Iterate on configuration**: Tune welcome text, theme, and launcher placement based on user feedback.
+- **Collect user feedback**: Use the feedback feature to continuously improve responses.
 
 <Tip>
-  **Voice Configuration:** For the best balance of quality and latency, use `eleven_turbo_v2_5` with a speed of 1.0-1.2 and stability around 0.5.
+Want to connect via WebSocket to build your own frontend? Drop us a message at [lorenz.stirnweis@arttacsolutions.de](mailto:lorenz.stirnweis@arttacsolutions.de).
 </Tip>
-
-<Tip>
-  **User Experience:** Provide 2-4 hint questions to help users understand what your chatbot can do.
-</Tip>
-
-<Warning>
-  Avoid setting `style_exaggeration` above 0.0 unless specifically needed, as it can reduce audio quality and increase latency.
-</Warning>

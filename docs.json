@@ -87,8 +87,6 @@
             "icon": "plug",
             "pages": [
               "documentation/integration/rest-api-tutorial",
-              "documentation/integration/connecting-services",
-              "documentation/integration/embedding-agents",
               "documentation/integration/chatbot-integration",
               "documentation/integration/custom-tools"
             ]
