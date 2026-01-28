@@ -223,6 +223,43 @@ variable_assignments:
   customer_email: "analyzer.output.customer.email"
 ```
 
+### Concat Mode Example
+
+Build a progressive story where each agent adds a sentence:
+
+```yaml
+variables:
+  story:
+    type: "str"
+    default: "Once upon a time"
+    mode: "concat"
+    separator: " "
+    description: "Story built progressively"
+
+agents:
+  - name: storyteller
+    structured_output:
+      enabled: true
+      schema:
+        sentence:
+          type: "str"
+          description: "Next sentence in the story"
+    
+    variable_assignments:
+      story: "storyteller.output.sentence"
+    
+    prompt_config:
+      system_prompt: |
+        Continue this story with ONE sentence:
+        {{ variables.story }}
+```
+
+**Execution flow:**
+- Initial: `"Once upon a time"`
+- After run 1: `"Once upon a time there was a brave knight."`
+- After run 2: `"Once upon a time there was a brave knight. He embarked on a quest."`
+- After run 3: `"Once upon a time there was a brave knight. He embarked on a quest. The journey was perilous."`
+
 ---
 
 ## Best Practices

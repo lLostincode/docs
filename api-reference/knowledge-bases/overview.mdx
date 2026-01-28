@@ -3,14 +3,17 @@ title: "Knowledge Bases API Overview"
 description: "Create and manage knowledge bases for agent retrieval"
 ---
 
-The Knowledge Bases API allows you to create and manage knowledge bases that agents can query for information. Knowledge bases organize collections and data sources for AI-powered retrieval and augmented generation.
+The Knowledge Bases API allows you to create and manage knowledge bases that agents can query for information. Knowledge bases organize collections and data sources for AI-powered retrieval with customizable chunking strategies and embedding models.
 
 ## Key Features
 
+- **Customizable Chunking**: Recursive, hierarchical, or fixed strategies
+- **Structured Data Support**: Process CSV and Excel files
+- **Multiple Embedding Providers**: Azure OpenAI, Mistral, Telekom OTC
 - **AI-Powered Retrieval**: Vector-based semantic search
 - **Milvus Processing**: Production-ready vector database engine
-- **Collection Integration**: Build from organized file collections
-- **Status Monitoring**: Track processing and health
+- **Flexible Data Selection**: Combine collections and individual data sources
+- **Status Monitoring**: Track processing progress with detailed metadata
 - **Agent Integration**: Direct use in agent configurations
 
 ## Authentication
@@ -60,25 +63,46 @@ Milvus is currently the only supported processing engine. Additional engines may
 ## Knowledge Base Lifecycle
 
 ### 1. Creation
-Define knowledge base with collections and processing engine:
+Define knowledge base with data sources, chunking strategy, and embedding configuration:
 ```json
 {
   "name": "Product Knowledge Base",
   "description": "Product documentation and guides",
   "processing_engine": "milvus",
-  "collections": ["coll_123", "coll_456"]
+  "selected_collections": ["coll_123"],
+  "selected_datasources": ["ds_456"],
+  "chunking_strategy": {
+    "strategy": "recursive",
+    "chunk_size": 500,
+    "chunk_overlap": 50,
+    "split_by": "word",
+    "recursive_separators": ["\n\n", "\n", ". ", " "]
+  },
+  "embedding_config": {
+    "provider": "mistral",
+    "model": "mistral-embed",
+    "dimensions": 1024
+  }
 }
 ```
 
 ### 2. Processing
-Knowledge base processes collection content:
-- **Text extraction**: Extract and chunk content
-- **Embedding generation**: Create vector representations
-- **Index building**: Optimize for search performance
-- **Validation**: Ensure data quality
+Knowledge base processes data source content in two phases:
+
+**Phase 1: Chunking (0-20% progress)**
+- Extract text from documents (PDF, DOCX, TXT, MD, LOG)
+- Process structured data (CSV, Excel) with custom row batching
+- Apply chunking strategy to split into searchable chunks
+- Track per-document progress
+
+**Phase 2: Embedding & Indexing (20-100% progress)**
+- Generate embeddings via batch API (Mistral, Azure OpenAI, or Telekom OTC)
+- Stream embeddings to Milvus vector database
+- Build HNSW indices for fast similarity search
+- Validate data quality and store metadata
 
 ### 3. Completion
-Ready knowledge bases can be used by agents for retrieval.
+Ready knowledge bases can be used by agents for retrieval. Check `status`, `progress`, and `success_rate` to monitor health.
 
 ## Knowledge Base Status
 
@@ -97,25 +121,97 @@ Ready knowledge bases can be used by agents for retrieval.
   </Accordion>
 </AccordionGroup>
 
-## Data Sources and Collections
+## Response Schema
 
-Knowledge bases track their data sources:
+Knowledge base responses include comprehensive processing details:
+
+<ResponseField name="datasources" type="array">
+  Array of data source objects included in this knowledge base
+</ResponseField>
+
+<ResponseField name="datasource_count" type="integer">
+  Total number of data sources
+</ResponseField>
 
 <ResponseField name="ingested_datasources" type="array">
-  Successfully processed data sources with metadata
+  Successfully processed data sources with full metadata
 </ResponseField>
 
 <ResponseField name="failed_datasources" type="array">
   Data sources that failed processing with error details
 </ResponseField>
 
-<ResponseField name="success_rate" type="number">
-  Percentage of successfully processed data sources
+<ResponseField name="datasource_errors" type="object">
+  Map of datasource_id to error messages for failed sources
 </ResponseField>
 
-<ResponseField name="collection_count" type="integer">
-  Number of collections included in the knowledge base
+<ResponseField name="datasource_snapshots" type="object">
+  Snapshot of datasource details at ingestion time with ingestion status
 </ResponseField>
+
+<ResponseField name="success_rate" type="number">
+  Percentage of successfully processed data sources (0-100)
+</ResponseField>
+
+<ResponseField name="chunking_strategy" type="object">
+  Applied chunking configuration (recursive, hierarchical, or fixed)
+</ResponseField>
+
+<ResponseField name="embedding_config" type="object">
+  Embedding model configuration (provider, model, dimensions)
+</ResponseField>
+
+<ResponseField name="processing_metadata" type="object">
+  Processing progress details including current phase and document being processed
+</ResponseField>
+
+## Supported File Types
+
+**Documents:**
+- PDF, DOC, DOCX
+- TXT, MD (Markdown), LOG
+
+**Structured Data:**
+- CSV (row-level or file-level processing)
+- XLSX, XLS (Excel with batch row processing)
+
+## Chunking Strategies
+
+Three strategies available for document processing:
+
+### Recursive
+Splits text using multiple separators in order. Best for general documents.
+- Configurable separators (paragraphs, sentences, words)
+- Flexible chunk sizes and overlap
+- Supports word, character, sentence, and token splitting
+
+### Hierarchical
+Creates multi-level chunks preserving document structure. Ideal for research papers.
+- Multiple block sizes in descending order
+- Maintains document hierarchy
+- Word or sentence splitting only
+
+### Fixed
+Simple fixed-size chunks. Fastest processing.
+- Consistent chunk sizes
+- Configurable overlap
+- Word or sentence splitting
+
+See [Create Knowledge Base](/api-reference/knowledge-bases/create#chunking-strategies) for detailed configuration.
+
+## Embedding Providers
+
+**Azure OpenAI**
+- text-embedding-ada-002 (1536 dimensions)
+
+**Mistral AI**
+- mistral-embed (1024 dimensions)
+
+**Telekom OTC**
+- text-embedding-bge-m3 (1024 dimensions)
+- jina-embeddings-v2-base-de (768 dimensions) - German-optimized
+- jina-embeddings-v2-base-code (768 dimensions) - Code-optimized
+- tsi-embedding-colqwen2-2b-v1 (1024 dimensions)
 
 ## Agent Integration
 

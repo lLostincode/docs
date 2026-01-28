@@ -19,9 +19,9 @@ Additional vector database integrations will be supported in future releases.
 
 ## Milvus Knowledge Base
 
-Milvus is a production-ready vector database that enables semantic search over your documents using dense vector embeddings.
+Milvus is a production-ready vector database that enables semantic search over your documents using dense vector embeddings. Knowledge bases support customizable chunking strategies, embedding models, and structured data processing.
 
-### Configuration
+### Basic Configuration
 
 ```yaml
 agents:
@@ -37,6 +37,10 @@ agents:
           search_ef: 64
           metric_type: "COSINE"
 ```
+
+### Creating with API
+
+Knowledge bases are created via the API with full control over processing configuration. See [Create Knowledge Base API](/api-reference/knowledge-bases/create) for complete documentation.
 
 ### Required Fields
 
@@ -89,14 +93,6 @@ The `retrieval_config` object controls how documents are retrieved:
   Only return results above this score
 </ParamField>
 
-<ParamField path="retrieval_config.enable_rerank" type="boolean" default="false">
-  Enable reranking of search results for improved relevance
-</ParamField>
-
-<ParamField path="retrieval_config.rerank_model" type="string" optional>
-  Reranking model to use (required if `enable_rerank` is true)
-</ParamField>
-
 ## Usage Examples
 
 ### Basic Knowledge Base Agent
@@ -121,7 +117,7 @@ agents:
       Provide accurate information based on our documentation.
 ```
 
-### Advanced Configuration with Reranking
+### Hybrid Search with RRF Fusion
 
 ```yaml
 agents:
@@ -136,18 +132,48 @@ agents:
         knowledge_base_type: "milvus"
         knowledge_base_id: "kb_research_001"
         retrieval_config:
+          strategy: "hybrid_rrf"  # Combines dense + BM25 with RRF
+          use_rrf_fusion: true
           top_k: 20
           search_ef: 128
           metric_type: "COSINE"
           score_threshold: 0.7
-          enable_rerank: true
-          rerank_model: "cross-encoder"
     
     system_prompt: |
       You are a research assistant with access to internal research papers.
       
       Search the knowledge base for relevant research before using web search.
       Prioritize high-quality, relevant results.
+```
+
+### Query Expansion with Reranking
+
+```yaml
+agents:
+  - name: "advanced_support_agent"
+    agent_type: "llm_agent"
+    
+    knowledge_bases:
+      - name: "product_kb"
+        knowledge_base_type: "milvus"
+        knowledge_base_id: "kb_product_001"
+        retrieval_config:
+          strategy: "dense"
+          top_k: 15
+          search_ef: 96
+          metric_type: "COSINE"
+          
+          # Query expansion for better recall
+          query_model: "gpt-4o-mini"
+          max_num_query_expansions: 3
+          
+          # Reranking for better precision
+          enable_rerank: true
+          rerank_model: "cross-encoder"
+    
+    system_prompt: |
+      You are an expert product support agent.
+      Use query expansion to find relevant documentation.
 ```
 
 ### Multiple Knowledge Bases
@@ -179,7 +205,197 @@ agents:
 ```
 
 
+## Chunking Strategies
+
+Knowledge bases support three chunking strategies configured during creation:
+
+### Recursive (Default)
+
+Splits text using multiple separators in order (paragraphs → sentences → words). Best for general documents.
+
+**Parameters:**
+- `strategy`: `"recursive"`
+- `chunk_size`: Size in words/characters (default: 500)
+- `chunk_overlap`: Overlap between chunks (default: 50)
+- `split_by`: `"word"` | `"char"` | `"sentence"` | `"token"`
+- `recursive_separators`: Array of separators to try in order
+
+**Example:**
+```json
+{
+  "strategy": "recursive",
+  "chunk_size": 500,
+  "chunk_overlap": 50,
+  "split_by": "word",
+  "recursive_separators": ["\n\n", "\n", ". ", " "]
+}
+```
+
+### Hierarchical
+
+Creates multi-level chunks preserving document structure. Ideal for academic papers and structured documents.
+
+**Parameters:**
+- `strategy`: `"hierarchical"`
+- `hierarchical_block_sizes`: Descending array of block sizes (e.g., `[700, 350, 150]`)
+- `chunk_overlap`: Overlap between chunks
+- `split_by`: `"word"` | `"sentence"`
+
+**Example:**
+```json
+{
+  "strategy": "hierarchical",
+  "chunk_overlap": 70,
+  "split_by": "word",
+  "hierarchical_block_sizes": [700, 350, 150]
+}
+```
+
+### Fixed
+
+Simple fixed-size chunks. Fastest processing for straightforward documents.
+
+**Parameters:**
+- `strategy`: `"fixed"`
+- `chunk_size`: Fixed chunk size
+- `chunk_overlap`: Overlap between chunks
+- `split_by`: `"word"` | `"sentence"`
+
+**Example:**
+```json
+{
+  "strategy": "fixed",
+  "chunk_size": 500,
+  "chunk_overlap": 50,
+  "split_by": "word"
+}
+```
+
+## Structured Data Processing
+
+CSV and Excel files (`.csv`, `.xlsx`, `.xls`) support specialized processing:
+
+### Configuration
+
+```json
+{
+  "document_config": {
+    "strategy": "recursive",
+    "chunk_size": 500,
+    "chunk_overlap": 50,
+    "split_by": "word"
+  },
+  "structured_config": {
+    "rows_per_batch": 10,
+    "table_format": "csv",
+    "csv_content_column": "text",
+    "csv_conversion_mode": "row"
+  }
+}
+```
+
+### Structured Config Parameters
+
+<ParamField path="rows_per_batch" type="integer" default="10">
+  Number of rows to combine into one searchable chunk (1-20)
+  
+  **Lower values** = More precise retrieval, slower ingestion  
+  **Higher values** = Faster ingestion, broader context
+</ParamField>
+
+<ParamField path="table_format" type="string" default="csv">
+  Output format for table data
+  
+  **Options:**
+  - `csv` - Comma-separated values
+  - `markdown` - Markdown table format
+</ParamField>
+
+<ParamField path="csv_content_column" type="string" default="text">
+  Column name containing the main text content (CSV only)
+  
+  Required for `row` mode processing
+</ParamField>
+
+<ParamField path="csv_conversion_mode" type="string" default="row">
+  Processing mode for CSV files
+  
+  **Options:**
+  - `row` - One document per row (precise retrieval)
+  - `file` - One document per file (holistic context)
+</ParamField>
+
+## Embedding Providers
+
+Choose your embedding model during knowledge base creation:
+
+### Azure OpenAI
+
+```json
+{
+  "provider": "azure_openai",
+  "model": "text-embedding-ada-002",
+  "dimensions": 1536
+}
+```
+
+**Available model:**
+- `text-embedding-ada-002` (1536 dimensions)
+
+### Mistral AI
+
+```json
+{
+  "provider": "mistral",
+  "model": "mistral-embed",
+  "dimensions": 1024
+}
+```
+
+**Available model:**
+- `mistral-embed` (1024 dimensions)
+
+### Telekom OTC
+
+```json
+{
+  "provider": "telekom_otc",
+  "model": "text-embedding-bge-m3",
+  "dimensions": 1024
+}
+```
+
+**Available models:**
+- `text-embedding-bge-m3` (1024 dimensions) - BGE multilingual model
+- `jina-embeddings-v2-base-de` (768 dimensions) - German-optimized
+- `jina-embeddings-v2-base-code` (768 dimensions) - Code-optimized
+- `tsi-embedding-colqwen2-2b-v1` (1024 dimensions) - TSI ColQwen2
+
 ## Best Practices
+
+### Chunking
+
+<Tip>
+**General Documents**: Use recursive strategy with 500 word chunks and 50 word overlap.
+</Tip>
+
+<Tip>
+**Code Files**: Use smaller chunks (300 words) with recursive separators `["\n\n", "\n", " "]`.
+</Tip>
+
+<Tip>
+**Research Papers**: Use hierarchical strategy with block sizes `[700, 350, 150]` to preserve structure.
+</Tip>
+
+<Tip>
+**CSV/Excel Data**: Start with `rows_per_batch: 10` and adjust based on row size and retrieval precision needs.
+</Tip>
+
+<Warning>
+Chunk overlap must be less than chunk size (or smallest block size for hierarchical). The API will reject invalid configurations.
+</Warning>
+
+### Retrieval
 
 <Tip>
 **Top K Selection**: Start with `top_k: 5-10` for most use cases. Increase if you need more context.

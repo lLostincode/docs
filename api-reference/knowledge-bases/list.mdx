@@ -51,11 +51,23 @@ const knowledgeBases = await response.json();
     "name": "Product Knowledge Base",
     "description": "Product documentation and guides",
     "processing_engine": "milvus",
+    "normalized_dataset_name": "product_knowledge_base",
     "status": "completed",
     "progress": 100,
-    "collection_count": 2,
+    "datasource_count": 2,
     "success_rate": 100,
+    "chunking_strategy": {
+      "strategy": "recursive",
+      "chunk_size": 500,
+      "chunk_overlap": 50
+    },
+    "embedding_config": {
+      "provider": "mistral",
+      "model": "mistral-embed",
+      "dimensions": 1024
+    },
     "created_by_name": "John Doe",
+    "company_name": "Acme Corp",
     "created_at": "2025-01-15T10:30:00Z",
     "updated_at": "2025-01-15T10:35:00Z"
   }
