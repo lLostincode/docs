@@ -3,7 +3,7 @@ title: 'Available Collections'
 openapi: 'GET /api/v1/knowledge-bases/available-collections/'
 ---
 
-List collections that are ready to be used in knowledge bases.
+List collections available for the current user to create knowledge bases.
 
 <CodeGroup>
 ```bash cURL
@@ -18,7 +18,7 @@ response = requests.get(
     "https://api-be.atthene.com/api/v1/knowledge-bases/available-collections/",
     headers={"x-api-key": "YOUR_API_KEY"}
 )
-collections = response.json()
+result = response.json()
 ```
 
 ```javascript JavaScript
@@ -27,37 +27,33 @@ const response = await fetch('https://api-be.atthene.com/api/v1/knowledge-bases/
     'x-api-key': 'YOUR_API_KEY'
   }
 });
-const collections = await response.json();
+const result = await response.json();
 ```
 </CodeGroup>
 
 ## Response
 
-Returns collections with status "completed" that can be used in knowledge bases:
+Returns a success wrapper with available collections:
 
 ```json
-[
-  {
-    "id": "coll_123",
-    "name": "Product Documentation",
-    "description": "All product manuals and guides",
-    "status": "completed",
-    "data_source_count": 15,
-    "total_size": 52428800,
-    "created_at": "2025-01-15T10:30:00Z"
-  },
-  {
-    "id": "coll_456", 
-    "name": "FAQ Collection",
-    "description": "Frequently asked questions",
-    "status": "completed",
-    "data_source_count": 8,
-    "total_size": 1048576,
-    "created_at": "2025-01-15T11:00:00Z"
-  }
-]
+{
+  "success": true,
+  "collections": [
+    {
+      "id": "coll_123",
+      "name": "Product Documentation",
+      "description": "All product manuals and guides",
+      "created_at": "2025-01-15T10:30:00Z",
+      "datasource_count": 15
+    },
+    {
+      "id": "coll_456",
+      "name": "FAQ Collection",
+      "description": "Frequently asked questions",
+      "created_at": "2025-01-15T11:00:00Z",
+      "datasource_count": 8
+    }
+  ],
+  "count": 2
+}
 ```
-
-<Note>
-Only collections with status "completed" are available for use in knowledge bases.
-</Note>

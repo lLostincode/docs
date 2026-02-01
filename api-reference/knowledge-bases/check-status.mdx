@@ -1,9 +1,9 @@
 ---
 title: 'Check Knowledge Base Status'
-openapi: 'GET /api/v1/knowledge-bases/{kb_id}/status/'
+openapi: 'GET /api/v1/knowledge-bases/{kb_id}/check_status/'
 ---
 
-Monitor processing status and health of a knowledge base.
+Monitor processing status and health of a knowledge base during background ingestion.
 
 <ParamField path="kb_id" type="string" required>
   The knowledge base ID
@@ -11,7 +11,7 @@ Monitor processing status and health of a knowledge base.
 
 <CodeGroup>
 ```bash cURL
-curl -X GET https://api-be.atthene.com/api/v1/knowledge-bases/kb_123/status/ \
+curl -X GET https://api-be.atthene.com/api/v1/knowledge-bases/kb_123/check_status/ \
   -H "x-api-key: YOUR_API_KEY"
 ```
 
@@ -19,37 +19,50 @@ curl -X GET https://api-be.atthene.com/api/v1/knowledge-bases/kb_123/status/ \
 import requests
 
 response = requests.get(
-    "https://api-be.atthene.com/api/v1/knowledge-bases/kb_123/status/",
+    "https://api-be.atthene.com/api/v1/knowledge-bases/kb_123/check_status/",
     headers={"x-api-key": "YOUR_API_KEY"}
 )
-status = response.json()
+result = response.json()
 ```
 
 ```javascript JavaScript
-const response = await fetch('https://api-be.atthene.com/api/v1/knowledge-bases/kb_123/status/', {
+const response = await fetch('https://api-be.atthene.com/api/v1/knowledge-bases/kb_123/check_status/', {
   headers: {
     'x-api-key': 'YOUR_API_KEY'
   }
 });
-const status = await response.json();
+const result = await response.json();
 ```
 </CodeGroup>
 
 ## Response
 
+Returns a success wrapper with the full knowledge base object:
+
 ```json
 {
-  "id": "kb_123",
-  "status": "completed",
-  "progress": 100,
-  "processing_engine": "milvus",
-  "collection_count": 2,
-  "total_datasources": 15,
-  "processed_datasources": 15,
-  "failed_datasources": 0,
-  "success_rate": 100,
-  "estimated_completion": null,
-  "last_updated": "2025-01-15T10:35:00Z"
+  "success": true,
+  "message": "Status checked for knowledge base 'Product Knowledge Base'",
+  "knowledge_base": {
+    "id": "kb_123",
+    "name": "Product Knowledge Base",
+    "status": "running",
+    "progress": 45,
+    "processing_engine": "milvus",
+    "datasource_count": 15,
+    "total_datasources": 15,
+    "success_rate": 0,
+    "ingested_datasources": [],
+    "failed_datasources": [],
+    "processing_metadata": {
+      "phase": "batch_embedding",
+      "total_chunks": 1250,
+      "processed_chunks": 562,
+      "message": "Generating Embeddings: 562/1,250 chunks"
+    },
+    "updated_at": "2025-01-15T10:35:00Z"
+  },
+  "status_updated": true
 }
 ```
 
@@ -69,3 +82,7 @@ const status = await response.json();
     Processing failed - check error details
   </Accordion>
 </AccordionGroup>
+
+<Tip>
+Use this endpoint to poll for status updates during background ingestion. The `processing_metadata` field provides detailed progress information.
+</Tip>

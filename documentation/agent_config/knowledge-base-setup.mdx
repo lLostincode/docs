@@ -19,7 +19,7 @@ Additional vector database integrations will be supported in future releases.
 
 ## Milvus Knowledge Base
 
-Milvus is a production-ready vector database that enables semantic search over your documents using dense vector embeddings. Knowledge bases support customizable chunking strategies, embedding models, and structured data processing.
+Milvus is a vector database that enables semantic search over your documents using dense vector embeddings. Knowledge bases support customizable chunking strategies, embedding models, and structured data processing.
 
 ### Basic Configuration
 
@@ -93,6 +93,16 @@ The `retrieval_config` object controls how documents are retrieved:
   Only return results above this score
 </ParamField>
 
+<ParamField path="retrieval_config.strategy" type="string" default="dense">
+  Search strategy for retrieval
+  
+  **Options:**
+  - `dense` - Vector-based semantic search only (default, fastest)
+  - `hybrid` - Combines dense vector + BM25 keyword search
+  - `bm25` - BM25 keyword-based search only
+  - `hybrid_rrf` - Hybrid with Reciprocal Rank Fusion for improved ranking
+</ParamField>
+
 ## Usage Examples
 
 ### Basic Knowledge Base Agent
@@ -133,7 +143,6 @@ agents:
         knowledge_base_id: "kb_research_001"
         retrieval_config:
           strategy: "hybrid_rrf"  # Combines dense + BM25 with RRF
-          use_rrf_fusion: true
           top_k: 20
           search_ef: 128
           metric_type: "COSINE"
@@ -146,7 +155,7 @@ agents:
       Prioritize high-quality, relevant results.
 ```
 
-### Query Expansion with Reranking
+### Query Expansion
 
 ```yaml
 agents:
@@ -164,12 +173,8 @@ agents:
           metric_type: "COSINE"
           
           # Query expansion for better recall
-          query_model: "gpt-4o-mini"
+          query_model: "gpt-4o"
           max_num_query_expansions: 3
-          
-          # Reranking for better precision
-          enable_rerank: true
-          rerank_model: "cross-encoder"
     
     system_prompt: |
       You are an expert product support agent.
@@ -217,7 +222,7 @@ Splits text using multiple separators in order (paragraphs → sentences → wor
 - `strategy`: `"recursive"`
 - `chunk_size`: Size in words/characters (default: 500)
 - `chunk_overlap`: Overlap between chunks (default: 50)
-- `split_by`: `"word"` | `"char"` | `"sentence"` | `"token"`
+- `split_by`: `"word"` | `"char"` (only these two options)
 - `recursive_separators`: Array of separators to try in order
 
 **Example:**

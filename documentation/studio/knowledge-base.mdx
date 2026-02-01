@@ -100,7 +100,13 @@ Configure processing and retrieval for your data:
 Control how documents are split:
 
 <Frame>
-  ![Chunking Configuration](/images/chunking_configuration.png)
+  ![Chunking Configuration](/images/knowledge_base/chunking_config.png)
+</Frame>
+
+**Customization Options:**
+
+<Frame>
+  ![Chunking Customization](/images/knowledge_base/chunking_custom.png)
 </Frame>
 
 - **Recursive** (default): Splits by paragraphs → sentences → words
@@ -110,23 +116,19 @@ Control how documents are split:
 **Chunking parameters:**
 - **Chunk size**: 100-1000 words/characters (default: 500)
 - **Chunk overlap**: Overlap between chunks (default: 50)
-- **Split by**: word, character, sentence, or token
+- **Split by**: word or character (recursive only; hierarchical and fixed support word only)
 
 **Smart Extraction (Coming Soon):**
 
-<Frame>
-  ![Smart Extraction Feature](/images/smart_extraction.png)
-</Frame>
-
 <Note>
-AI-powered entity extraction is currently in development. When released, it will automatically extract entities (PERSON, ORGANIZATION, CONCEPT, etc.) and metadata for enhanced retrieval accuracy. This feature uses BAML for structured extraction.
+AI-powered entity extraction is currently in development. When released, it will automatically extract entities (PERSON, ORGANIZATION, CONCEPT, etc.) and metadata for enhanced retrieval accuracy.
 </Note>
 
 #### Structured Data Processing
 For CSV and Excel files:
 
 <Frame>
-  ![Structured Data Configuration](/images/structured_data_config.png)
+  ![Structured Data Configuration](/images/knowledge_base/rows.png)
 </Frame>
 - **Rows per batch**: Combine 1-20 rows per searchable chunk
 - **Table format**: CSV or Markdown output
@@ -134,6 +136,11 @@ For CSV and Excel files:
 - **Processing mode**: Row-level (one doc per row) or file-level
 
 #### Embedding Configuration
+
+<Frame>
+  ![Embedding Provider Selection](/images/knowledge_base/embedding_config.png)
+</Frame>
+
 Choose your embedding provider:
 - **Azure OpenAI**: text-embedding-ada-002 (1536 dimensions)
 - **Mistral AI**: mistral-embed (1024 dimensions)
@@ -169,7 +176,7 @@ agents:
         knowledge_base_type: "milvus"
         knowledge_base_id: "kb_abc123"
         retrieval_config:
-          strategy: "dense"  # dense, hybrid, or bm25
+          strategy: "dense"  # dense, hybrid, bm25, or hybrid_rrf
           top_k: 10
           search_ef: 64
           metric_type: "COSINE"
@@ -188,7 +195,7 @@ agents:
         knowledge_base_id: "kb_xyz789"
         retrieval_config:
           # Search strategy
-          strategy: "hybrid"  # Options: dense, hybrid, bm25
+          strategy: "hybrid_rrf"  # Options: dense, hybrid, bm25, hybrid_rrf
           
           # Result count
           top_k: 20
@@ -200,7 +207,7 @@ agents:
           score_threshold: 0.7  # Filter low-relevance results
           
           # Query expansion (optional) - Improves recall by generating query variations
-          query_model: "gpt-4o-mini"  # LLM for generating alternative phrasings
+          query_model: "gpt-4o"  # LLM for generating alternative phrasings
           max_num_query_expansions: 3  # Generate 3 additional query variants
 ```
 
@@ -208,6 +215,7 @@ agents:
 - **dense**: Vector-based semantic search only (default, fastest)
 - **hybrid**: Combines dense vector + BM25 keyword search
 - **bm25**: Keyword-based search only
+- **hybrid_rrf**: Hybrid with Reciprocal Rank Fusion for better result ranking
 
 Or use the **+** button in Playground to insert knowledge bases.
 

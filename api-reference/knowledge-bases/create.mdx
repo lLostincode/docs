@@ -76,7 +76,7 @@ Splits text using multiple separators in order (paragraphs → sentences → wor
   "strategy": "recursive",
   "chunk_size": 500,
   "chunk_overlap": 50,
-  "split_by": "word",
+  "split_by": "word",  // "word" or "char" only
   "recursive_separators": ["\n\n", "\n", ". ", " "]
 }
 ```
@@ -88,7 +88,7 @@ Creates multi-level chunks preserving document structure.
 "chunking_strategy": {
   "strategy": "hierarchical",
   "chunk_overlap": 50,
-  "split_by": "word",
+  "split_by": "word",  // "word" only
   "hierarchical_block_sizes": [700, 350, 150]
 }
 ```
@@ -101,7 +101,7 @@ Simple fixed-size chunks with specified overlap.
   "strategy": "fixed",
   "chunk_size": 500,
   "chunk_overlap": 50,
-  "split_by": "word"
+  "split_by": "word"  // "word" only
 }
 ```
 
@@ -133,10 +133,6 @@ For `.csv`, `.xlsx`, `.xls` files, use separate configuration:
 - `csv_conversion_mode`: `"row"` (one doc per row) or `"file"` (one doc per file)
 
 ## Embedding Configuration
-
-<Frame>
-  ![Embedding Provider Selection](/images/embedding_providers.png)
-</Frame>
 
 **Supported Providers:**
 - **Azure OpenAI**: `text-embedding-ada-002` (1536 dimensions)

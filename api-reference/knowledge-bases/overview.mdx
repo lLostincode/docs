@@ -183,19 +183,19 @@ Three strategies available for document processing:
 Splits text using multiple separators in order. Best for general documents.
 - Configurable separators (paragraphs, sentences, words)
 - Flexible chunk sizes and overlap
-- Supports word, character, sentence, and token splitting
+- Supports word or character splitting only
 
 ### Hierarchical
 Creates multi-level chunks preserving document structure. Ideal for research papers.
 - Multiple block sizes in descending order
 - Maintains document hierarchy
-- Word or sentence splitting only
+- Word splitting only
 
 ### Fixed
 Simple fixed-size chunks. Fastest processing.
 - Consistent chunk sizes
 - Configurable overlap
-- Word or sentence splitting
+- Word splitting only
 
 See [Create Knowledge Base](/api-reference/knowledge-bases/create#chunking-strategies) for detailed configuration.
 
@@ -224,9 +224,11 @@ system_prompt: "You are a helpful support agent..."
 knowledge_bases:
   - name: "product_kb"
     knowledge_base_type: "milvus"
-    id: "kb_123"
-    config:
+    knowledge_base_id: "kb_123"
+    retrieval_config:
+      strategy: "dense"
       top_k: 10
+      search_ef: 64
       metric_type: "COSINE"
 ```
 
