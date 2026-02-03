@@ -63,42 +63,95 @@ Files are automatically synced and indexed. Updates to documents are reflected i
 ### Step 1: Data Sources
 
 Upload files or connect to storage:
-- **Upload Files**: PDF, DOCX, TXT, Markdown
-- **Cloud Storage**: Auto-sync from connected providers
+- **Upload Files**: PDF, DOCX, TXT, Markdown, CSV, Excel
+- **Cloud Storage**: Connect SharePoint, OneDrive, or Google Drive (see Cloud Storage section above)
 
 <Frame>
   ![Milvus Data Sources](/images/milvus.png)
 </Frame>
 
 **Supported file types:**
-- PDF
-- DOC, DOCX
-- TXT
-- MD (Markdown)
+- **Documents**: PDF, DOC, DOCX, TXT, MD (Markdown), LOG
+- **Structured Data**: CSV, XLSX, XLS (Excel)
 
 ### Step 2: Collections
 
 Group related data sources:
 - Create collections by topic or project
 - Add multiple data sources to a collection
-- Configure chunking and embedding settings
+- Configure chunking and embedding settings per knowledge base
 
-**Collection settings:**
-- **Chunk size**: How to split documents (default: 1000 tokens)
-- **Chunk overlap**: Overlap between chunks (default: 200 tokens)
-- **Embedding model**: Which model to use for embeddings
+**Collection organization:**
+- Collections are reusable groups of data sources
+- Use collections to organize data by topic, project, or department
+- One data source can belong to multiple collections
 
 ### Step 3: Knowledge Bases
 
-Configure retrieval for your collection:
+Configure processing and retrieval for your data:
 - Name your knowledge base
-- Set the search method (vector, keyword, hybrid)
-- Configure result limits
+- Select collections and/or individual data sources
+- Configure chunking strategy and embedding model
+- Set up retrieval parameters
 
-**Knowledge base options:**
-- **Top K**: Number of results to return (default: 5)
-- **Score threshold**: Minimum relevance score (0.0 - 1.0)
-- **Reranking**: Enable reranking for better results
+**Processing Configuration:**
+
+#### Chunking Strategies
+Control how documents are split:
+
+<Frame>
+  ![Chunking Configuration](/images/knowledge_base/chunking_config.png)
+</Frame>
+
+**Customization Options:**
+
+<Frame>
+  ![Chunking Customization](/images/knowledge_base/chunking_custom.png)
+</Frame>
+
+- **Recursive** (default): Splits by paragraphs → sentences → words
+- **Hierarchical**: Multi-level chunks preserving structure
+- **Fixed**: Simple fixed-size chunks
+
+**Chunking parameters:**
+- **Chunk size**: 100-1000 words/characters (default: 500)
+- **Chunk overlap**: Overlap between chunks (default: 50)
+- **Split by**: word or character (recursive only; hierarchical and fixed support word only)
+
+**Smart Extraction (Coming Soon):**
+
+<Note>
+AI-powered entity extraction is currently in development. When released, it will automatically extract entities (PERSON, ORGANIZATION, CONCEPT, etc.) and metadata for enhanced retrieval accuracy.
+</Note>
+
+#### Structured Data Processing
+For CSV and Excel files:
+
+<Frame>
+  ![Structured Data Configuration](/images/knowledge_base/rows.png)
+</Frame>
+- **Rows per batch**: Combine 1-20 rows per searchable chunk
+- **Table format**: CSV or Markdown output
+- **CSV content column**: Specify which column contains text
+- **Processing mode**: Row-level (one doc per row) or file-level
+
+#### Embedding Configuration
+
+<Frame>
+  ![Embedding Provider Selection](/images/knowledge_base/embedding_config.png)
+</Frame>
+
+Choose your embedding provider:
+- **Azure OpenAI**: text-embedding-ada-002 (1536 dimensions)
+- **Mistral AI**: mistral-embed (1024 dimensions)
+- **Telekom OTC**: BGE-M3, Jina v2 Base (DE/Code), TSI ColQwen2
+
+**Retrieval options:**
+- **Top K**: Number of results to return (default: 10)
+- **Search EF**: HNSW search accuracy parameter (default: 64)
+- **Metric Type**: Distance metric - COSINE (recommended), L2, or IP
+- **Score threshold**: Minimum relevance score (0.0 - 1.0, optional)
+- **Offset**: Skip N results for pagination (optional)
 
 ### Step 4: Retrieval Methods
 
@@ -111,6 +164,8 @@ Set up how agents query your data:
 
 Once created, add knowledge bases to your agents:
 
+### Basic Configuration
+
 ```yaml
 agents:
   - name: "support_agent"
@@ -118,9 +173,49 @@ agents:
     
     knowledge_bases:
       - name: "product_docs"
-        top_k: 5
-        score_threshold: 0.7
+        knowledge_base_type: "milvus"
+        knowledge_base_id: "kb_abc123"
+        retrieval_config:
+          strategy: "dense"  # dense, hybrid, bm25, or hybrid_rrf
+          top_k: 10
+          search_ef: 64
+          metric_type: "COSINE"
 ```
+
+### Advanced Configuration
+
+```yaml
+agents:
+  - name: "advanced_agent"
+    agent_type: "llm_agent"
+    
+    knowledge_bases:
+      - name: "company_kb"
+        knowledge_base_type: "milvus"
+        knowledge_base_id: "kb_xyz789"
+        retrieval_config:
+          # Search strategy
+          strategy: "hybrid_rrf"  # Options: dense, hybrid, bm25, hybrid_rrf
+          
+          # Result count
+          top_k: 20
+          offset: 0  # For pagination
+          
+          # Search quality
+          search_ef: 128  # Higher = more accurate but slower
+          metric_type: "COSINE"  # COSINE, L2, or IP
+          score_threshold: 0.7  # Filter low-relevance results
+          
+          # Query expansion (optional) - Improves recall by generating query variations
+          query_model: "gpt-4o"  # LLM for generating alternative phrasings
+          max_num_query_expansions: 3  # Generate 3 additional query variants
+```
+
+**Search Strategy Options:**
+- **dense**: Vector-based semantic search only (default, fastest)
+- **hybrid**: Combines dense vector + BM25 keyword search
+- **bm25**: Keyword-based search only
+- **hybrid_rrf**: Hybrid with Reciprocal Rank Fusion for better result ranking
 
 Or use the **+** button in Playground to insert knowledge bases.
 

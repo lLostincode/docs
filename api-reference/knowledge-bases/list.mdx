@@ -3,7 +3,7 @@ title: 'List Knowledge Bases'
 openapi: 'GET /api/v1/knowledge-bases/'
 ---
 
-Retrieve all knowledge bases for the authenticated user's company.
+Retrieve all knowledge bases created by the authenticated user.
 
 ## Query Parameters
 
@@ -53,8 +53,35 @@ const knowledgeBases = await response.json();
     "processing_engine": "milvus",
     "status": "completed",
     "progress": 100,
-    "collection_count": 2,
+    "datasource_count": 2,
+    "datasources": [
+      {
+        "id": "ds_123",
+        "name": "manual.pdf",
+        "type": "file-upload",
+        "status": "active"
+      }
+    ],
+    "ingested_datasources": [
+      {
+        "id": "ds_123",
+        "name": "manual.pdf",
+        "type": "file-upload",
+        "status": "active"
+      }
+    ],
+    "failed_datasources": [],
+    "datasource_errors": {},
+    "datasource_snapshots": {
+      "ds_123": {
+        "id": "ds_123",
+        "name": "manual.pdf",
+        "type": "file-upload",
+        "ingestion_status": "ingested"
+      }
+    },
     "success_rate": 100,
+    "processing_metadata": {},
     "created_by_name": "John Doe",
     "created_at": "2025-01-15T10:30:00Z",
     "updated_at": "2025-01-15T10:35:00Z"

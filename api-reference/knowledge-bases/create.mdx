@@ -3,7 +3,7 @@ title: 'Create Knowledge Base'
 openapi: 'POST /api/v1/knowledge-bases/'
 ---
 
-Create a new knowledge base from collections.
+Create a new knowledge base from collections and data sources with customizable chunking and embedding configurations.
 
 ## Request Body
 
@@ -21,9 +21,139 @@ Create a new knowledge base from collections.
   Currently only Milvus is supported as the processing engine.
 </ParamField>
 
-<ParamField body="collections" type="array" required>
-  Array of collection IDs to include
+<ParamField body="selected_collections" type="array">
+  Array of collection IDs to include. Data sources from these collections will be extracted automatically.
+  
+  Either `selected_collections` or `selected_datasources` (or both) must be provided.
 </ParamField>
+
+<ParamField body="selected_datasources" type="array">
+  Array of individual data source IDs to include.
+  
+  Either `selected_collections` or `selected_datasources` (or both) must be provided.
+</ParamField>
+
+<ParamField body="chunking_strategy" type="object">
+  Chunking configuration for text processing. See [Chunking Strategies](#chunking-strategies) for details.
+  
+  **Default:** Recursive strategy with 500 word chunks and 50 word overlap
+</ParamField>
+
+<ParamField body="embedding_config" type="object">
+  Embedding model configuration. See [Embedding Configuration](#embedding-configuration) for details.
+  
+  **Required fields:**
+  - `provider`: `"azure_openai"` | `"mistral"` | `"telekom_otc"`
+  - `model`: Model name (e.g., `"text-embedding-ada-002"`, `"mistral-embed"`)
+  - `dimensions`: Vector dimensions (e.g., `1536`, `1024`)
+</ParamField>
+
+<ParamField body="save_as_collection" type="boolean" default="false">
+  Whether to save the selected data sources as a new collection
+</ParamField>
+
+<ParamField body="new_collection_name" type="string">
+  Name for the new collection (required if `save_as_collection` is `true`)
+</ParamField>
+
+<ParamField body="new_collection_description" type="string">
+  Description for the new collection (optional)
+</ParamField>
+
+## Chunking Strategies
+
+Control how documents are split into searchable chunks:
+
+<Frame>
+  ![Chunking Strategy Configuration](/images/chunking_config.png)
+</Frame>
+
+### Recursive (Default)
+Splits text using multiple separators in order (paragraphs → sentences → words).
+
+```json
+"chunking_strategy": {
+  "strategy": "recursive",
+  "chunk_size": 500,
+  "chunk_overlap": 50,
+  "split_by": "word",  // "word" or "char" only
+  "recursive_separators": ["\n\n", "\n", ". ", " "]
+}
+```
+
+### Hierarchical
+Creates multi-level chunks preserving document structure.
+
+```json
+"chunking_strategy": {
+  "strategy": "hierarchical",
+  "chunk_overlap": 50,
+  "split_by": "word",  // "word" only
+  "hierarchical_block_sizes": [700, 350, 150]
+}
+```
+
+### Fixed
+Simple fixed-size chunks with specified overlap.
+
+```json
+"chunking_strategy": {
+  "strategy": "fixed",
+  "chunk_size": 500,
+  "chunk_overlap": 50,
+  "split_by": "word"  // "word" only
+}
+```
+
+### Structured Data (CSV/Excel)
+
+For `.csv`, `.xlsx`, `.xls` files, use separate configuration:
+
+```json
+"chunking_strategy": {
+  "document_config": {
+    "strategy": "recursive",
+    "chunk_size": 500,
+    "chunk_overlap": 50,
+    "split_by": "word"
+  },
+  "structured_config": {
+    "rows_per_batch": 10,
+    "table_format": "csv",
+    "csv_content_column": "text",
+    "csv_conversion_mode": "row"
+  }
+}
+```
+
+**Structured Config Fields:**
+- `rows_per_batch`: Rows to combine per chunk (1-20)
+- `table_format`: Output format (`"csv"` or `"markdown"`)
+- `csv_content_column`: Column name for text content (CSV only)
+- `csv_conversion_mode`: `"row"` (one doc per row) or `"file"` (one doc per file)
+
+## Embedding Configuration
+
+**Supported Providers:**
+- **Azure OpenAI**: `text-embedding-ada-002` (1536 dimensions)
+- **Mistral AI**: `mistral-embed` (1024 dimensions)
+- **Telekom OTC**: 
+  - `text-embedding-bge-m3` (1024 dimensions)
+  - `jina-embeddings-v2-base-de` (768 dimensions)
+  - `jina-embeddings-v2-base-code` (768 dimensions)
+  - `tsi-embedding-colqwen2-2b-v1` (1024 dimensions)
+
+```json
+"embedding_config": {
+  "provider": "mistral",
+  "model": "mistral-embed",
+  "dimensions": 1024
+}
+```
+
+## Examples
+
+### Basic Example
 
 <CodeGroup>
 ```bash cURL
@@ -34,7 +164,7 @@ curl -X POST https://api-be.atthene.com/api/v1/knowledge-bases/ \
     "name": "Product Knowledge Base",
     "description": "Product documentation and guides",
     "processing_engine": "milvus",
-    "collections": ["coll_123", "coll_456"]
+    "selected_collections": ["coll_123", "coll_456"]
   }'
 ```
 
@@ -43,9 +173,9 @@ import requests
 
 data = {
     "name": "Product Knowledge Base",
-    "description": "Product documentation and guides", 
+    "description": "Product documentation and guides",
     "processing_engine": "milvus",
-    "collections": ["coll_123", "coll_456"]
+    "selected_collections": ["coll_123", "coll_456"]
 }
 
 response = requests.post(
@@ -60,8 +190,8 @@ kb = response.json()
 const data = {
   name: "Product Knowledge Base",
   description: "Product documentation and guides",
-  processing_engine: "milvus", 
-  collections: ["coll_123", "coll_456"]
+  processing_engine: "milvus",
+  selected_collections: ["coll_123", "coll_456"]
 };
 
 const response = await fetch('https://api-be.atthene.com/api/v1/knowledge-bases/', {
@@ -77,20 +207,107 @@ const kb = await response.json();
 ```
 </CodeGroup>
 
+### Advanced Example with Custom Chunking
+
+<CodeGroup>
+```bash cURL
+curl -X POST https://api-be.atthene.com/api/v1/knowledge-bases/ \
+  -H "x-api-key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Research Papers KB",
+    "description": "Academic research with hierarchical chunking",
+    "processing_engine": "milvus",
+    "selected_datasources": ["ds_789", "ds_012"],
+    "chunking_strategy": {
+      "strategy": "hierarchical",
+      "chunk_overlap": 70,
+      "split_by": "word",
+      "hierarchical_block_sizes": [700, 350, 150]
+    },
+    "embedding_config": {
+      "provider": "azure_openai",
+      "model": "text-embedding-3-small",
+      "dimensions": 1536
+    },
+    "save_as_collection": true,
+    "new_collection_name": "Research Collection"
+  }'
+```
+
+```python Python
+import requests
+
+data = {
+    "name": "Research Papers KB",
+    "description": "Academic research with hierarchical chunking",
+    "processing_engine": "milvus",
+    "selected_datasources": ["ds_789", "ds_012"],
+    "chunking_strategy": {
+        "strategy": "hierarchical",
+        "chunk_overlap": 70,
+        "split_by": "word",
+        "hierarchical_block_sizes": [700, 350, 150]
+    },
+    "embedding_config": {
+        "provider": "azure_openai",
+        "model": "text-embedding-3-small",
+        "dimensions": 1536
+    },
+    "save_as_collection": True,
+    "new_collection_name": "Research Collection"
+}
+
+response = requests.post(
+    "https://api-be.atthene.com/api/v1/knowledge-bases/",
+    headers={"x-api-key": "YOUR_API_KEY"},
+    json=data
+)
+kb = response.json()
+```
+</CodeGroup>
+
 ## Response
 
 ```json
 {
-  "id": "kb_789",
-  "name": "Product Knowledge Base", 
-  "description": "Product documentation and guides",
-  "processing_engine": "milvus",
-  "status": "pending",
-  "progress": 0,
-  "collection_count": 2,
-  "success_rate": 0,
-  "created_by_name": "John Doe",
-  "created_at": "2025-01-15T10:30:00Z",
-  "updated_at": "2025-01-15T10:30:00Z"
+  "success": true,
+  "message": "Knowledge base 'Product Knowledge Base' created successfully",
+  "knowledge_base": {
+    "id": "kb_789",
+    "name": "Product Knowledge Base",
+    "description": "Product documentation and guides",
+    "processing_engine": "milvus",
+    "dataset_name": "",
+    "normalized_dataset_name": "product_knowledge_base",
+    "status": "pending",
+    "progress": 0,
+    "datasources": [],
+    "datasource_count": 2,
+    "total_datasources": 2,
+    "ingested_datasources": [],
+    "failed_datasources": [],
+    "datasource_errors": {},
+    "datasource_snapshots": {},
+    "success_rate": 0,
+    "chunking_strategy": {
+      "strategy": "recursive",
+      "chunk_size": 500,
+      "chunk_overlap": 50,
+      "split_by": "word",
+      "recursive_separators": ["\n\n", "\n", ". ", " "]
+    },
+    "embedding_config": {
+      "provider": "mistral",
+      "model": "mistral-embed",
+      "dimensions": 1024
+    },
+    "llm_config": {},
+    "processing_metadata": {},
+    "created_by_name": "John Doe",
+    "company_name": "Acme Corp",
+    "created_at": "2025-01-15T10:30:00Z",
+    "updated_at": "2025-01-15T10:30:00Z"
+  }
 }
 ```
