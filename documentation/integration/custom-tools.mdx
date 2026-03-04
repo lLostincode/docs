@@ -1,6 +1,269 @@
----
-title: "Connect your MCP"
-description: "Connect to your MCP Server to use its capabilities"
+# MCP Integration Guide
+
+## Overview
+
+The Model Context Protocol (MCP) integration allows Atthene Agents to connect to external MCP servers and use their
+tools within the AI workflows. This guide walks you through the complete setup process.
+
+## Table of Contents
+
+1. [Prerequisites](#prerequisites)
+2. [Step 1: Create an Integration](#step-1-create-an-integration)
+3. [Step 2: Configure MCP Server](#step-2-configure-mcp-server)
+4. [Step 3: Create a Connection](#step-3-create-a-connection)
+5. [Step 4: Use MCP Tools in YAML](#step-4-use-mcp-tools-in-yaml)
+6. [Provider-Specific Setup](#provider-specific-setup)
+7. [Troubleshooting](#troubleshooting)
+
 ---
 
-Currently under development
+## Prerequisites
+
+Before setting up MCP integration, ensure you have:
+
+- Access credentials for your MCP provider (OAuth credentials or API key)
+- The MCP server URL (base URL where the MCP server is running)
+
+---
+
+## Step 1: Create an Integration
+
+An **Integration** is a company-level configuration that stores the authentication credentials for connecting to an
+external service.
+
+### For OAuth2 Providers (e.g., Microsoft, Atlassian)
+
+1. Navigate to **Settings → Integrations**
+2. Click **"Add Integration"**
+3. Fill in the form:
+    - **Provider**: Select your provider (e.g., Microsoft, Atlassian)
+    - **Name**: Give your integration a descriptive name (e.g., "Company Atlassian")
+    - **Description**: Optional description
+    - **OAuth Client ID**: Your OAuth application's client ID
+    - **OAuth Client Secret**: Your OAuth application's client secret
+    - **Scopes**: Required OAuth scopes (comma-separated), e.g:
+        - For Atlassian: `read:jira-work`, `write:jira-work`
+        - For Microsoft: `Mail.Read`, `Mail.Send`, `offline_access`
+4. Click **"Create Integration"**
+5. Set the integration as default one (at least one default integration is needed for a provider)
+
+### For API Key Providers (e.g., Lexware)
+
+1. Navigate to **Settings → Integrations**
+2. Click **"Add Integration"**
+3. Fill in the form:
+    - **Provider**: Select your API key provider (e.g., Lexware)
+    - **Name**: Give your integration a descriptive name (e.g., "Company Lexware")
+    - **Description**: Optional description
+4. Click **"Create Integration"**
+5. Set the integration as default one (at least one default integration is needed for a provider)
+
+> **Note**: For API key providers, you don't need to provide credentials at the integration level. The API key will be
+> provided when creating a connection.
+
+---
+
+## Step 2: Configure MCP Server
+
+An **MCP Configuration** defines the MCP server details and links it to your integration.
+
+1. Navigate to **Tools** → **MCP Servers**
+2. Click **"Add MCP"**
+3. Fill in the configuration:
+    - **Name**: Descriptive name for this MCP server (e.g., "Atlassian Jira MCP")
+    - **Base URL**: The MCP server endpoint
+        - Example: `http://localhost:8008/mcp` (for local development)
+        - Example: `https://mcp-atlassian.yourcompany.com/mcp` (for production)
+    - **Authentication Type**: Select the auth type
+        - `No Authentication`: For public MCP servers
+        - `OAuth 2.0`: For OAuth-based providers
+        - `API Key`: For API key-based providers
+    - **Provider**: Select the provider which is linked to your created integration in Step 1
+4. Click **"Create MCP Server"**
+
+---
+
+## Step 3: Create a Connection
+
+A **Connection** is a user-level link between your account and the external service. This is where users authenticate.
+
+### For OAuth2 Providers
+
+1. Navigate to the MCP server configured in step 2
+2. Click **"Connect"** or **View Details** -> **"Add Connection"**
+3. Give the connection a unique name not used in other MCPs as well (set it as default, at least 1 default connection is
+   needed)
+4. You'll be redirected to the provider's OAuth consent screen
+5. Grant the requested permissions
+6. You'll be redirected back to Atthene with an active connection
+
+### For API Key Providers
+
+1. Navigate to the MCP server configured in step 2
+2. Click **"Connect"** or **View Details** -> **"Add Connection"**
+3. Give the connection a unique name not used in other MCPs as well (set it as default, at least 1 default connection is
+   needed)
+4. You'll be redirected to the provider's consent screen
+    - **API Key**: Enter your API key from the provider
+5. Click **"Connect"**
+6. You'll be redirected back to Atthene with an active connection
+
+> **Important**: Each user needs to create their own connection to use MCP tools. The integration is shared at the
+> company level, but connections are per-user.
+
+---
+## Step 4: Retrieve tools 
+
+Once your MCP server is configured, and you have an active connection, you can fetch/refresh tools.
+Afterward you can remove tools which you don't want in the configured MCP.  
+In the end you click **Save Tools* otherwise the MCP will be empty or with the last configured tools.
+
+
+
+## Step 5: Use MCP Tools in YAML
+
+Once your MCP server is configured, and you have an active connection, you can use MCP tools in your YAML workflows.
+
+### Tool Naming Convention
+
+MCP servers/tools are prefixed with `mcp__` followed by the MCP configuration name:
+
+```
+mcp__<mcp_configuration_name>
+```
+
+### Example YAML Configuration
+
+```yaml
+name: Atlassian Helper
+description: AI assistant with atlassian mcp tools
+save_messages: true
+persistent_state: true
+agents:
+- name: atlassian_tool_agent
+  tools:
+  - mcp__my_atlassian_mcp
+  agent_type: react_agent
+  llm_config:
+    max_tokens: 2000
+    temperature: 0.1
+  description: AI assistant with Atlassian tool calling capabilities
+  prompt_config:
+    system_prompt: 'You are a helpful AI assistant with access to Atlassian various tools.
+      When you need to use a tool, think step by step about what information you need
+      '
+  streaming_config:
+    enable_streaming: true
+    show_output_to_user: true
+edges:
+- to: atlassian_tool_agent
+  from: START
+- to: END
+  from: atlassian_tool_agent
+entry_point: START
+architecture: workflow
+```
+
+---
+
+## Provider-Specific Setup
+
+### Atlassian (Jira/Confluence)
+
+**Authentication**: OAuth 2.0
+
+**Required Scopes**:
+For example
+- `read:jira-work` - Read Jira issues
+- `write:jira-work` - Create/update Jira issues
+> **Note**: You can have a look at the client you have configured at the atlassian admin for more scopes
+
+
+**Special Requirements**:
+
+- The system automatically fetches your Atlassian Cloud ID
+- If you have multiple Atlassian sites, you'll need to configure the Cloud ID manually (Still under development)
+
+**Example MCP Server URL**: `http://localhost:8008/mcp`
+
+**Available Tools**:
+
+- `list_issues` - List Jira issues with filters
+- `create_issue` - Create new Jira issues
+- `update_issue` - Update existing issues
+- `get_issue` - Get details of a specific issue
+
+---
+
+### Lexware Office
+
+**Authentication**: API Key
+
+**API Key Location**: Get your API key from Lexware Office settings
+
+**Special Requirements**:
+
+- Uses custom header `Lexware-API-Key` for authentication
+- No OAuth setup required
+
+**Example MCP Server URL**: `http://localhost:8009/mcp`
+
+**Available Tools**:
+
+- `get_invoices` - List invoices with filters
+- `get_invoice` - Get invoice details by ID
+- `get_contacts` - List contacts
+- `get_posting_categories` - Get posting categories
+- `get_countries` - Get country tax classifications
+
+---
+
+## Troubleshooting
+
+### "No connection found" Error
+
+**Problem**: MCP tools fail with "No connection found"
+
+**Solution**:
+
+1. Ensure you've created a connection (Step 3)
+2. Check that the connection is set as default (if you have multiple)
+
+---
+
+### "Multiple Atlassian sites found" Error
+
+**Problem**: Atlassian integration fails with multiple sites error
+
+**Solution**:
+
+1. This occurs when your Atlassian account has access to multiple sites
+2. You need to manually configure the Cloud ID
+3. Contact your administrator to set the specific Cloud ID for your organization
+
+---
+
+## Advanced Configuration
+
+### Multiple MCP Servers for Same Provider
+
+You can configure multiple MCP servers for the same provider (e.g., different Jira projects):
+
+```yaml
+# MCP Config 1: "jira-engineering"
+tools:
+  - mcp__jira_engineering
+
+# MCP Config 2: "jira-marketing"  
+tools:
+  - mcp__jira_marketing
+```
+
+### Custom MCP Servers
+
+If you're running your own MCP server with some custom provider for authentication please communicate to the administrator 
+to set up the MCP.
+---
+
+**Last Updated**: March 2026
+**Version**: 1.0
