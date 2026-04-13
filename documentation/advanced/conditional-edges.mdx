@@ -256,6 +256,124 @@ edges:
 Structured output ensures consistent, predictable routing decisions
 </Tip>
 
+## Loop-Back Edges
+
+Conditional edges can route back to a previous agent, creating loops for iterative refinement. Use `recursion_limit` at the system level to prevent infinite cycles:
+
+```yaml
+name: "Iterative Refinement"
+architecture: "workflow"
+recursion_limit: 20
+
+agents:
+  - name: "drafter"
+    agent_type: "llm_agent"
+    prompt_config:
+      system_prompt: "Draft a response based on the user's request."
+
+  - name: "reviewer"
+    agent_type: "llm_agent"
+    structured_output:
+      enabled: true
+      schema:
+        approved:
+          type: "bool"
+          description: "Whether the draft meets quality standards"
+
+edges:
+  - from: "__start__"
+    to: "drafter"
+  - from: "drafter"
+    to: "reviewer"
+  - from: "reviewer"
+    condition: "Is the draft approved? {{reviewer.output.approved}}"
+    condition_type: "boolean"
+    routing:
+      yes: "__end__"
+      no: "drafter"     # Loop back to drafter for revision
+
+entry_point: "drafter"
+```
+
+<Warning>
+Always set `recursion_limit` when using loop-back edges. The default limit is 5 steps (configurable via environment variables). Without a sufficient limit, the workflow may terminate early.
+</Warning>
+
+## Conditional Routing from START
+
+You can use a conditional edge from `__start__` to dynamically select the first agent based on user input. Set `entry_point` to `"START"` to enable this:
+
+```yaml
+name: "Dynamic Entry Router"
+architecture: "workflow"
+entry_point: "START"
+
+agents:
+  - name: "simple_handler"
+    agent_type: "llm_agent"
+    prompt_config:
+      system_prompt: "Handle simple questions directly."
+
+  - name: "research_handler"
+    agent_type: "react_agent"
+    tools: ["tavily_search"]
+    prompt_config:
+      system_prompt: "Research complex questions using web search."
+
+edges:
+  - from: "__start__"
+    condition: "Based on the user's question: {{user_input}}, determine if this is a simple question or requires research."
+    condition_type: "literal"
+    possible_outputs: ["simple_handler", "research_handler"]
+  - from: "simple_handler"
+    to: "__end__"
+  - from: "research_handler"
+    to: "__end__"
+```
+
+<Info>
+When `entry_point` is `"START"`, no automatic edge from `__start__` to an agent is created. You must define your own edge from `__start__` (either static or conditional).
+</Info>
+
+## How Evaluation Works
+
+Under the hood, conditional edges use a multi-step evaluation pipeline:
+
+1. **Variable substitution**: Template variables like `{{agent.output.field}}` are replaced with actual values from the workflow state
+2. **LLM evaluation**: The substituted condition is sent to an LLM via [BAML](https://docs.boundaryml.com/) structured output for reliable parsing
+3. **Validation**: The LLM's response is validated (against `possible_outputs` for literal, or `yes`/`no` for boolean)
+4. **Retry logic**: If the response is invalid, the evaluation is retried up to 3 times with a 1-second delay
+5. **Fallback**: If all retries fail, the edge routes to `__end__` to terminate the workflow gracefully
+
+<Info>
+The BAML evaluation returns both a routing decision and a reasoning explanation. The reasoning is included in observability events for debugging.
+</Info>
+
+## Template Variables in Conditions
+
+Condition templates support the same `{{ }}` syntax as agent prompts:
+
+| Variable | Description |
+|----------|-------------|
+| `{{agent_name.output.field}}` | Structured output field from a previous agent |
+| `{{agent_name.output}}` | Full text output from a previous agent (last message) |
+| `{{user_input}}` | The current user message |
+| `{{history}}` or `{{history[N]}}` | Conversation history (all or last N messages) |
+| `{{variables.var_name}}` | Global workflow variable |
+
+## Special Node Names
+
+Both `__start__`/`__end__` and `START`/`END` are valid node names in edges. They are normalized internally:
+
+```yaml
+# These are equivalent:
+- from: "__start__"
+  to: "agent_a"
+
+- from: "START"
+  to: "agent_a"
+```
+
 ## Best Practices
 
 <Tip>
@@ -267,11 +385,11 @@ Structured output ensures consistent, predictable routing decisions
 </Tip>
 
 <Tip>
-**Limit Iterations**: Set maximum iteration counts for loops to prevent infinite cycles.
+**Limit Iterations**: Set `recursion_limit` when using loop-back edges. The default is 5 steps, which may be too low for iterative workflows.
 </Tip>
 
 <Warning>
-**Handle All Cases**: Ensure every possible output value has a corresponding route. Missing routes will cause errors.
+**Handle All Cases**: Ensure every possible output value has a corresponding route. If the LLM returns an invalid value, the edge will retry up to 3 times, then fall back to `__end__`.
 </Warning>
 
 <Tip>
@@ -289,11 +407,11 @@ Structured output ensures consistent, predictable routing decisions
 **Iterative Refinement**: Generate → evaluate → improve until acceptable
 
 <Warning>
-Conditional edges only work with `workflow` architecture, not with single agents
+Conditional edges only work with `workflow` architecture, not with `supervisor` or single agents
 </Warning>
 
 <Warning>
-For literal edges, every value in `possible_outputs` must be a valid agent name
+For literal edges, every value in `possible_outputs` must be a valid agent name defined in the `agents` list
 </Warning>
 
 ## Next Steps
@@ -301,6 +419,14 @@ For literal edges, every value in `possible_outputs` must be a valid agent name
 <CardGroup cols={2}>
   <Card title="Structured Output" icon="table" href="/documentation/advanced/structured-output">
     Learn how to define schemas for reliable conditional routing
+  </Card>
+  
+  <Card title="Sequential Patterns" icon="arrow-right" href="/documentation/advanced/sequential-patterns">
+    Build linear pipelines with static edges
+  </Card>
+  
+  <Card title="Supervisor Pattern" icon="users" href="/documentation/advanced/supervisor-pattern">
+    Use dynamic routing without explicit edges
   </Card>
   
   <Card title="YAML Configuration" icon="file-code" href="/documentation/yaml-configuration">

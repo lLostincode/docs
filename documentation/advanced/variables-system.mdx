@@ -38,13 +38,19 @@ variables:
 
 ### Variable Properties
 
-| Property | Type | Required | Description |
-|----------|------|----------|-------------|
-| `type` | string | Yes | Data type: `str`, `int`, `float`, `bool`, `list`, `dict` |
-| `default` | any | No | Default value if not provided |
-| `description` | string | No | Human-readable description (shown in UI) |
-| `required` | boolean | No | If `true`, must be provided on first execution |
-| `require_every_execution` | boolean | No | If `true`, must be provided on every request |
+| Property | Type | Default | Required | Description |
+|----------|------|---------|----------|-------------|
+| `type` | string | — | Yes | Data type using BAML type notation: `str`, `int`, `float`, `bool`, `list[str]`, `list[int]`, `dict[str, int]`, `str \| None`, etc. |
+| `default` | any | `null` | No | Default value if not provided. Supports template syntax like `{{ variables.key }}`. |
+| `description` | string | `null` | No | Human-readable description (shown in UI and playground). |
+| `required` | boolean | `true` | No | If `true`, variable must be provided or have a default value. If `false`, a `default` **must** be set — omitting both causes a validation error. |
+| `require_every_execution` | boolean | `false` | No | If `true`, variable must be provided on every execution request. Checkpoint values are ignored. |
+| `mode` | string | `"replace"` | No | Assignment mode: `"replace"` (overwrite previous value) or `"concat"` (append to existing value). |
+| `separator` | string | `" "` | No | Separator string used when `mode="concat"` to join existing and new values. |
+
+<Warning>
+If `required` is `false` and no `default` is set, validation will fail with: *"Variable must either be required=True or have a default value set"*.
+</Warning>
 
 ---
 
@@ -149,11 +155,22 @@ agents:
 
 ### Template Syntax
 
+Variables are accessed in `system_prompt` using `{{ variables.name }}` syntax. The substitution engine also supports other template variables — see [Prompt Configuration](/documentation/agent_config/types_config/prompt-configuration) for the full list.
+
 | Syntax | Description | Example |
 |--------|-------------|---------|
 | `{{ variables.name }}` | Access a variable value | `{{ variables.customer_name }}` |
+| `{{ user_input }}` | Current user message text | `{{ user_input }}` |
+| `{{ agent_name.output.field }}` | Structured output field from another agent | `{{ analyzer.output.priority }}` |
+| `{{ agent_name.output }}` | Last text output from another agent | `{{ researcher.output }}` |
 
-> **Note:** Always use `{{ variables.name }}` syntax. Inputs populate variables at runtime but are not accessed directly in templates.
+<Info>
+The substitution engine uses regex-based `{{ ... }}` matching, **not** Jinja2 filters. Expressions like `{{ variables.name | default('x') }}` are not supported. Unknown variables resolve to an empty string.
+</Info>
+
+### Reserved Variable Names
+
+The following names cannot be used for custom variables: `user_input`, `history`, `full_history`, `prompts`, `variables`. Using a reserved name causes a validation error.
 
 ---
 
@@ -192,32 +209,49 @@ agents:
       order_id: "analyzer.output.order_number"
 ```
 
-### Assignment Syntax
+### Assignment Patterns
 
-```
-variable_name: "agent_name.output.field_name"
+Variable assignments support three patterns:
+
+#### 1. Structured output field (most common)
+
+```yaml
+variable_assignments:
+  customer_name: "analyzer.output.customer"
+  priority: "analyzer.output.priority_level"
 ```
 
-- `variable_name` - The variable to populate (must be defined in `variables`)
-- `agent_name` - The agent that produces the output
-- `output` - Fixed keyword indicating structured output
-- `field_name` - The field from the structured output schema
+- `variable_name` — The variable to populate (must be defined in `variables`)
+- `agent_name` — The agent that produces the output
+- `output` — Fixed keyword
+- `field_name` — The field from the structured output schema
+
+#### 2. Non-structured agent output
+
+```yaml
+variable_assignments:
+  agent_summary: "summarizer.output"
+```
+
+Assigns the text content of the agent's last message. Useful for agents without structured output.
+
+#### 3. Static value assignment
+
+```yaml
+variable_assignments:
+  threshold: 0.85
+  max_retries: 10
+  greeting: "Hello"
+  is_active: true
+```
+
+Assigns a constant value directly. Type is validated against the variable's declared type.
 
 ### Nested Fields
 
-For nested structured outputs:
+For nested structured output data, use dot-separated paths:
 
 ```yaml
-structured_output:
-  schema:
-    customer:
-      type: "object"
-      properties:
-        name:
-          type: "str"
-        email:
-          type: "str"
-
 variable_assignments:
   customer_name: "analyzer.output.customer.name"
   customer_email: "analyzer.output.customer.email"
@@ -393,4 +427,53 @@ persistent_state: true
 ---
 
 ## API Reference
-TODO
+
+### Variable Definition Schema
+
+```yaml
+variable_name:
+  type: "str"                      # Required. BAML type notation.
+  default: "value"                 # Optional. Default value.
+  description: "Human-readable"    # Optional. Shown in UI.
+  required: true                   # Optional. Default: true.
+  require_every_execution: false   # Optional. Default: false.
+  mode: "replace"                  # Optional. "replace" or "concat". Default: "replace".
+  separator: " "                   # Optional. Used with mode="concat". Default: " ".
+```
+
+### Variable Assignment Schema
+
+```yaml
+variable_assignments:
+  var_name: "agent.output.field"   # Dynamic: structured output field
+  var_name: "agent.output"         # Dynamic: non-structured output (text)
+  var_name: 42                     # Static: constant value
+```
+
+### Execution Request
+
+```json
+{
+  "message": "User's question",
+  "inputs": {
+    "variable_name": "value"
+  }
+}
+```
+
+### Supported Types
+
+All types supported by the BAML type parser:
+
+| Type | Description | Example |
+|------|-------------|---------|
+| `str` | Text string | `"hello"` |
+| `int` | Integer | `42` |
+| `float` | Decimal number | `3.14` |
+| `bool` | Boolean | `true` |
+| `list[str]` | List of strings | `["a", "b"]` |
+| `list[int]` | List of integers | `[1, 2, 3]` |
+| `dict[str, int]` | Dictionary | `{"a": 1}` |
+| `str \| None` | Nullable string | `"hello"` or `null` |
+| `Optional[str]` | Nullable string (alternate syntax) | `"hello"` or `null` |
+| `Any` | Any type | — |

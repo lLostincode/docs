@@ -60,6 +60,13 @@
             ]
           },
           {
+            "group": "Advanced Features",
+            "icon": "wand-magic-sparkles",
+            "pages": [
+              "documentation/advanced/memory-system"
+            ]
+          },
+          {
             "group": "Atthene Agents Studio",
             "icon": "window",
             "pages": [

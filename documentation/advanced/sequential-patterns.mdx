@@ -29,10 +29,19 @@ Sequential patterns are ideal when you have a clear, linear workflow and want ea
 
 ### Special Nodes
 
-- **`__start__`**: Entry point (first agent receives user input)
-- **`__end__`**: Exit point (final agent's output is returned to user)
+- **`__start__`** (or `START`): Entry point — first agent receives user input
+- **`__end__`** (or `END`): Exit point — final agent's output is returned to user
 
-Every workflow must have edges from `__start__` and to `__end__`.
+Both forms are accepted and normalized internally. You can use either `__start__`/`__end__` or `START`/`END` in your YAML.
+
+Every workflow must have a path from `__start__` to `__end__`.
+
+### Entry Point
+
+The `entry_point` field specifies which agent runs first:
+
+- **Agent name** (e.g., `"assistant"`): An edge from `__start__` to this agent is added automatically. You can still define an explicit `__start__ → agent` edge, but it's not required.
+- **`"START"`**: No automatic edge is created. You must define your own edge from `__start__` (useful for [conditional routing from start](/documentation/advanced/conditional-edges#conditional-routing-from-start)).
 
 ### Passing Data Between Agents
 
@@ -276,6 +285,10 @@ The `researcher` agent uses `tavily_search` to gather data and outputs structure
 <Warning>
 Every workflow must have a path from `__start__` to `__end__`. Ensure all agents are reachable.
 </Warning>
+
+<Tip>
+**Set `recursion_limit`**: For workflows with conditional edges that loop back, increase `recursion_limit` (default: 5) to allow enough iterations. Example: `recursion_limit: 20`.
+</Tip>
 
 <Tip>
 **Keep schemas simple**: Start with basic types (`str`, `int`, `float`, `bool`) before using complex nested structures.

@@ -1,0 +1,321 @@
+---
+title: "Memory System"
+description: "Give your agents long-term memory to remember user preferences, learn from experience, and maintain context across conversations"
+---
+
+The memory system enables your agents to remember information across conversations. Agents can recall user preferences, learn from past interactions, and share knowledge across teams — all automatically.
+
+## Overview
+
+When memory is enabled, your agents will:
+
+1. **Retrieve** relevant memories before responding (injected into context)
+2. **Process** the user's message with full memory context
+3. **Save** new information to memory automatically in the background
+4. **Learn** continuously from every interaction
+
+<Info>
+Memory saving is completely asynchronous — users never wait for memory operations. The agent responds immediately, and memories are saved in the background.
+</Info>
+
+## Quick Start
+
+Add a `memory_config` block to your YAML configuration:
+
+```yaml
+memory_config:
+  llm_model: gemini-2.5-flash
+  auto_save_interval: 6
+
+  modules:
+    - name: user_preferences
+      scope: user
+      auto_save: true
+      relevance_prompt: "Extract user preferences and important facts."
+```
+
+That's it — your agents now have persistent memory.
+
+## Memory Scopes
+
+Scopes control **who can access** stored memories and how they are isolated:
+
+| Scope | Description | Shared With | Best For |
+|-------|-------------|-------------|----------|
+| `user` | Personal to each user | Only that user | Preferences, personal history |
+| `agent` | Specific to one agent | Only that agent + user | Learned strategies, agent knowledge |
+| `session` | Current conversation only | Current session | Temporary context |
+| `company` | Organization-wide | Everyone in the company | Policies, shared knowledge |
+| `space` | Team or project-specific | Users in that space | Project decisions, team knowledge |
+
+### Scope Examples
+
+**Personal memory** (each user gets their own):
+
+```yaml
+modules:
+  - name: user_prefs
+    scope: user
+    auto_save: true
+```
+
+**Team-shared memory**:
+
+```yaml
+modules:
+  - name: team_knowledge
+    scope: space
+    space_id: "engineering_team"
+    auto_save: true
+```
+
+**Multiple scopes combined**:
+
+```yaml
+modules:
+  - name: user_prefs
+    scope: user
+    auto_save: true
+
+  - name: company_knowledge
+    scope: company
+    auto_save: false  # Read-only, managed separately
+```
+
+## Configuration Reference
+
+### Global Settings
+
+These fields go directly under `memory_config`:
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `auto_save` | bool | `true` | Enable automatic memory saving |
+| `auto_save_trigger` | string | `on_interval_turns` | When to trigger: `on_interval_turns` or `manual` |
+| `auto_save_interval` | integer | `10` | Save every N conversation turns |
+| `num_results` | integer | `10` | Maximum memories to retrieve (1-100) |
+| `llm_model` | string | env default | Model for entity extraction (e.g., `gemini-2.5-flash`) |
+
+### Module Settings
+
+Each entry in the `modules` list supports:
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `name` | string | auto-generated | Unique identifier for the module |
+| `scope` | string | *required* | Isolation level: `user`, `agent`, `session`, `company`, `space` |
+| `auto_save` | bool | `true` | Auto-save this module, or use Memory Tool |
+| `auto_save_interval` | integer | inherit global | Override global save interval for this module |
+| `relevance_prompt` | string | scope template | Guide what information to extract and save |
+| `space_id` | string | — | Required when `scope: space` (alphanumeric, underscores, dashes only) |
+
+## Auto-Save Configuration
+
+### How Auto-Save Works
+
+Auto-save checks happen after each agent execution. For each module:
+
+1. The system checks how many conversation turns have occurred since the last check
+2. If the turn count reaches the module's `auto_save_interval`, evaluation begins
+3. An LLM evaluates the conversation for relevant information to save
+4. New facts are deduplicated against existing memories
+5. Only genuinely new information is persisted
+
+### Save Frequency Examples
+
+```yaml
+modules:
+  # Save user preferences frequently
+  - name: user_prefs
+    scope: user
+    auto_save: true
+    auto_save_interval: 3  # Every 3 turns
+
+  # Save general context less frequently
+  - name: context
+    scope: session
+    auto_save: true
+    auto_save_interval: 20  # Every 20 turns
+```
+
+### Manual Save Only
+
+Set `auto_save: false` to disable automatic saving for a module. The agent can then save to it explicitly using the Memory Tool:
+
+```yaml
+modules:
+  - name: confirmed_decisions
+    scope: user
+    auto_save: false
+    relevance_prompt: "Store only user-confirmed decisions."
+```
+
+## Relevance Prompts
+
+The `relevance_prompt` guides what information gets extracted from conversations. It's the most important field for memory quality.
+
+```yaml
+modules:
+  - name: user_preferences
+    scope: user
+    relevance_prompt: |
+      Extract user preferences about:
+      - Communication style (concise vs detailed)
+      - Output formats (markdown, JSON, plain text)
+      - Technical level (beginner, intermediate, expert)
+      - Domain-specific preferences and requirements
+```
+
+<Tip>
+Be specific in your relevance prompts. Vague prompts like "Extract important information" produce noisy memories. Targeted prompts produce high-quality, actionable memories.
+</Tip>
+
+If no relevance prompt is set, the system uses built-in scope-specific templates (e.g., for `user` scope: extract concrete personal facts, preferences, and decisions).
+
+## Per-Agent Memory
+
+Each agent can define its own memory modules that are **combined** with global modules. Agent-level modules are restricted to `agent` and `session` scopes.
+
+```yaml
+memory_config:
+  modules:
+    - name: user_prefs
+      scope: user
+      auto_save: true
+
+agents:
+  - name: support_agent
+    agent_type: react_agent
+
+    memory_config:
+      modules:
+        - name: agent_strategies
+          scope: agent
+          auto_save: true
+          relevance_prompt: "Extract successful support strategies."
+
+      num_results: 15  # Override global setting
+```
+
+**Result**: `support_agent` has access to both `user_prefs` (from global) and `agent_strategies` (from agent config).
+
+### Scope Rules
+
+| Scope | Global Config | Agent Config |
+|-------|:---:|:---:|
+| `company` | ✅ | ❌ |
+| `user` | ✅ | ❌ |
+| `space` | ✅ | ❌ |
+| `agent` | ❌ | ✅ |
+| `session` | ✅ | ✅ |
+
+## Memory Tool
+
+The Memory Tool gives agents explicit control over what gets saved. Add it to an agent's tools:
+
+```yaml
+agents:
+  - name: assistant
+    tools:
+      - tool_type: memory
+        config:
+          modules: ["user_preferences"]
+```
+
+### How It Works
+
+- **Without `config.modules`**: Exposes all modules with `auto_save: false`
+- **With `config.modules`**: Exposes only the named modules, regardless of `auto_save` setting
+
+This lets you combine automatic and manual saving:
+
+```yaml
+memory_config:
+  modules:
+    # Auto-saved general context
+    - name: user_context
+      scope: user
+      auto_save: true
+      auto_save_interval: 10
+
+    # Manual-save for critical facts
+    - name: confirmed_facts
+      scope: user
+      auto_save: false
+      relevance_prompt: "Store only critical, user-confirmed facts."
+```
+
+## Complete Example
+
+Here is a production-ready configuration:
+
+```yaml
+name: "Customer Support System"
+architecture: workflow
+
+memory_config:
+  llm_model: gemini-2.5-flash
+  auto_save_interval: 6
+  num_results: 10
+
+  modules:
+    - name: user_preferences
+      scope: user
+      auto_save: true
+      relevance_prompt: |
+        Extract user preferences, personal context, and important facts.
+        Focus on information that helps personalize future interactions.
+
+    - name: company_policies
+      scope: company
+      auto_save: false
+
+agents:
+  - name: support_agent
+    agent_type: react_agent
+    tools:
+      - tool_type: memory
+        config:
+          modules: ["user_preferences"]
+
+    memory_config:
+      modules:
+        - name: agent_learning
+          scope: agent
+          auto_save: true
+          relevance_prompt: "Extract successful resolution strategies."
+      num_results: 15
+
+edges:
+  - from: START
+    to: support_agent
+  - from: support_agent
+    to: END
+```
+
+## FAQ
+
+<AccordionGroup>
+  <Accordion title="How much does memory cost?">
+    Memory has minimal costs:
+    - **Storage**: ~5 KB per episode in the graph database
+    - **LLM calls**: Entity extraction uses a small model (~200-500 tokens per save)
+    - **Cost tip**: Use `gemini-2.5-flash` or similar efficient model (~$0.0001 per save)
+  </Accordion>
+
+  <Accordion title="What happens if memory retrieval fails?">
+    The agent continues without memory context. Memory failures are logged but never block the agent's response.
+  </Accordion>
+
+  <Accordion title="Can I see what's stored in memory?">
+    Yes — Atthene provides a built-in memory visualization with an interactive graph view showing entities, relationships, and facts. You can also edit or delete individual memory entries from the UI.
+  </Accordion>
+
+  <Accordion title="Does memory work across different agents?">
+    Yes, if they share the same scope. For example, all agents with a `user`-scoped module can access the same user's memories. Agent-scoped modules are private to each agent.
+  </Accordion>
+
+  <Accordion title="How do I disable memory?">
+    Remove the `memory_config` block entirely from your YAML configuration.
+  </Accordion>
+</AccordionGroup>

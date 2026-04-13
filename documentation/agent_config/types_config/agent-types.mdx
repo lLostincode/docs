@@ -40,9 +40,10 @@ agents:
     agent_type: "llm_agent"
     description: "A helpful conversational assistant"
     
-    system_prompt: |
-      You are a helpful AI assistant. Provide clear, accurate, 
-      and friendly responses to user questions.
+    prompt_config:
+      system_prompt: |
+        You are a helpful AI assistant. Provide clear, accurate, 
+        and friendly responses to user questions.
     
     llm_config:
       model: "gpt-4o"
@@ -95,23 +96,22 @@ agents:
     agent_type: "react_agent"
     description: "AI assistant with research and analysis capabilities"
     
-    system_prompt: |
-      You are a research assistant with access to web search and calculation tools.
-      
-      When solving problems:
-      1. Break down the task into steps
-      2. Use tools to gather information
-      3. Analyze the results
-      4. Provide a comprehensive answer
+    prompt_config:
+      system_prompt: |
+        You are a research assistant with access to web search and calculation tools.
+        
+        When solving problems:
+        1. Break down the task into steps
+        2. Use tools to gather information
+        3. Analyze the results
+        4. Provide a comprehensive answer
     
     tools:
       - "tavily_search"
       - "tavily_extract"
       - "calculator"
     
-    tool_calling:
-      enabled: true
-      max_iterations: 10
+    max_iterations: 10
     
     llm_config:
       model: "gpt-4o"
@@ -187,19 +187,20 @@ agents:
     return_to_supervisor: true
     max_handoffs: 15
     
-    supervisor_prompt: |
-      You are a team supervisor coordinating specialized agents.
-      
-      Your team:
-      - research_agent: Gathers information via web search
-      - analysis_agent: Analyzes data and identifies patterns
-      - writer_agent: Creates polished written content
-      
-      INSTRUCTIONS:
-      - Immediately delegate tasks to the appropriate specialist
-      - Use transfer tools to hand off work
-      - Provide clear context when transferring
-      - Evaluate results and decide next steps
+    prompt_config:
+      system_prompt: |
+        You are a team supervisor coordinating specialized agents.
+        
+        Your team:
+        - research_agent: Gathers information via web search
+        - analysis_agent: Analyzes data and identifies patterns
+        - writer_agent: Creates polished written content
+        
+        INSTRUCTIONS:
+        - Immediately delegate tasks to the appropriate specialist
+        - Use transfer tools to hand off work
+        - Provide clear context when transferring
+        - Evaluate results and decide next steps
     
     streaming_config:
       enable_streaming: true
@@ -208,17 +209,17 @@ agents:
 
 #### Supervisor Coordination Patterns
 
+**Iterative Coordination** (`return_to_supervisor: true`, the default):
+```
+User → Supervisor → Worker 1 → Supervisor → Worker 2 → Supervisor → User
+```
+Supervisor evaluates each step and orchestrates multi-agent workflows.
+
 **One-Way Delegation** (`return_to_supervisor: false`):
 ```
 User → Supervisor → Worker Agent → User
 ```
 Simple routing where workers respond directly to users.
-
-**Iterative Coordination** (`return_to_supervisor: true`):
-```
-User → Supervisor → Worker 1 → Supervisor → Worker 2 → Supervisor → User
-```
-Supervisor evaluates each step and orchestrates multi-agent workflows.
 
 #### When to Use
 
@@ -330,11 +331,11 @@ Combine different agent types under a supervisor: use ReAct agents for research,
 ### Supervisor Best Practices
 
 <Tip>
-**Clear Delegation**: Write explicit instructions in `supervisor_prompt` about when to use each worker.
+**Clear Delegation**: Write explicit instructions in `prompt_config.system_prompt` about when to use each worker.
 </Tip>
 
 <Tip>
-**Return Strategy**: Use `return_to_supervisor: true` for quality control and multi-step workflows.
+**Return Strategy**: Use `return_to_supervisor: true` (the default) for quality control and multi-step workflows. Set to `false` for simple one-way delegation.
 </Tip>
 
 <Warning>
@@ -378,16 +379,18 @@ Create domain-specific agents by customizing system prompts:
 ```yaml
 - name: "technical_expert"
   agent_type: "react_agent"
-  system_prompt: |
-    You are a senior software engineer specializing in Python and system architecture.
-    Provide technical, detailed responses with code examples.
-  tools: ["web_search"]
+  prompt_config:
+    system_prompt: |
+      You are a senior software engineer specializing in Python and system architecture.
+      Provide technical, detailed responses with code examples.
+  tools: ["tavily_search"]
 
 - name: "business_expert"
   agent_type: "llm_agent"
-  system_prompt: |
-    You are a business strategy consultant with MBA-level expertise.
-    Focus on ROI, market analysis, and strategic recommendations.
+  prompt_config:
+    system_prompt: |
+      You are a business strategy consultant with MBA-level expertise.
+      Focus on ROI, market analysis, and strategic recommendations.
 ```
 
 ## Next Steps

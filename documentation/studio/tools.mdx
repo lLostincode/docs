@@ -123,8 +123,9 @@ agents:
   - name: "email_assistant"
     agent_type: "react_agent"
     tools: 
-      - "microsoft_outlook_read_email"
-      - "microsoft_outlook_send_email"
+      - "outlook_list_emails"
+      - "outlook_get_email"
+      - "outlook_send_email"
     system_prompt: "You are an email assistant."
 ```
 
@@ -137,7 +138,8 @@ agents:
   - name: "email_assistant"
     agent_type: "react_agent"
     tools: 
-      - name: "microsoft_outlook_read_email"
+      - name: "outlook_list_emails"
+        tool_type: "outlook_list_emails"
         connection: "conn_123abc"  # Specify connection
     system_prompt: "You are an email assistant."
 ```
@@ -170,6 +172,11 @@ Deleting a connection will break any agents using it. Make sure to update your a
 **Tavily Extract** (`tavily_extract`)
 - Extract content from specific URLs
 - Clean and parsed HTML content
+- Configurable: format, timeout
+
+**Google Search** (`google_search`)
+- Gemini-grounded Google Search with AI-synthesized answers and citations
+- Configurable: model, temperature, max_output_tokens, timeout
 
 **Wikipedia Search** (`wikipedia_search`)
 - Search Wikipedia articles
@@ -193,19 +200,48 @@ Deleting a connection will break any agents using it. Make sure to update your a
 - Perform mathematical calculations
 - Simple arithmetic and computations
 
+**Randomizer** (`randomizer`)
+- Generate random integers within a configurable range
+- Configurable: min_value, max_value
+
+**Memory Management** (`memory`)
+- Save information to designated memory spaces for long-term retention
+- Configurable: modules (list of memory module names to expose)
+- Works with memory modules that have `auto_save: false`
+
+**Schedule Agent Task** (`schedule_agent_task`)
+- Create scheduled tasks (cronjobs) for agents
+- Supports one-time, daily, weekly, and monthly schedules
+
+**Manage Agent Tasks** (`manage_agent_tasks`)
+- Query, update, enable/disable, or delete existing schedules
+- Supports batch operations
+
+**List Agents** (`list_agents`)
+- Discover agents available to the user
+- Supports semantic search for large catalogs
+
+**Search Knowledge Bases** (`search_knowledge_bases`)
+- Discover available knowledge sources (SharePoint, OneDrive, Google Drive, uploaded docs)
+- Used before attaching KBs to agents via the agent builder
+
 ### Microsoft Outlook Toolkit
 
 Requires OAuth authorization via connection:
 
-- **List Emails** (`microsoft_outlook_list_emails`)
-- **Send Email** (`microsoft_outlook_send_email`)
-- **List Calendar Events** (`microsoft_outlook_list_calendar_events`)
-- **Create Calendar Event** (`microsoft_outlook_create_calendar_event`)
-- **List Tasks** (`microsoft_outlook_list_tasks`)
-- **Create Task** (`microsoft_outlook_create_task`)
-- **Complete Task** (`microsoft_outlook_complete_task`)
-- **List Contacts** (`microsoft_outlook_list_contacts`)
-- **Create Contact** (`microsoft_outlook_create_contact`)
+- **List Emails** (`outlook_list_emails`)
+- **Get Email** (`outlook_get_email`)
+- **Send Email** (`outlook_send_email`)
+- **Reply to Email** (`outlook_reply_email`)
+- **Forward Email** (`outlook_forward_email`)
+- **List Calendar Events** (`outlook_list_calendar_events`)
+- **Get Calendar Event** (`outlook_get_calendar_event`)
+- **Create Calendar Event** (`outlook_create_calendar_event`)
+- **List Tasks** (`outlook_list_tasks`)
+- **Create Task** (`outlook_create_task`)
+- **Complete Task** (`outlook_complete_task`)
+- **List Contacts** (`outlook_list_contacts`)
+- **Create Contact** (`outlook_create_contact`)
 
 ### Microsoft Teams Toolkit
 
@@ -215,6 +251,8 @@ Requires OAuth authorization via connection:
 - **Send Chat** (`teams_send_chat`)
 - **List Messages** (`teams_list_messages`)
 - **List Chats** (`teams_list_chats`)
+- **List Teams** (`teams_list_teams`)
+- **List Channels** (`teams_list_channels`)
 - **Create Meeting** (`teams_create_meeting`) - Can create recurring events
 
 
@@ -307,7 +345,7 @@ agents:
 agents:
   - name: "assistant"
     agent_type: "react_agent"
-    tools: ["tavily_search", "wikipedia", "calculator"]
+    tools: ["tavily_search", "wikipedia_search", "calculator"]
     system_prompt: |
       You are a helpful assistant with access to:
       - Web search for current information

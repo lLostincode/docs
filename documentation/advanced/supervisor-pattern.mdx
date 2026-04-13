@@ -49,10 +49,11 @@ agents:
   - name: "supervisor"
     agent_type: "supervisor"
     supervised_agents: ["agent1", "agent2", "agent3"]
-    return_to_supervisor: false
-    max_handoffs: 15
-    supervisor_prompt: |
-      Your coordination instructions...
+    return_to_supervisor: true
+    max_handoffs: 10
+    prompt_config:
+      system_prompt: |
+        Your coordination instructions...
   
   - name: "agent1"
     agent_type: "react_agent"
@@ -65,28 +66,38 @@ agents:
 entry_point: "supervisor"
 ```
 
+<Warning>
+Supervisor architecture must not define explicit `edges`. Routing is handled dynamically by the supervisor via handoff tools. Adding edges will cause a validation error.
+</Warning>
+
 ### Supervisor Parameters
 
 <ParamField path="supervised_agents" type="array" required>
-  List of agent names that this supervisor coordinates. These are the worker agents the supervisor can delegate to.
+  List of agent names that this supervisor coordinates. These must match agent names defined in the `agents` list. The supervisor must have at least one supervised agent.
   
   ```yaml
   supervised_agents: ["research_agent", "analysis_agent", "writer_agent"]
   ```
 </ParamField>
 
-<ParamField path="return_to_supervisor" type="boolean" default="false">
+<ParamField path="return_to_supervisor" type="boolean" default="true">
   Controls coordination flow:
-  - `false`: One-way delegation (worker responds directly to user)
-  - `true`: Iterative coordination (worker returns to supervisor for next steps)
+  - `true` (default): Iterative coordination — worker returns to supervisor for evaluation and next steps
+  - `false`: One-way delegation — worker responds directly to the user (routes to END)
 </ParamField>
 
-<ParamField path="max_handoffs" type="integer" default="15">
-  Maximum number of agent handoffs to prevent infinite coordination loops
+<ParamField path="max_handoffs" type="integer" default="10">
+  Maximum number of agent handoffs to prevent infinite coordination loops.
 </ParamField>
 
-<ParamField path="supervisor_prompt" type="string">
-  System prompt defining the supervisor's coordination strategy. Should clearly describe each worker's role and delegation instructions.
+<ParamField path="prompt_config.system_prompt" type="string">
+  System prompt defining the supervisor's coordination strategy. Should clearly describe each worker's role and delegation instructions. This is configured via the standard `prompt_config` block (there is no separate `supervisor_prompt` field).
+  
+  ```yaml
+  prompt_config:
+    system_prompt: |
+      You coordinate a team of specialists...
+  ```
 </ParamField>
 
 ## Coordination Patterns
@@ -138,23 +149,24 @@ agents:
     agent_type: "supervisor"
     description: "Intelligent supervisor coordinating research team specialists"
     supervised_agents: ["research_agent", "analysis_agent", "synthesis_agent"]
-    return_to_supervisor: false
-    max_handoffs: 15
+    return_to_supervisor: true
+    max_handoffs: 10
     
     streaming_config:
       enable_streaming: true
       show_output_to_user: true
 
-    supervisor_prompt: |
-      You are a research team supervisor coordinating specialized agents.
+    prompt_config:
+      system_prompt: |
+        You are a research team supervisor coordinating specialized agents.
 
-      Your team consists of:
-      - research_agent: Expert at web search and information gathering
-      - analysis_agent: Specialist in data analysis and pattern recognition
-      - synthesis_agent: Expert at summarizing findings
+        Your team consists of:
+        - research_agent: Expert at web search and information gathering
+        - analysis_agent: Specialist in data analysis and pattern recognition
+        - synthesis_agent: Expert at summarizing findings
 
-      For ANY user request, immediately delegate to the appropriate agent.
-      Always provide clear reasoning when transferring.
+        For ANY user request, immediately delegate to the appropriate agent.
+        Always provide clear reasoning when transferring.
 
   # Research Agent
   - name: "research_agent"
@@ -232,7 +244,7 @@ entry_point: "research_supervisor"
 ## Best Practices
 
 <Tip>
-**Clear role definitions**: In the supervisor_prompt, clearly describe each worker agent's expertise and when to use them
+**Clear role definitions**: In `prompt_config.system_prompt`, clearly describe each worker agent's expertise and when to use them
 </Tip>
 
 <Tip>

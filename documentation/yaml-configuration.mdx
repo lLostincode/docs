@@ -59,6 +59,16 @@ entry_point: "agent_name"
   **Options:**
   - `workflow` - Linear or branching agent workflows with explicit edges
   - `supervisor` - Multi-agent coordination with a supervisor agent
+
+  <Note>
+  Additional architecture types (`routing`, `orchestration`, `collaboration`) are defined but not yet implemented.
+  </Note>
+</ParamField>
+
+<ParamField path="recursion_limit" type="integer" default="5-25 (env-controlled)">
+  Maximum number of steps allowed in workflow execution to prevent infinite loops. Controlled by environment variables:
+  - Default: `AGENT_ITERATION_LIMIT` env var (fallback: lower limit)
+  - Range: `AGENT_ITERATION_LOWER_LIMIT` (default 5) to `AGENT_ITERATION_UPPER_LIMIT` (default 25)
 </ParamField>
 
 <ParamField path="entry_point" type="string" required>
@@ -105,9 +115,63 @@ agents:
   Human-readable description of the agent's purpose and capabilities
 </ParamField>
 
-<ParamField path="system_prompt" type="string">
-  Instructions that define the agent's behavior, personality, and capabilities. Supports multi-line strings with `|` syntax.
+### Prompt Configuration
+
+Configure how the agent's prompt is composed. This is nested within each agent's configuration:
+
+```yaml
+agents:
+  - name: "my_agent"
+    prompt_config:                        # ← Prompt configuration
+      system_prompt: |                    # ← is nested within
+        You are a helpful assistant.      # ← each agent
+      include_history: true
+      include_user_input: true
+```
+
+<ParamField path="prompt_config" type="object">
+  Prompt composition configuration
+  
+  <Expandable title="Prompt Config Properties">
+    <ParamField path="system_prompt" type="string" default="">
+      Instructions that define the agent's behavior, personality, and capabilities. Supports multi-line strings with `|` syntax. Positioned first in the message sequence for maximum LLM attention.
+    </ParamField>
+    
+    <ParamField path="include_history" type="boolean | integer" default="true">
+      Whether and how much conversation history to include.
+      
+      - `true` — include all history
+      - `false` — include no history
+      - Positive integer (e.g., `5`) — include only the last N messages
+    </ParamField>
+    
+    <ParamField path="include_user_input" type="boolean" default="true">
+      Whether to include the current user message in the prompt. Set to `false` to exclude the latest user message.
+    </ParamField>
+    
+    <ParamField path="include_media_in_history" type="boolean" default="false">
+      Whether to include media content (images, PDFs, files) from historical messages. Current user input media is always included regardless.
+    </ParamField>
+    
+    <ParamField path="include_internal_messages" type="boolean" default="true">
+      Whether to include internal agent messages (from agents with `show_output_to_user: false`) in history.
+    </ParamField>
+    
+    <ParamField path="few_shot_examples" type="array" default="[]">
+      Teaching examples positioned after the system prompt. Each example must have `input` and `output` keys.
+      
+      ```yaml
+      few_shot_examples:
+        - input: "What is 2+2?"
+          output: "2+2 equals 4"
+      ```
+    </ParamField>
+  </Expandable>
 </ParamField>
+
+<Note>
+The `system_prompt` field must be placed inside `prompt_config`, not at the agent level. While some examples may show `system_prompt` at the agent level for brevity, the correct location is `prompt_config.system_prompt`.
+</Note>
 
 ### LLM Configuration
 
@@ -126,8 +190,8 @@ agents:
   Configuration for the language model
   
   <Expandable title="LLM Config Properties">
-    <ParamField path="model" type="string" default="gpt-4o">
-      Model identifier (e.g., `gpt-4o`, `gpt-4-turbo`, `gpt-3.5-turbo`)
+    <ParamField path="model" type="string">
+      Model identifier. If not specified, the default model from environment variables is used. Both display names and internal model names are accepted (e.g., `gpt-4o`, `mistral-medium`).
     </ParamField>
     
     <ParamField path="temperature" type="number" default="0.7">
@@ -137,7 +201,11 @@ agents:
     </ParamField>
     
     <ParamField path="max_tokens" type="integer">
-      Maximum number of tokens to generate in responses
+      Maximum number of tokens to generate in responses. If not set, uses the provider's default.
+    </ParamField>
+    
+    <ParamField path="api_key" type="string">
+      Optional API key override. If provided, this key is used instead of the environment variable for this agent's LLM provider.
     </ParamField>
   </Expandable>
 </ParamField>
@@ -164,7 +232,7 @@ agents:
     </ParamField>
     
     <ParamField path="show_output_to_user" type="boolean" default="true">
-      Show agent text output to end users in real-time
+      Show agent text output to end users in real-time. When `false`, agent output goes to internal messages (invisible to end user but available to other agents).
     </ParamField>
     
     <ParamField path="show_tool_to_user" type="boolean" default="true">
@@ -172,7 +240,19 @@ agents:
     </ParamField>
     
     <ParamField path="show_reasoning" type="boolean" default="false">
-      Show agent reasoning/thinking process to end users
+      Show agent reasoning/thinking process to end users (for models that support thinking mode)
+    </ParamField>
+    
+    <ParamField path="show_memory" type="boolean" default="true">
+      Show memory query events to end users
+    </ParamField>
+    
+    <ParamField path="send_preview_snippet" type="boolean" default="false">
+      Generate and send an agent introduction snippet before processing the query
+    </ParamField>
+    
+    <ParamField path="main_chatbox" type="boolean" default="false">
+      Identifies this agent as the main chatbox agent (UI hint for frontend rendering)
     </ParamField>
   </Expandable>
 </ParamField>
@@ -233,29 +313,24 @@ agents:
 
 #### **Tool Calling Behavior**
 
-Configure how agents interact with tools. This is nested within each agent's configuration:
+The ReAct agent's iteration limit is configured directly on the agent, not in a nested `tool_calling` object:
 
 ```yaml
 agents:
   - name: "my_agent"
-    tool_calling:             # ← Tool calling config
-      enabled: true           # ← is nested within
-      max_iterations: 10      # ← each agent
+    agent_type: "react_agent"
+    max_iterations: 10        # ← Maximum ReAct loop iterations
+    tools:
+      - "tavily_search"
 ```
 
-<ParamField path="tool_calling" type="object">
-  Tool calling behavior configuration
-  
-  <Expandable title="Tool Calling Properties">
-    <ParamField path="enabled" type="boolean" default="true">
-      Enable tool calling for this agent
-    </ParamField>
-    
-    <ParamField path="max_iterations" type="integer" default="10">
-      Maximum number of tool calling iterations to prevent infinite loops
-    </ParamField>
-  </Expandable>
+<ParamField path="max_iterations" type="integer" default="10">
+  Maximum number of ReAct reasoning-action-observation cycles. Only applicable for `react_agent` type. Prevents infinite tool calling loops.
 </ParamField>
+
+<Note>
+There is no `tool_calling` configuration object. Tool calling is always enabled for `react_agent` agents when tools are provided. Use `max_iterations` at the agent level to control the iteration limit.
+</Note>
 
 ### Supervisor Configuration
 
@@ -266,13 +341,14 @@ agents:
   - name: "supervisor"
     agent_type: "supervisor"
     supervised_agents: [...]      # ← Supervisor-specific
-    return_to_supervisor: false   # ← parameters are defined
-    max_handoffs: 15              # ← within the supervisor agent
-    supervisor_prompt: "..."
+    return_to_supervisor: true    # ← parameters are defined
+    max_handoffs: 10              # ← within the supervisor agent
+    prompt_config:
+      system_prompt: "..."        # ← Custom supervisor instructions
 ```
 
-<ParamField path="supervised_agents" type="array">
-  **Required for supervisor agents.** List of agent names that this supervisor coordinates.
+<ParamField path="supervised_agents" type="array" required>
+  **Required for supervisor agents.** List of agent names that this supervisor coordinates. Must contain at least one agent.
   
   ```yaml
   agents:
@@ -282,17 +358,17 @@ agents:
   ```
 </ParamField>
 
-<ParamField path="return_to_supervisor" type="boolean" default="false">
-  Whether worker agents should return control to the supervisor after completing their tasks
+<ParamField path="return_to_supervisor" type="boolean" default="true">
+  Whether worker agents should return control to the supervisor after completing their tasks. Set to `false` for simple one-way delegation where workers respond directly to the user.
 </ParamField>
 
-<ParamField path="max_handoffs" type="integer" default="15">
+<ParamField path="max_handoffs" type="integer" default="10">
   Maximum number of agent handoffs to prevent infinite coordination loops
 </ParamField>
 
-<ParamField path="supervisor_prompt" type="string">
-  Special system prompt for supervisor agents defining coordination strategy
-</ParamField>
+<Note>
+Supervisor agents use `prompt_config.system_prompt` for their coordination instructions. There is no separate `supervisor_prompt` field. The system prompt is injected into a template that adds routing and evaluation logic around your custom instructions.
+</Note>
 
 ## Workflow Edges
 
@@ -333,7 +409,8 @@ agents:
   - name: "assistant"
     agent_type: "llm_agent"
     description: "A helpful AI assistant"
-    system_prompt: "You are a helpful AI assistant."
+    prompt_config:
+      system_prompt: "You are a helpful AI assistant."
     llm_config:
       temperature: 0.7
       max_tokens: 500
@@ -363,22 +440,21 @@ agents:
     agent_type: "react_agent"
     description: "AI assistant with tool calling capabilities"
     
-    system_prompt: |
-      You are a helpful AI assistant with access to various tools.
-      When you need to use a tool, think step by step about what information you need.
+    prompt_config:
+      system_prompt: |
+        You are a helpful AI assistant with access to various tools.
+        When you need to use a tool, think step by step about what information you need.
     
     tools:
       - "tavily_search"
       - "tavily_extract"
       - "calculator"
     
+    max_iterations: 10
+    
     llm_config:
       temperature: 0.1
       max_tokens: 2000
-    
-    tool_calling:
-      enabled: true
-      max_iterations: 10
     
     streaming_config:
       enable_streaming: true
@@ -408,23 +484,24 @@ agents:
     agent_type: "supervisor"
     description: "Intelligent supervisor coordinating research team specialists"
     supervised_agents: ["research_agent", "analysis_agent", "synthesis_agent"]
-    return_to_supervisor: false
+    return_to_supervisor: true
     max_handoffs: 15
     
     streaming_config:
       enable_streaming: true
       show_output_to_user: true
 
-    supervisor_prompt: |
-      You are a research team supervisor coordinating specialized agents.
+    prompt_config:
+      system_prompt: |
+        You are a research team supervisor coordinating specialized agents.
 
-      Your team consists of:
-      - research_agent: Expert at web search and information gathering
-      - analysis_agent: Specialist in data analysis and pattern recognition
-      - synthesis_agent: Expert at summarizing findings
+        Your team consists of:
+        - research_agent: Expert at web search and information gathering
+        - analysis_agent: Specialist in data analysis and pattern recognition
+        - synthesis_agent: Expert at summarizing findings
 
-      For ANY user request, immediately delegate to the appropriate agent.
-      Always provide clear reasoning when transferring.
+        For ANY user request, immediately delegate to the appropriate agent.
+        Always provide clear reasoning when transferring.
 
   # Research Agent
   - name: "research_agent"
@@ -435,23 +512,22 @@ agents:
       - "tavily_search"
       - "tavily_extract"
     
-    tool_calling:
-      enabled: true
-      max_iterations: 5
+    max_iterations: 5
     
     streaming_config:
       show_output_to_user: true
       show_reasoning: true
     
-    system_prompt: |
-      You are a Research Specialist in a multi-agent team.
-      
-      Your expertise includes:
-      - Web search and information gathering
-      - Fact-checking and source verification
-      - Identifying reliable sources
-      
-      Always provide detailed, well-sourced research results.
+    prompt_config:
+      system_prompt: |
+        You are a Research Specialist in a multi-agent team.
+        
+        Your expertise includes:
+        - Web search and information gathering
+        - Fact-checking and source verification
+        - Identifying reliable sources
+        
+        Always provide detailed, well-sourced research results.
 
   # Analysis Agent
   - name: "analysis_agent"
@@ -461,22 +537,21 @@ agents:
     tools:
       - "calculator"
     
-    tool_calling:
-      enabled: true
-      max_iterations: 3
+    max_iterations: 3
     
     streaming_config:
       show_output_to_user: true
     
-    system_prompt: |
-      You are an Analysis Specialist in a multi-agent team.
-      
-      Your expertise includes:
-      - Data analysis and statistical processing
-      - Pattern recognition and trend identification
-      - Insight generation from complex information
-      
-      Focus on extracting meaningful insights.
+    prompt_config:
+      system_prompt: |
+        You are an Analysis Specialist in a multi-agent team.
+        
+        Your expertise includes:
+        - Data analysis and statistical processing
+        - Pattern recognition and trend identification
+        - Insight generation from complex information
+        
+        Focus on extracting meaningful insights.
 
   # Synthesis Agent
   - name: "synthesis_agent"
@@ -486,15 +561,16 @@ agents:
     streaming_config:
       show_output_to_user: true
     
-    system_prompt: |
-      You are a Synthesis Specialist in a multi-agent team.
-      
-      Your expertise includes:
-      - Combining research and analysis into coherent narratives
-      - Creating well-structured, comprehensive reports
-      - Ensuring completeness and coherence
-      
-      Create comprehensive, well-organized final responses.
+    prompt_config:
+      system_prompt: |
+        You are a Synthesis Specialist in a multi-agent team.
+        
+        Your expertise includes:
+        - Combining research and analysis into coherent narratives
+        - Creating well-structured, comprehensive reports
+        - Ensuring completeness and coherence
+        
+        Create comprehensive, well-organized final responses.
 
 entry_point: "research_supervisor"
 ```

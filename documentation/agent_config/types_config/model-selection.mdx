@@ -75,47 +75,51 @@ Azure OpenAI uses **deployment names**. Ensure your deployment name matches the 
 
 | Model Name (use in YAML) | Tool Support | Modalities | Context Window |
 |--------------------------|--------------|------------|----------------|
-| `Qwen2.5-Coder-32B` | ✅ Yes | Text | 32K tokens |
-| `Qwen2.5-VL-72B` | ✅ Yes | Text, Image | 32K tokens |
-| `Qwen3-235B-A22B` | ✅ Yes | Text | 32K tokens |
+| `Llama-3.3-70B` | ✅ Yes | Text | 128K tokens |
+| `Qwen3-VL-30B` | ✅ Yes | Text, Image | 32K tokens |
 | `Qwen3-30B` | ✅ Yes | Text | 32K tokens |
-| `Teuken-7B` | ✅ Yes | Text | 32K tokens |
+| `Qwen3-Next-80B` | ✅ Yes | Text | 32K tokens |
+| `Teuken-7B` | ❌ No | Text | 32K tokens |
 | `claude-3-7-sonnet` | ✅ Yes | Text, Image | 128K tokens |
 | `claude-sonnet-4` | ✅ Yes | Text, Image | 128K tokens |
 | `gpt-oss-120b` | ✅ Yes | Text | 32K tokens |
+
+<Warning>
+**Teuken-7B** does not support tool calling. Use it only for text generation tasks without tools.
+</Warning>
 
 ### Mistral AI Models
 
 | Model Name (use in YAML) | Tool Support | Modalities | Context Window |
 |--------------------------|--------------|------------|----------------|
-| `mistral-large` | ✅ Yes | Text | 128K tokens |
+| `mistral-large` | ✅ Yes | Text, Image | 128K tokens |
 | `mistral-medium` | ✅ Yes | Text, Image | 128K tokens |
 | `mistral-small` | ✅ Yes | Text, Image | 128K tokens |
-| `pixtral-large` | ✅ Yes | Text, Image | 128K tokens |
-| `codestral` | ✅ Yes | Text | 128K tokens |
-| `ministral-3b` | ✅ Yes | Text | 128K tokens |
-| `ministral-8b` | ✅ Yes | Text | 128K tokens |
-| `devstral-small` | ✅ Yes | Text | 128K tokens |
-| `devstral-medium` | ❌ No | Text | 128K tokens |
+| `ministral-3b` | ✅ Yes | Text, Image | 128K tokens |
+| `ministral-8b` | ✅ Yes | Text, Image | 128K tokens |
+| `ministral-14b` | ✅ Yes | Text, Image | 128K tokens |
 | `magistral-medium` | ❌ No | Text, Image | 128K tokens |
 | `magistral-small` | ❌ No | Text, Image | 128K tokens |
-| `mistral-moderation` | ❌ No | Text | 128K tokens |
-| `mistral-saba` | ❌ No | Text | 128K tokens |
+| `pixtral-large` | ✅ Yes | Text, Image | 128K tokens |
+| `codestral` | ✅ Yes | Text | 128K tokens |
+| `devstral-small` | ✅ Yes | Text | 128K tokens |
+| `devstral-medium` | ❌ No | Text | 128K tokens |
 
 <Warning>
-**Magistral, devstral-medium, mistral-moderation, and mistral-saba models** do not support tool calling. Use them only for text generation tasks without tools.
+**Magistral and devstral-medium models** do not support tool calling. Use them only for text generation tasks without tools.
 </Warning>
 
 ### Google Gemini Models
 
-| Model Name (use in YAML) | Tool Support | Modalities | Context Window |
-|--------------------------|--------------|------------|----------------|
-| `gemini-2.5-pro` | ✅ Yes | Text, Image | 1M tokens |
-| `gemini-2.5-flash` | ✅ Yes | Text, Image | 1M tokens |
-| `gemini-3-pro` | ✅ Yes | Text, Image | 1M tokens |
+| Model Name (use in YAML) | Tool Support | Thinking | Modalities | Context Window | Max Output |
+|--------------------------|--------------|----------|------------|----------------|------------|
+| `gemini-2.5-flash` | ✅ Yes | ✅ Yes | Text, Image, Audio, Video | 1M tokens | 8K tokens |
+| `gemini-2.5-pro` | ✅ Yes | ✅ Yes | Text, Image, Audio, Video | 1M tokens | 8K tokens |
+| `gemini-3.1-flash-lite` | ✅ Yes | ✅ Yes | Text, Image, Audio, Video | ~1M tokens | 64K tokens |
+| `gemini-3.1-pro` | ✅ Yes | ✅ Yes | Text, Image, Audio, Video | ~1M tokens | 64K tokens |
 
 <Tip>
-Gemini models have **massive context windows** (1M tokens) and support **all modalities**, making them ideal for complex multimodal tasks.
+Gemini models have **massive context windows** (1M tokens), support **all modalities** (text, image, audio, video), and are the only models that support **thinking mode** — enable it with `show_reasoning: true` in your streaming config.
 </Tip>
 
 ## Multimodal Models & OCR
@@ -245,13 +249,13 @@ The backend automatically:
 3. Sends the images to the multimodal model
 4. Processes the response
 
-**Note**: Only vision-capable models (e.g., `gpt-4o`, `claude-3-5-sonnet-20241022`, `Qwen2-VL-72B-Instruct`) can process images and PDFs. Text-only models will reject multimodal content.  
+**Note**: Only vision-capable models can process images and PDFs. Text-only models will reject multimodal content with a clear error message listing available vision models.
 
 **Supported Image Models:**
 - **Azure OpenAI**: `gpt-4o`
-- **Telekom OTC**: `Qwen2.5-VL-72B`, `claude-3-7-sonnet`, `claude-sonnet-4`
-- **Mistral AI**: `mistral-medium`, `mistral-small`, `pixtral-large`, `magistral-medium`, `magistral-small`
-- **Google Gemini**: All Gemini models
+- **Telekom OTC**: `Qwen3-VL-30B`, `claude-3-7-sonnet`, `claude-sonnet-4`
+- **Mistral AI**: `mistral-large`, `mistral-medium`, `mistral-small`, `ministral-3b/8b/14b`, `magistral-medium/small`, `pixtral-large`
+- **Google Gemini**: All Gemini models (also support audio and video)
 
 ### Multimodal Use Cases
 
@@ -265,30 +269,34 @@ The backend automatically:
   <Accordion title="Image Understanding">
     Analyze images for content, objects, scenes, and context.
     
-    **Best Models**: `gemini-2.5-pro`, `gpt-4o`, `Qwen2.5-VL-72B`
+    **Best Models**: `gemini-2.5-pro`, `gpt-4o`, `Qwen3-VL-30B`
   </Accordion>
 </AccordionGroup>
 
 ## BYOK (Bring Your Own Key)
 
-<Note>
-BYOK is currently supported for **Telekom OTC** and **Mistral AI** providers only. Azure OpenAI and Google Gemini do not support BYOK at this time.
-</Note>
-
-Override API keys for specific agents using the `api_key` field:
+Override API keys for specific agents using the `api_key` field in `llm_config`. This allows different agents to use different API keys, enabling multi-tenant isolation:
 
 ```yaml
 agents:
   - name: customer_agent
     agent_type: llm_agent
     llm_config:
-      model: mistral-large  # BYOK supported
-      api_key: your-mistral-api-key  # BYOK
+      model: mistral-large
+      api_key: your-mistral-api-key  # Direct key
       temperature: 0.7
 ```
 
+You can also reference environment variables using the `${ENV_VAR}` syntax:
+
+```yaml
+llm_config:
+  model: mistral-large
+  api_key: ${TENANT_A_MISTRAL_KEY}  # References an environment variable
+```
+
 <Warning>
-**Security Notes**: API Keys are currently stored in plain text when you save an agent. In v0.3 we are introducing a secure key vault, which can hold an API Key to be used globally across all provider calls.
+**Security Notes**: API keys provided directly in the YAML configuration are stored in plain text. For production deployments, use environment variable references (`${ENV_VAR}` syntax) instead of hardcoding keys.
 </Warning>
 
 ## Model Configuration Reference
@@ -478,14 +486,14 @@ agents:
   - name: tenant_a_agent
     agent_type: llm_agent
     llm_config:
-      model: mistral-large  # BYOK supported
+      model: mistral-large
       api_key: ${TENANT_A_MISTRAL_KEY}  # Tenant A's Mistral key
       temperature: 0.7
   
   - name: tenant_b_agent
     agent_type: llm_agent
     llm_config:
-      model: Qwen3-235B-A22B  # BYOK supported (Telekom OTC)
+      model: Qwen3-30B  # Telekom OTC
       api_key: ${TENANT_B_TELEKOM_KEY}  # Tenant B's Telekom key
       temperature: 0.7
 ```

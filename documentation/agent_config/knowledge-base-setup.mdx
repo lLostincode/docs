@@ -7,15 +7,19 @@ Knowledge bases provide agents with access to domain-specific information, docum
 
 ## Available Knowledge Base Types
 
-<Card title="Milvus" icon="database">
-  **Vector Database** ✅
+<CardGroup cols={2}>
+  <Card title="Milvus" icon="database">
+    **Vector Database**
+    
+    Production-ready vector database with semantic search, hybrid search, and query expansion.
+  </Card>
   
-  Production-ready vector database with semantic search capabilities.
-</Card>
-
-<Note>
-Additional vector database integrations will be supported in future releases.
-</Note>
+  <Card title="UKnow" icon="cloud">
+    **Cloud Storage Search**
+    
+    Search documents in SharePoint, OneDrive, Google Drive, and Confluence via the UKnow API.
+  </Card>
+</CardGroup>
 
 ## Milvus Knowledge Base
 
@@ -31,69 +35,54 @@ agents:
     knowledge_bases:
       - name: "company_docs"
         knowledge_base_type: "milvus"
-        knowledge_base_id: "kb_abc123"
-        retrieval_config:
+        id: "kb_abc123"
+        config:
           top_k: 10
           search_ef: 64
-          metric_type: "COSINE"
+          strategy: "dense"
 ```
 
 ### Creating with API
 
 Knowledge bases are created via the API with full control over processing configuration. See [Create Knowledge Base API](/api-reference/knowledge-bases/create) for complete documentation.
 
-### Required Fields
+### Instance Fields
 
 <ParamField path="name" type="string" required>
-  Unique identifier for this knowledge base instance
+  Unique identifier for this knowledge base instance. Must contain only alphanumeric characters, hyphens, and underscores.
 </ParamField>
 
 <ParamField path="knowledge_base_type" type="string" required>
-  Must be set to `"milvus"`
+  Knowledge base type: `"milvus"` or `"uknow"`
 </ParamField>
 
-<ParamField path="knowledge_base_id" type="string" required>
-  Knowledge base ID for isolation and multi-tenancy
+<ParamField path="enabled" type="boolean" default="true">
+  Toggle the knowledge base on or off without removing it from configuration
 </ParamField>
 
-### Retrieval Configuration
+<ParamField path="id" type="string" optional>
+  KnowledgeBase model ID for database lookup (required for Milvus to resolve collection info)
+</ParamField>
 
-The `retrieval_config` object controls how documents are retrieved:
+<ParamField path="config" type="object" default="{}">
+  Adapter-specific retrieval configuration (see below)
+</ParamField>
 
-<ParamField path="retrieval_config.top_k" type="integer" default="10">
+<ParamField path="description" type="string" optional>
+  Human-readable description of the knowledge base
+</ParamField>
+
+### Milvus Retrieval Configuration
+
+The `config` object controls how documents are retrieved from Milvus:
+
+<ParamField path="config.top_k" type="integer" default="10">
   Number of most relevant results to return
   
   **Range:** 1-1000
 </ParamField>
 
-<ParamField path="retrieval_config.search_ef" type="integer" default="64">
-  HNSW search parameter controlling accuracy vs speed trade-off
-  
-  **Range:** 1-512  
-  **Higher values** = more accurate but slower
-</ParamField>
-
-<ParamField path="retrieval_config.metric_type" type="string" default="COSINE">
-  Distance metric for similarity search
-  
-  **Options:**
-  - `COSINE` - Cosine similarity (recommended)
-  - `L2` - Euclidean distance
-  - `IP` - Inner product
-</ParamField>
-
-<ParamField path="retrieval_config.offset" type="integer" default="0">
-  Number of results to skip (for pagination)
-</ParamField>
-
-<ParamField path="retrieval_config.score_threshold" type="float" optional>
-  Minimum similarity score threshold
-  
-  **Range:** 0.0-1.0  
-  Only return results above this score
-</ParamField>
-
-<ParamField path="retrieval_config.strategy" type="string" default="dense">
+<ParamField path="config.strategy" type="string" default="dense">
   Search strategy for retrieval
   
   **Options:**
@@ -101,6 +90,47 @@ The `retrieval_config` object controls how documents are retrieved:
   - `hybrid` - Combines dense vector + BM25 keyword search
   - `bm25` - BM25 keyword-based search only
   - `hybrid_rrf` - Hybrid with Reciprocal Rank Fusion for improved ranking
+</ParamField>
+
+<ParamField path="config.search_ef" type="integer" optional>
+  HNSW search parameter controlling accuracy vs speed trade-off
+  
+  **Higher values** = more accurate but slower
+</ParamField>
+
+<ParamField path="config.score_threshold" type="float" optional>
+  Minimum similarity score threshold
+  
+  **Range:** 0.0-1.0  
+  Only return results above this score
+</ParamField>
+
+<ParamField path="config.offset" type="integer" default="0">
+  Number of results to skip (for pagination)
+</ParamField>
+
+<ParamField path="config.embedding_provider" type="string" default="mistral">
+  Embedding provider for vectorization: `"mistral"`, `"azure_openai"`, or `"telekom_otc"`
+</ParamField>
+
+<ParamField path="config.embedding_model" type="string" default="mistral-embed">
+  Embedding model name
+</ParamField>
+
+<ParamField path="config.query_model" type="string" optional>
+  LLM model for query expansion. Must be one of the available LLM models.
+</ParamField>
+
+<ParamField path="config.max_num_query_expansions" type="integer" default="0">
+  Number of expanded queries to generate (0-5). When greater than 0, uses the query_model to generate variations of the original query for improved recall.
+</ParamField>
+
+<ParamField path="config.filter_expression" type="string" optional>
+  Raw Milvus expression for pre-search filtering. Supports Milvus-native operators like `ARRAY_CONTAINS`.
+</ParamField>
+
+<ParamField path="config.filters" type="object" optional>
+  Haystack-style metadata filters for document retrieval.
 </ParamField>
 
 ## Usage Examples
@@ -115,10 +145,9 @@ agents:
     knowledge_bases:
       - name: "support_kb"
         knowledge_base_type: "milvus"
-        knowledge_base_id: "kb_support_001"
-        retrieval_config:
+        id: "kb_support_001"
+        config:
           top_k: 5
-          metric_type: "COSINE"
     
     system_prompt: |
       You are a customer support agent with access to our support documentation.
@@ -140,12 +169,11 @@ agents:
     knowledge_bases:
       - name: "research_kb"
         knowledge_base_type: "milvus"
-        knowledge_base_id: "kb_research_001"
-        retrieval_config:
+        id: "kb_research_001"
+        config:
           strategy: "hybrid_rrf"  # Combines dense + BM25 with RRF
           top_k: 20
           search_ef: 128
-          metric_type: "COSINE"
           score_threshold: 0.7
     
     system_prompt: |
@@ -165,12 +193,11 @@ agents:
     knowledge_bases:
       - name: "product_kb"
         knowledge_base_type: "milvus"
-        knowledge_base_id: "kb_product_001"
-        retrieval_config:
+        id: "kb_product_001"
+        config:
           strategy: "dense"
           top_k: 15
           search_ef: 96
-          metric_type: "COSINE"
           
           # Query expansion for better recall
           query_model: "gpt-4o"
@@ -179,6 +206,29 @@ agents:
     system_prompt: |
       You are an expert product support agent.
       Use query expansion to find relevant documentation.
+```
+
+### UKnow Cloud Storage Search
+
+```yaml
+agents:
+  - name: "document_agent"
+    agent_type: "llm_agent"
+    
+    knowledge_bases:
+      - name: "sharepoint_docs"
+        knowledge_base_type: "uknow"
+        config:
+          username: "user@company.com"
+          drive_key: "SP"
+          drive_ids: ["drive_abc123"]
+          search_options:
+            search_type: "similarity"
+            fetch_k: 10
+    
+    system_prompt: |
+      You have access to company SharePoint documents.
+      Search the knowledge base to find relevant information.
 ```
 
 ### Multiple Knowledge Bases
@@ -191,14 +241,14 @@ agents:
     knowledge_bases:
       - name: "technical_docs"
         knowledge_base_type: "milvus"
-        knowledge_base_id: "kb_tech_001"
-        retrieval_config:
+        id: "kb_tech_001"
+        config:
           top_k: 10
       
       - name: "company_policies"
         knowledge_base_type: "milvus"
-        knowledge_base_id: "kb_policy_001"
-        retrieval_config:
+        id: "kb_policy_001"
+        config:
           top_k: 5
     
     system_prompt: |

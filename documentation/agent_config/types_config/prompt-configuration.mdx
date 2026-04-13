@@ -36,11 +36,12 @@ This ordering leverages the **primacy and recency effects** in LLM attention, pl
 
 ```yaml
 prompt_config:
-  system_prompt: string           # Core behavioral instructions (supports template variables)
-  include_user_input: bool        # Include current user message (default: true)
-  include_history: bool | int     # History control (default: true)
-  include_media_in_history: bool  # Strip media from history (default: false)
-  few_shot_examples: list         # Teaching examples (default: [])
+  system_prompt: string              # Core behavioral instructions (supports template variables)
+  include_user_input: bool           # Include current user message (default: true)
+  include_history: bool | int        # History control (default: true)
+  include_media_in_history: bool     # Strip media from history (default: false)
+  include_internal_messages: bool    # Include internal agent outputs (default: true)
+  few_shot_examples: list            # Teaching examples (default: [])
 ```
 
 ## Template Variables
@@ -50,23 +51,26 @@ Atthene supports **dynamic template variables** in your `system_prompt` using `{
 ### Variable Categories
 
 <CardGroup cols={2}>
+  <Card title="Custom Variables" icon="sliders">
+    Dynamic values from the variables system: `{{ variables.name }}`
+  </Card>
   <Card title="Prompt Library" icon="book">
-    Access stored prompts from database
+    Access stored prompts from database: `{{ prompts.name }}`
   </Card>
   <Card title="User Input" icon="message">
-    Current user message content
+    Current user message content: `{{ user_input }}`
   </Card>
   <Card title="Conversation History" icon="comments">
-    User-visible message history
+    User-visible message history: `{{ history }}` / `{{ history[N] }}`
   </Card>
   <Card title="Full Execution History" icon="list">
-    Complete trace with internal messages
+    Complete trace with internal messages: `{{ full_history }}`
   </Card>
   <Card title="Structured Outputs" icon="diagram-project">
-    Data from previous agents
+    Data from previous agents: `{{ agent.output.field }}`
   </Card>
   <Card title="Agent Outputs" icon="robot">
-    Non-structured agent responses
+    Non-structured agent responses: `{{ agent.output }}`
   </Card>
 </CardGroup>
 
@@ -231,8 +235,13 @@ Access structured data from previous agents in multi-agent workflows.
 
 | Pattern | Description | Example |
 |---------|-------------|---------|
-| `{{ agent_name.output_name.field }}` | Access specific field | `{{ analyzer.analysis.key_topics }}` |
-| `{{ agent_name.output_name }}` | Full structured output (JSON) | `{{ analyzer.analysis }}` |
+| `{{ agent_name.output.field }}` | Access specific field | `{{ analyzer.output.key_topics }}` |
+| `{{ agent_name.output }}` | Full structured output (JSON) | `{{ analyzer.output }}` |
+| `{{ agent_name.output.field.subfield }}` | Nested field access | `{{ analyzer.output.customer.name }}` |
+
+<Info>
+Structured outputs are stored internally under the key `"agent_name.output"`. There is no `output_name` field — the key is always `agent_name.output`.
+</Info>
 
 **Multi-Agent Example:**
 ```yaml
@@ -249,22 +258,19 @@ agents:
         - Named entities
     structured_output:
       enabled: true
-      output_name: analysis
       schema:
-        type: object
-        properties:
-          key_topics:
-            type: array
-            items:
-              type: string
-          sentiment:
-            type: string
-          complexity:
-            type: string
-          entities:
-            type: array
-            items:
-              type: string
+        key_topics:
+          type: "list[str]"
+          description: "Key topics discussed"
+        sentiment:
+          type: "str"
+          description: "Overall sentiment (positive, negative, neutral)"
+        complexity:
+          type: "str"
+          description: "Complexity level (simple, moderate, complex)"
+        entities:
+          type: "list[str]"
+          description: "Named entities mentioned"
   
   # Agent 2: Use analyzer's structured output
   - name: response_generator
@@ -272,10 +278,10 @@ agents:
     prompt_config:
       system_prompt: |
         ## Input Analysis
-        **Topics**: {{ input_analyzer.analysis.key_topics }}
-        **Sentiment**: {{ input_analyzer.analysis.sentiment }}
-        **Complexity**: {{ input_analyzer.analysis.complexity }}
-        **Entities**: {{ input_analyzer.analysis.entities }}
+        **Topics**: {{ input_analyzer.output.key_topics }}
+        **Sentiment**: {{ input_analyzer.output.sentiment }}
+        **Complexity**: {{ input_analyzer.output.complexity }}
+        **Entities**: {{ input_analyzer.output.entities }}
         
         ## Task
         Generate a response that:
@@ -293,6 +299,10 @@ edges:
 
 <Tip>
 **Agent Coordination**: Structured outputs enable sophisticated multi-agent workflows where downstream agents can access precise, typed data from upstream agents.
+</Tip>
+
+<Tip>
+**Complex types**: When a substituted value is a `list` or `dict`, it is automatically serialized to JSON in the prompt.
 </Tip>
 
 ### 6. Agent Output Variables
@@ -328,6 +338,39 @@ edges:
   - from: researcher
     to: writer
 ```
+
+### 7. Custom Variables
+
+Access variables defined in the system's `variables` section. These are populated from user inputs, agent `variable_assignments`, or defaults.
+
+| Pattern | Description |
+|---------|-------------|
+| `{{ variables.name }}` | Value of a custom variable |
+
+**Example:**
+```yaml
+variables:
+  customer_name:
+    type: "str"
+    description: "Customer name"
+  priority:
+    type: "str"
+    default: "medium"
+
+agents:
+  - name: support_agent
+    agent_type: llm_agent
+    prompt_config:
+      system_prompt: |
+        Customer: {{ variables.customer_name }}
+        Priority: {{ variables.priority }}
+        
+        Help the customer with their request.
+```
+
+<Info>
+Variables are the bridge between structured output and prompt substitution. Use `variable_assignments` on agents to populate variables from structured output, then reference them with `{{ variables.name }}` in downstream agents. See [Variables System](/documentation/advanced/variables-system) for details.
+</Info>
 
 ### Recursive Variable Substitution
 
@@ -369,11 +412,16 @@ agents:
     agent_type: llm_agent
     structured_output:
       enabled: true
-      output_name: insights
       schema:
-        trends: list[str]
-        anomalies: list[str]
-        recommendations: list[str]
+        trends:
+          type: "list[str]"
+          description: "Identified trends"
+        anomalies:
+          type: "list[str]"
+          description: "Detected anomalies"
+        recommendations:
+          type: "list[str]"
+          description: "Recommended actions"
     prompt_config:
       system_prompt: |
         {{ prompts.data_analysis_instructions }}
@@ -388,9 +436,9 @@ agents:
         {{ prompts.report_template }}
         
         ## Data Analysis Results
-        **Trends Identified**: {{ data_analyzer.insights.trends }}
-        **Anomalies Detected**: {{ data_analyzer.insights.anomalies }}
-        **Recommendations**: {{ data_analyzer.insights.recommendations }}
+        **Trends Identified**: {{ data_analyzer.output.trends }}
+        **Anomalies Detected**: {{ data_analyzer.output.anomalies }}
+        **Recommendations**: {{ data_analyzer.output.recommendations }}
         
         ## Recent Context
         {{ history[3] }}
@@ -660,6 +708,38 @@ prompt_config:
 
 <Info>
 When `include_user_input: false`, the agent processes only the conversation history without the latest user message. This is useful for automated tasks triggered by system events.
+</Info>
+
+## Internal Message Control
+
+Control whether outputs from internal agents (those with `streaming_config.show_output_to_user: false`) are included in the conversation history sent to the LLM.
+
+### Include Internal Messages (Default)
+
+```yaml
+prompt_config:
+  system_prompt: You are a coordinator agent
+  include_internal_messages: true  # See all agent outputs
+```
+
+**Behavior**: Both user-facing messages and internal agent outputs appear in conversation history.
+
+**Use Case**: Agents that need full awareness of the multi-agent workflow state.
+
+### Exclude Internal Messages
+
+```yaml
+prompt_config:
+  system_prompt: You are a customer-facing assistant
+  include_internal_messages: false  # Only see user-visible messages
+```
+
+**Behavior**: Only messages from agents with `show_output_to_user: true` and user messages appear in history. Internal agent outputs are filtered out.
+
+**Use Case**: Customer-facing agents that should only see the user conversation, not background processing.
+
+<Info>
+Internal messages are outputs from agents with `streaming_config.show_output_to_user: false`. These agents run in the background without emitting text to the end user.
 </Info>
 
 ## Media Handling
@@ -1061,26 +1141,27 @@ edges:
 
 | Variable | Description | Example |
 |----------|-------------|---------|
+| `{{ variables.name }}` | Custom variable value | `{{ variables.customer_name }}` |
 | `{{ prompts.name }}` | Latest prompt from library | `{{ prompts.system_instructions }}` |
 | `{{ prompts.name.version }}` | Specific prompt version | `{{ prompts.guidelines.2 }}` |
 | `{{ user_input }}` | Current user message (text only) | `{{ user_input }}` |
-| `{{ history }}` | Full conversation history | `{{ history }}` |
-| `{{ history[N] }}` | Last N messages | `{{ history[5] }}` |
-| `{{ full_history }}` | Complete execution trace | `{{ full_history }}` |
+| `{{ history }}` | Full user-visible conversation history | `{{ history }}` |
+| `{{ history[N] }}` | Last N user-visible messages | `{{ history[5] }}` |
+| `{{ full_history }}` | Complete execution trace (internal + tool calls) | `{{ full_history }}` |
 | `{{ full_history[N] }}` | Last N messages (all types) | `{{ full_history[10] }}` |
-| `{{ agent.output.field }}` | Structured output field | `{{ analyzer.analysis.topics }}` |
-| `{{ agent.output }}` | Full structured output (JSON) | `{{ analyzer.analysis }}` |
-| `{{ agent_name.output }}` | Last agent message | `{{ researcher.output }}` |
+| `{{ agent_name.output.field }}` | Structured output field | `{{ analyzer.output.topics }}` |
+| `{{ agent_name.output }}` | Last agent message (non-structured) | `{{ researcher.output }}` |
 
 ### PromptConfig Settings
 
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
-| `system_prompt` | string | `""` | Core behavioral instructions (supports variables) |
+| `system_prompt` | string | `""` | Core behavioral instructions (supports template variables) |
 | `include_user_input` | bool | `true` | Include current user message |
 | `include_history` | bool\|int | `true` | History control (true/false/N) |
 | `include_media_in_history` | bool | `false` | Keep images/files in history |
-| `few_shot_examples` | list | `[]` | Teaching examples |
+| `include_internal_messages` | bool | `true` | Include internal agent outputs (`show_to_user=false`) in history |
+| `few_shot_examples` | list | `[]` | Teaching examples (each with `input` and `output` keys) |
 
 ### Message Ordering
 
@@ -1125,12 +1206,15 @@ edges:
       system_prompt: Analyze the input
     structured_output:
       enabled: true
-      output_name: analysis
+      schema:
+        summary:
+          type: "str"
+          description: "Analysis summary"
     
     # Agent 2: Responder
     prompt_config:
       system_prompt: |
-        Analysis: {{ analyzer.analysis }}
+        Analysis: {{ analyzer.output.summary }}
         Respond based on this analysis.
     ```
   </Tab>

@@ -50,7 +50,8 @@ Add the `structured_output` field to your agent configuration:
 agents:
   - name: "data_extractor"
     agent_type: "llm_agent"
-    system_prompt: "Extract contact information from the provided text."
+    prompt_config:
+      system_prompt: "Extract contact information from the provided text."
     
     structured_output:
       enabled: true
@@ -142,8 +143,32 @@ Define field types using our type notation syntax:
   ```
 </ParamField>
 
+### Nullable Types
+
+<ParamField path="T | None" type="type">
+  Optional/nullable value of type T
+  
+  ```yaml
+  middle_name:
+    type: "str | None"
+    description: "Middle name if available, null otherwise"
+  
+  score:
+    type: "float | None"
+    description: "Score if calculable, null otherwise"
+  ```
+</ParamField>
+
+You can also use `Optional[T]` syntax:
+
+```yaml
+notes:
+  type: "Optional[str]"
+  description: "Optional notes"
+```
+
 <Note>
-**Enum types are not currently supported.** Use `str` type with clear descriptions for fields that should have restricted values. Validation must be handled in your system prompt or downstream processing.
+**Enum types are not currently supported.** Use `str` type with clear descriptions for fields that should have restricted values. Guide the LLM via your system prompt to output specific allowed values.
 </Note>
 
 ## Quick Start Example
@@ -154,7 +179,8 @@ Extract contact information from text:
 agents:
   - name: "contact_extractor"
     agent_type: "llm_agent"
-    system_prompt: "Extract contact information from the provided text."
+    prompt_config:
+      system_prompt: "Extract contact information from the provided text."
     
     structured_output:
       enabled: true
@@ -197,7 +223,7 @@ Use structured output to pass typed data between agents in workflows. Downstream
 
 ### Accessing Structured Output in Prompts
 
-Use the `{{ agent_name.output_name.field }}` syntax to inject structured output into agent prompts:
+Use the `{{ agent_name.output.field }}` syntax to inject structured output into agent prompts:
 
 ```yaml
 agents:
@@ -215,20 +241,22 @@ agents:
   
   - name: "analyzer"
     agent_type: "llm_agent"
-    system_prompt: |
-      Analyze the company data:
-      - Company: {{ data_extractor.output.company_name }}
-      - Revenue: ${{ data_extractor.output.revenue }}M
-      
-      Provide insights on market position and growth potential.
+    prompt_config:
+      system_prompt: |
+        Analyze the company data:
+        - Company: {{ data_extractor.output.company_name }}
+        - Revenue: ${{ data_extractor.output.revenue }}M
+        
+        Provide insights on market position and growth potential.
 ```
 
 **Supported template variables:**
-- `{{ agent_name.output.field }}` - Access specific field from structured output
-- `{{ agent_name.output.nested.field }}` - Access nested fields
-- `{{ agent_name.output }}` - Access entire structured output as JSON
-- `{{ user_input }}` - Latest user message
-- `{{ history[N] }}` - Last N messages from conversation (structured output NOT included)
+- `{{ agent_name.output.field }}` — Access specific field from structured output
+- `{{ agent_name.output.nested.field }}` — Access nested fields (dot-separated path)
+- `{{ agent_name.output }}` — Access entire structured output as JSON string
+- `{{ variables.name }}` — Access custom variables (see [Variables System](/documentation/advanced/variables-system))
+- `{{ user_input }}` — Latest user message
+- `{{ history[N] }}` — Last N messages from conversation (structured output NOT included)
 
 <Warning>
 **Critical**: Structured output is excluded from history variables. Use the specific `{{ agent_name.output.field }}` template variables to access structured data from previous agents.
@@ -249,7 +277,8 @@ architecture: "workflow"
 agents:
   - name: "extractor"
     agent_type: "llm_agent"
-    system_prompt: "Extract key metrics from the report."
+    prompt_config:
+      system_prompt: "Extract key metrics from the report."
     
     structured_output:
       enabled: true
@@ -263,12 +292,13 @@ agents:
   
   - name: "analyzer"
     agent_type: "llm_agent"
-    system_prompt: |
-      Analyze the company metrics:
-      Revenue: ${{ extractor.output.revenue }}M
-      Growth: {{ extractor.output.growth_rate }}%
-      
-      Provide insights on performance and recommendations.
+    prompt_config:
+      system_prompt: |
+        Analyze the company metrics:
+        Revenue: ${{ extractor.output.revenue }}M
+        Growth: {{ extractor.output.growth_rate }}%
+        
+        Provide insights on performance and recommendations.
 
 edges:
   - from: "__start__"
@@ -317,18 +347,18 @@ The `structured_output` field has the following structure:
   Configuration for structured output generation
   
   <Expandable title="Properties">
-    <ParamField path="enabled" type="boolean" required>
+    <ParamField path="enabled" type="boolean">
       Enable or disable structured output for this agent
       
       When `true`, the agent will return data matching the defined schema instead of free-form text.
       
-      **Default**: `false`
+      **Default**: `true`
     </ParamField>
     
     <ParamField path="schema" type="object" required>
       Schema definition mapping field names to field specifications
       
-      Each key is a field name, and each value is an object with `type` and `description`.
+      Each key is a field name, and each value is an object with `type` and optional `description`.
       
       **Required when** `enabled: true`
     </ParamField>
@@ -344,13 +374,13 @@ Each field in the schema must have:
   
   See [Type Notation Reference](/documentation/advanced/reference/type-notation) for all supported types.
   
-  **Supported types**: `str`, `int`, `float`, `bool`, `list[T]`, `dict[K, V]`
+  **Supported types**: `str`, `int`, `float`, `bool`, `list[T]`, `dict[K, V]`, `T | None`, `Optional[T]`, `Any`
 </ParamField>
 
-<ParamField path="description" type="string" required>
-  Human-readable description of what this field represents
+<ParamField path="description" type="string">
+  Human-readable description of what this field represents (optional but strongly recommended).
   
-  The agent uses this description to understand what data to extract. Be specific and clear.
+  The agent uses this description to understand what data to extract. Be specific and clear. Fields without descriptions may produce less accurate results.
 </ParamField>
 
 ### Agent Type Support
@@ -408,14 +438,55 @@ If validation fails, you'll receive a detailed error:
 }
 ```
 
+## Variable Assignments
+
+Structured output fields can be automatically mapped to system variables using `variable_assignments`. This creates a data pipeline: structured output → variables → downstream prompt substitution.
+
+```yaml
+variables:
+  customer_name:
+    type: "str"
+    description: "Extracted customer name"
+  priority:
+    type: "str"
+    default: "medium"
+
+agents:
+  - name: "extractor"
+    agent_type: "llm_agent"
+    structured_output:
+      enabled: true
+      schema:
+        name:
+          type: "str"
+          description: "Customer name"
+        urgency:
+          type: "str"
+          description: "Priority level"
+    variable_assignments:
+      customer_name: "extractor.output.name"
+      priority: "extractor.output.urgency"
+  
+  - name: "responder"
+    agent_type: "llm_agent"
+    prompt_config:
+      system_prompt: |
+        Customer: {{ variables.customer_name }}
+        Priority: {{ variables.priority }}
+        Respond appropriately.
+```
+
+Variable assignments also support static values and non-structured output. See [Variables System](/documentation/advanced/variables-system) for details.
+
 ## Limitations
 
 <Note>
 - Structured output is currently supported for `llm_agent` and `react_agent` types
 - Complex nested objects may require careful prompt engineering
 - Very large schemas (>20 fields) may impact performance
-- All fields are required (no optional fields)
+- Use `str | None` or `Optional[str]` for optional fields
 - Output must be valid JSON
+- Enum types are not supported
 </Note>
 
 ## Next Steps

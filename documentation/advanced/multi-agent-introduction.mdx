@@ -98,7 +98,9 @@ agents:
 
 ### Conditional Routing
 
-In workflow architecture, you can add dynamic routing based on agent outputs:
+In workflow architecture, you can add dynamic routing based on agent outputs. There are two types:
+
+**Literal routing** — choose from a list of agents:
 
 ```yaml
 edges:
@@ -107,6 +109,20 @@ edges:
     condition_type: "literal"
     possible_outputs: ["tech_support", "billing_support", "general_support"]
 ```
+
+**Boolean routing** — binary yes/no decisions:
+
+```yaml
+edges:
+  - from: "reviewer"
+    condition: "Is the content approved? {{reviewer.output.approved}}"
+    condition_type: "boolean"
+    routing:
+      yes: "__end__"
+      no: "writer"
+```
+
+Conditional edges use an LLM-based evaluation system (BAML structured output) with automatic retry logic to ensure reliable routing decisions.
 
 **Learn more:** [Conditional Edges →](/documentation/advanced/conditional-edges)
 
@@ -156,9 +172,12 @@ agents:
   - name: "supervisor"
     agent_type: "supervisor"
     supervised_agents: ["tech_agent", "billing_agent", "general_agent"]
-    supervisor_prompt: |
-      Route technical issues to tech_agent, billing to billing_agent, 
-      everything else to general_agent.
+    return_to_supervisor: true
+    max_handoffs: 10
+    prompt_config:
+      system_prompt: |
+        Route technical issues to tech_agent, billing to billing_agent, 
+        everything else to general_agent.
   
   - name: "tech_agent"
     # Technical support specialist
@@ -168,6 +187,8 @@ agents:
   
   - name: "general_agent"
     # General inquiries
+
+entry_point: "supervisor"
 ```
 
 ### Quality Gate with Revision Loop

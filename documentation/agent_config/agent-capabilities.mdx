@@ -17,7 +17,7 @@ We're actively working on integrating with the **Model Context Protocol (MCP)** 
 
 <CardGroup cols={3}>
   <Card title="tavily_search" icon="magnifying-glass">
-    **Web Search** 🔧
+    **Web Search**
     
     Search engine optimized for comprehensive, accurate results from the web.
     
@@ -25,9 +25,17 @@ We're actively working on integrating with the **Model Context Protocol (MCP)** 
   </Card>
   
   <Card title="tavily_extract" icon="file-export">
-    **Content Extraction** 🔧
+    **Content Extraction**
     
     Extracts comprehensive content from web pages based on URLs.
+    
+    *Configurable*
+  </Card>
+  
+  <Card title="google_search" icon="globe">
+    **Google Search**
+    
+    Gemini-grounded Google Search with AI-synthesized answers and citations.
     
     *Configurable*
   </Card>
@@ -36,6 +44,14 @@ We're actively working on integrating with the **Model Context Protocol (MCP)** 
     **Calculator**
     
     Performs basic mathematical calculations safely.
+  </Card>
+  
+  <Card title="randomizer" icon="dice">
+    **Randomizer**
+    
+    Generates random integers within a configurable range for dynamic workflows.
+    
+    *Configurable*
   </Card>
   
   <Card title="wikipedia_search" icon="book">
@@ -61,6 +77,26 @@ We're actively working on integrating with the **Model Context Protocol (MCP)** 
     
     Execute Python code in a safe environment.
   </Card>
+  
+  <Card title="memory" icon="brain">
+    **Memory Management**
+    
+    Explicitly save information to designated memory spaces for long-term retention.
+    
+    *Configurable*
+  </Card>
+  
+  <Card title="schedule_agent_task" icon="clock">
+    **Schedule Agent Task**
+    
+    Create scheduled tasks (cronjobs) for agents to run at specific times.
+  </Card>
+  
+  <Card title="manage_agent_tasks" icon="list-check">
+    **Manage Agent Tasks**
+    
+    Query, update, enable/disable, or delete existing scheduled tasks.
+  </Card>
 </CardGroup>
 
 
@@ -82,9 +118,7 @@ agents:
       - "arxiv_search"
       - "calculator"
     
-    tool_calling:
-      enabled: true
-      max_iterations: 10
+    max_iterations: 10
 ```
 
 #### Advanced Tool Configuration
@@ -94,6 +128,9 @@ Some tools support optional configuration for customization:
 **Configurable Tools:**
 - `tavily_search` - Web search with advanced options
 - `tavily_extract` - Content extraction with format options
+- `google_search` - Gemini model, temperature, and timeout options
+- `randomizer` - Default min/max range
+- `memory` - Specific memory modules to expose
 
 ```yaml
 agents:
@@ -119,9 +156,7 @@ agents:
         config:
           format: "markdown"
     
-    tool_calling:
-      enabled: true
-      max_iterations: 10
+    max_iterations: 10
 ```
 
 ### Tool Configuration Reference
@@ -145,16 +180,36 @@ agents:
     - `format` (string, default: "markdown") - Output format: "markdown" or "text"
     - `timeout` (integer, default: 30) - Request timeout in seconds
   </Accordion>
+  
+  <Accordion title="google_search Configuration">
+    **Available options:**
+    
+    - `model` (string, default: "gemini-2.5-flash") - Gemini model for search grounding
+    - `temperature` (float, default: 0.7) - Sampling temperature (0.0-2.0)
+    - `max_output_tokens` (integer, default: 8192) - Maximum response tokens
+    - `timeout` (integer, default: 60) - Request timeout in seconds
+  </Accordion>
+  
+  <Accordion title="randomizer Configuration">
+    **Available options:**
+    
+    - `min_value` (integer, default: 0) - Default minimum value (inclusive)
+    - `max_value` (integer, default: 100) - Default maximum value (inclusive)
+    
+    Runtime parameters can override these defaults per call.
+  </Accordion>
+  
+  <Accordion title="memory Configuration">
+    **Available options:**
+    
+    - `modules` (list of strings, optional) - List of memory module names to expose to this tool. When specified, only these modules are available. When omitted, all modules with `auto_save: false` are exposed.
+  </Accordion>
 </AccordionGroup>
 
 ### Tool Calling Configuration
 
-<ParamField path="tool_calling.enabled" type="boolean" default="true">
-  Enable or disable tool calling for this agent
-</ParamField>
-
-<ParamField path="tool_calling.max_iterations" type="integer" default="10">
-  Maximum number of reasoning and tool execution cycles
+<ParamField path="max_iterations" type="integer" default="10">
+  Maximum number of ReAct reasoning-action-observation cycles. Set directly on the agent (not in a nested object). Tool calling is always enabled for `react_agent` agents when tools are provided.
   
   **Recommended values:**
   - Simple tasks: 3-5 iterations
@@ -178,18 +233,17 @@ Setting `max_iterations` too high can lead to excessive API calls and longer res
     - "tavily_search"
     - "tavily_extract"
   
-  tool_calling:
-    enabled: true
-    max_iterations: 8
+  max_iterations: 8
   
-  system_prompt: |
-    You are a research specialist with web search capabilities.
-    
-    When researching:
-    1. Use tavily_search to find relevant sources
-    2. Use tavily_extract to get detailed content from URLs
-    3. Synthesize information from multiple sources
-    4. Always cite your sources
+  prompt_config:
+    system_prompt: |
+      You are a research specialist with web search capabilities.
+      
+      When researching:
+      1. Use tavily_search to find relevant sources
+      2. Use tavily_extract to get detailed content from URLs
+      3. Synthesize information from multiple sources
+      4. Always cite your sources
 ```
 
 #### Data Analysis with Calculator
@@ -202,18 +256,17 @@ Setting `max_iterations` too high can lead to excessive API calls and longer res
     - "calculator"
     - "tavily_search"
   
-  tool_calling:
-    enabled: true
-    max_iterations: 5
+  max_iterations: 5
   
-  system_prompt: |
-    You are a data analyst with calculation capabilities.
-    
-    For numerical tasks:
-    1. Break down complex calculations into steps
-    2. Use the calculator tool for accuracy
-    3. Show your work and reasoning
-    4. Provide insights from the results
+  prompt_config:
+    system_prompt: |
+      You are a data analyst with calculation capabilities.
+      
+      For numerical tasks:
+      1. Break down complex calculations into steps
+      2. Use the calculator tool for accuracy
+      3. Show your work and reasoning
+      4. Provide insights from the results
 ```
 
 ---
@@ -237,7 +290,19 @@ Streaming enables real-time delivery of agent responses, tool calls, and reasoni
 </ParamField>
 
 <ParamField path="streaming_config.show_reasoning" type="boolean" default="false">
-  Show agent's internal reasoning and thought process
+  Show agent's internal reasoning and thought process. **This flag has a dual purpose**: when enabled on models that support thinking (currently all Gemini models), it also activates the model's internal reasoning mode, sending `enable_thinking=True` to the provider. The thinking content is then streamed via `ThinkingStart`, `ThinkingContent`, and `ThinkingEnd` events.
+</ParamField>
+
+<ParamField path="streaming_config.show_memory" type="boolean" default="true">
+  Show memory query events to users. Controls visibility of `MemoryCall*` events emitted during memory retrieval operations.
+</ParamField>
+
+<ParamField path="streaming_config.send_preview_snippet" type="boolean" default="false">
+  Generate and send an LLM-powered agent introduction snippet before the main response. When enabled, the agent produces a brief preview of what it's about to do, streamed via `AgentIntroductionStart`, `AgentIntroductionContent`, and `AgentIntroductionEnd` events.
+</ParamField>
+
+<ParamField path="streaming_config.main_chatbox" type="boolean" default="false">
+  Identifies whether this is the main chatbox agent. Used by the frontend to determine which agent's output should be rendered in the primary chat area. Propagated in agent introduction events.
 </ParamField>
 
 ### Streaming Examples
@@ -250,11 +315,13 @@ streaming_config:
   show_output_to_user: true
   show_tool_to_user: true
   show_reasoning: false
+  show_memory: true
 ```
 
 **User sees:**
 - ✅ Agent responses (streaming)
 - ✅ Tool calls and results
+- ✅ Memory retrieval events
 - ❌ Internal reasoning
 
 #### Development/Debug Mode
@@ -265,16 +332,34 @@ streaming_config:
   show_output_to_user: true
   show_tool_to_user: true
   show_reasoning: true
+  show_memory: true
 ```
 
 **User sees:**
 - ✅ Agent responses (streaming)
 - ✅ Tool calls and results
-- ✅ Internal reasoning steps
+- ✅ Internal reasoning steps (also enables model thinking for Gemini)
+- ✅ Memory retrieval events
 
 <Tip>
-Enable `show_reasoning: true` during development to understand how agents make decisions and use tools.
+Enable `show_reasoning: true` during development to understand how agents make decisions. On Gemini models, this also activates the model's built-in thinking mode, providing deeper insight into the reasoning process.
 </Tip>
+
+#### Main Chatbox Agent with Preview
+
+```yaml
+streaming_config:
+  enable_streaming: true
+  show_output_to_user: true
+  show_tool_to_user: true
+  send_preview_snippet: true
+  main_chatbox: true
+```
+
+**User sees:**
+- ✅ Agent introduction snippet (preview of what it will do)
+- ✅ Agent responses (streaming, rendered in primary chat area)
+- ✅ Tool calls and results
 
 #### Background Processing
 
@@ -293,9 +378,17 @@ When streaming is enabled, the system emits these event types:
 
 <AccordionGroup>
   <Accordion title="Text Message Events">
-    - `TextMessageStart` - Agent begins generating a response
-    - `TextMessageContent` - Streaming content chunks
+    - `TextMessageStart` - Agent begins generating a response (includes backend-generated message ID)
+    - `TextMessageContent` - Streaming content chunks (delta text)
     - `TextMessageEnd` - Response generation complete
+  </Accordion>
+  
+  <Accordion title="Thinking Events (show_reasoning)">
+    - `ThinkingStart` - Agent begins reasoning (only for models with thinking support)
+    - `ThinkingContent` - Streaming thinking/reasoning chunks
+    - `ThinkingEnd` - Reasoning complete
+    
+    Only emitted when `show_reasoning: true` and the model supports thinking (currently Gemini models only).
   </Accordion>
   
   <Accordion title="Run Events">
@@ -304,14 +397,39 @@ When streaming is enabled, the system emits these event types:
     - `RunError` - Agent execution encounters an error
   </Accordion>
   
-  <Accordion title="LLM Events">
-    - `LLMCallStarted` - LLM API call initiated
-    - `LLMCallCompleted` - LLM call finished (includes token usage)
+  <Accordion title="LLM Events (tracing only)">
+    - `LLMCallStarted` - LLM API call initiated (model, provider, temperature)
+    - `LLMCallCompleted` - LLM call finished (includes token usage, cost, duration)
     - `LLMCallError` - LLM call failed
   </Accordion>
   
-  <Accordion title="Tool Events">
-    Tool execution events showing which tools are called and their results
+  <Accordion title="Tool Events (show_tool_to_user)">
+    - `ToolCallStart` - Tool execution begins (tool name, agent name)
+    - `ToolCallArgs` - Tool argument data (streamed)
+    - `ToolCallResult` - Tool execution result with content
+    - `ToolCallEnd` - Tool execution complete
+    - `ToolCallError` - Tool execution failed (AI continues processing)
+  </Accordion>
+  
+  <Accordion title="Knowledge Base Events">
+    - `KnowledgeBaseCallStart` - KB retrieval begins
+    - `KnowledgeBaseCallArgs` - Query and config details
+    - `KnowledgeBaseCallResult` - Retrieved results
+    - `KnowledgeBaseCallEnd` - Retrieval complete
+    - `KnowledgeBaseCallError` - Retrieval failed
+  </Accordion>
+  
+  <Accordion title="Memory Events (show_memory)">
+    - `MemoryCallStart` - Memory query begins
+    - `MemoryCallResult` - Retrieved memory items
+    - `MemoryCallEnd` - Memory query complete
+    - `MemoryCallError` - Memory query failed
+  </Accordion>
+  
+  <Accordion title="Agent Introduction Events (send_preview_snippet)">
+    - `AgentIntroductionStart` - Introduction snippet begins
+    - `AgentIntroductionContent` - Introduction content
+    - `AgentIntroductionEnd` - Introduction complete
   </Accordion>
 </AccordionGroup>
 
@@ -349,30 +467,53 @@ agents:
     knowledge_bases:
       - name: "company_docs"
         knowledge_base_type: "milvus"
-        knowledge_base_id: "kb_123"
-        retrieval_config:
+        id: "kb_123"
+        enabled: true
+        config:
           top_k: 10
+          strategy: "dense"
           search_ef: 64
-          metric_type: "COSINE"
 ```
 
 ### Configuration Reference
 
 <AccordionGroup>
-  <Accordion title="Milvus Knowledge Base">
+  <Accordion title="Knowledge Base Instance Fields">
     **Required fields:**
-    - `name` (string) - Instance identifier
-    - `knowledge_base_type` (string) - Must be "milvus"
-    - `knowledge_base_id` (string) - Knowledge base ID for isolation
+    - `name` (string) - Instance identifier (alphanumeric, hyphens, underscores only)
+    - `knowledge_base_type` (string) - `"milvus"` or `"uknow"`
     
-    **Optional retrieval_config fields:**
+    **Optional fields:**
+    - `enabled` (boolean, default: true) - Toggle KB on/off without removing it
+    - `id` (string, optional) - KnowledgeBase model ID (for Milvus DB lookup)
+    - `config` (object, default: {}) - Adapter-specific retrieval parameters
+    - `description` (string, optional) - Human-readable description
+  </Accordion>
+  
+  <Accordion title="Milvus config Fields">
     - `top_k` (integer, default: 10) - Number of results to return (1-1000)
-    - `search_ef` (integer, default: 64) - HNSW search parameter for accuracy (1-512)
-    - `metric_type` (string, default: "COSINE") - Distance metric: "COSINE", "L2", or "IP"
-    - `offset` (integer, default: 0) - Number of results to skip for pagination
+    - `strategy` (string, default: "dense") - Search strategy: `"dense"`, `"hybrid"`, `"bm25"`, `"hybrid_rrf"`
+    - `search_ef` (integer, optional) - HNSW search parameter (higher = more accurate but slower)
     - `score_threshold` (float, optional) - Minimum similarity score (0.0-1.0)
-    - `enable_rerank` (boolean, default: false) - Enable result reranking
-    - `rerank_model` (string, optional) - Reranking model if enabled
+    - `offset` (integer, default: 0) - Number of results to skip for pagination
+    - `embedding_provider` (string, default: "mistral") - `"mistral"`, `"azure_openai"`, or `"telekom_otc"`
+    - `embedding_model` (string, default: "mistral-embed") - Embedding model name
+    - `query_model` (string, optional) - LLM model for query expansion
+    - `max_num_query_expansions` (integer, default: 0) - Number of expanded queries (0-5)
+    - `filter_expression` (string, optional) - Raw Milvus filter expression
+    - `filters` (object, optional) - Haystack-style metadata filters
+  </Accordion>
+  
+  <Accordion title="UKnow config Fields">
+    - `username` (string, required) - Cloud storage account email
+    - `drive_key` (string, required) - Storage type: `"SP"` (SharePoint), `"ONEDRIVEP"` (OneDrive), `"GOOGLEDRIVE"`, `"CONFLUENCE"`
+    - `path_filter` (string, default: "") - Restrict search to folder path
+    - `drive_ids` (list of strings, default: []) - Specific drive IDs to search
+    - `query_model` (string, optional) - LLM for query processing
+    - `max_num_query_expansions` (integer, default: 0) - Number of expanded queries
+    - `search_options.search_type` (string, default: "similarity") - `"similarity"`, `"similarity_score_threshold"`, `"mmr"`
+    - `search_options.fetch_k` (integer, default: 5) - Number of results
+    - `search_options.lambda_mult` (float, default: 0.5) - MMR lambda multiplier
   </Accordion>
 </AccordionGroup>
 
@@ -386,13 +527,15 @@ Fine-tune language model behavior for different use cases.
 
 ```yaml
 llm_config:
-  model: "gpt-4o"  # or gpt-4-turbo, gpt-3.5-turbo, etc.
+  model: "gpt-4o"  # Provider auto-detected from model name
 ```
 
-**Available models:**
-- `gpt-4o` - Latest GPT-4 optimized model (recommended)
-- `gpt-4-turbo` - Fast GPT-4 variant
-- `gpt-3.5-turbo` - Faster, more economical option
+**Available models** (see [Available Models](/documentation/agent_config/types_config/model-selection) for the full list):
+- `gpt-4o` - Azure OpenAI (text + image)
+- `gemini-2.5-flash` / `gemini-2.5-pro` - Google Gemini (text, image, audio, video + thinking)
+- `gemini-3.1-flash-lite` / `gemini-3.1-pro` - Gemini 3.1 (text, image, audio, video + thinking, 64K output)
+- `mistral-large` / `mistral-small` - Mistral AI (text + image)
+- `Llama-3.3-70B` / `Qwen3-30B` / `claude-sonnet-4` - Telekom OTC
 
 ### Temperature Control
 
@@ -454,9 +597,10 @@ Supervisor agents coordinate multiple specialized agents:
   return_to_supervisor: true
   max_handoffs: 15
   
-  supervisor_prompt: |
-    Coordinate the team by delegating tasks to specialists.
-    Evaluate their work and decide on next steps.
+  prompt_config:
+    system_prompt: |
+      Coordinate the team by delegating tasks to specialists.
+      Evaluate their work and decide on next steps.
 ```
 
 <Check>
@@ -465,18 +609,19 @@ Supervisors can coordinate both LLM agents and ReAct agents, creating hybrid tea
 
 ### Agent Handoffs
 
-In supervisor architectures, agents can hand off tasks to each other:
+In supervisor architectures, agents can hand off tasks to each other. Define the coordination strategy in `prompt_config.system_prompt`:
 
 ```yaml
-supervisor_prompt: |
-  You coordinate a research team.
-  
-  Workflow:
-  1. Delegate research to research_agent
-  2. Send findings to analysis_agent
-  3. Have writer_agent create the final report
-  
-  Use transfer tools to hand off between agents.
+prompt_config:
+  system_prompt: |
+    You coordinate a research team.
+    
+    Workflow:
+    1. Delegate research to research_agent
+    2. Send findings to analysis_agent
+    3. Have writer_agent create the final report
+    
+    Use transfer tools to hand off between agents.
 ```
 
 ---
@@ -493,11 +638,8 @@ supervisor_prompt: |
     - "tavily_search"
     - "tavily_extract"
     - "calculator"
-    - "knowledge_base"
   
-  tool_calling:
-    enabled: true
-    max_iterations: 12
+  max_iterations: 12
   
   llm_config:
     model: "gpt-4o"
@@ -512,24 +654,25 @@ supervisor_prompt: |
   
   knowledge_bases:
     - name: "research_db"
-      knowledge_base_type: "cognee"
+      knowledge_base_type: "milvus"
       enabled: true
   
-  system_prompt: |
-    You are a research analyst with comprehensive capabilities.
-    
-    Your tools:
-    - Web search for current information
-    - Content extraction from URLs
-    - Calculator for numerical analysis
-    - Knowledge base for historical context
-    
-    Approach:
-    1. Search knowledge base for existing information
-    2. Use web search for current data
-    3. Extract detailed content from sources
-    4. Perform calculations as needed
-    5. Synthesize comprehensive analysis
+  prompt_config:
+    system_prompt: |
+      You are a research analyst with comprehensive capabilities.
+      
+      Your tools:
+      - Web search for current information
+      - Content extraction from URLs
+      - Calculator for numerical analysis
+      - Knowledge base for historical context
+      
+      Approach:
+      1. Search knowledge base for existing information
+      2. Use web search for current data
+      3. Extract detailed content from sources
+      4. Perform calculations as needed
+      5. Synthesize comprehensive analysis
 ```
 
 ### Creative Writing Agent
@@ -547,15 +690,16 @@ supervisor_prompt: |
     enable_streaming: true
     show_output_to_user: true
   
-  system_prompt: |
-    You are a creative writer specializing in engaging, 
-    well-structured content.
-    
-    Your writing style:
-    - Clear and engaging
-    - Well-organized with proper structure
-    - Appropriate tone for the audience
-    - Creative but professional
+  prompt_config:
+    system_prompt: |
+      You are a creative writer specializing in engaging, 
+      well-structured content.
+      
+      Your writing style:
+      - Clear and engaging
+      - Well-organized with proper structure
+      - Appropriate tone for the audience
+      - Creative but professional
 ```
 
 ---
@@ -609,11 +753,12 @@ Test agents with minimal tools first, then add more as needed.
 <AccordionGroup>
   <Accordion title="Agent not using tools">
     **Possible causes:**
-    - `tool_calling.enabled` is false
+    - Agent type is not `react_agent` (only ReAct agents support tools)
     - System prompt doesn't mention tool usage
     - `max_iterations` is too low
+    - Tools are not registered in the agent registry
     
-    **Solution:** Enable tool calling, update system prompt to encourage tool use, and increase max_iterations.
+    **Solution:** Ensure `agent_type: "react_agent"`, update `prompt_config.system_prompt` to encourage tool use, and increase `max_iterations`.
   </Accordion>
   
   <Accordion title="Infinite tool calling loops">
