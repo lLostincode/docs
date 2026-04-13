@@ -270,8 +270,6 @@ Currently only supported with the embedded chatbot. Please let us know if you ne
 
 ## Embedded Chatbot
 
-TODO
-
 The easiest way to add your agent to a website is using the embedded chatbot widget.
 
 ### Step 1: Configure Public Access
@@ -286,105 +284,87 @@ Before embedding, you **must** configure public access in Agent Settings.
 4. Set **Allowed Origin URL** to your website domain
    - Example: `https://your-website.com`
    - This prevents unauthorized use of your agent
+5. Copy your **Agent Key** — you'll need it in the next step
 
-### Step 2: Get the Embed Code
+### Step 2: Add the Widget
 
-The platform provides a JavaScript snippet to embed your agent:
+Add a container element and load the script:
 
 ```html
-<!-- Add to your website's <head> or before </body> -->
-<script src="https://cdn.atthene.com/chat-widget.js"></script>
+<div id="atthene-chatbot-root"></div>
 <script>
-  AttheneChat.init({
-    agentKey: 'your_agent_key_here',
-    position: 'bottom-right',
-    theme: 'light'
+  document.addEventListener('DOMContentLoaded', function() {
+    var script = document.createElement('script');
+    script.src = 'https://static.arttacsolutions.com/js/atthene.js/latest/atthene.umd.js';
+    script.async = true;
+    script.onload = function() {
+      setTimeout(function() {
+        if (window.atthene && typeof window.atthene.initialize === 'function') {
+          window.atthene.initialize({
+            agentKey: 'YOUR_AGENT_KEY',
+            elementId: 'atthene-chatbot-root',
+            type: 'floatingButton',
+            welcomeMessage: 'Hi! How can I help you?'
+          });
+        }
+      }, 200);
+    };
+    document.head.appendChild(script);
   });
 </script>
 ```
 
+Replace `YOUR_AGENT_KEY` with the Agent Key from your agent settings.
+
 ### Step 3: Customize the Widget
 
 ```javascript
-AttheneChat.init({
-  agentKey: 'your_agent_key_here',
-  
-  // Position
-  position: 'bottom-right', // or 'bottom-left'
-  
-  // Appearance
-  theme: 'light', // or 'dark'
-  primaryColor: '#0066FF',
-  
-  // Behavior
+window.atthene.initialize({
+  agentKey: 'YOUR_AGENT_KEY',
+  elementId: 'atthene-chatbot-root',
+
+  // Display mode: 'floatingButton' (default), 'inPlace', or 'modal'
+  type: 'floatingButton',
+
+  // Content
   welcomeMessage: 'Hi! How can I help you today?',
   placeholder: 'Type your message...',
-  autoOpen: false,
-  
+  hintQuestions: [
+    'What can you help me with?',
+    'How do I get started?'
+  ],
+
+  // Appearance
+  launcherRight: false,
+  theme: {
+    dark: false,
+    accentColor: '#0066FF',
+    launcher: {
+      bg: '#0066FF',
+      bgOpen: '#333333'
+    }
+  },
+
   // Branding
-  title: 'Customer Support',
-  subtitle: 'We typically reply in minutes',
-  avatar: 'https://your-site.com/avatar.png'
+  images: {
+    assistant: 'https://your-site.com/avatar.png',
+    assistantNoBackground: true
+  }
 });
-```
-
-### Complete Embedding Example
-
-```html
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>My Website</title>
-</head>
-<body>
-  <h1>Welcome to My Website</h1>
-  <p>Need help? Chat with our AI assistant!</p>
-  
-  <!-- Atthene Chat Widget -->
-  <script src="https://cdn.atthene.com/chat-widget.js"></script>
-  <script>
-    AttheneChat.init({
-      agentKey: 'agent_abc123',
-      position: 'bottom-right',
-      theme: 'light',
-      primaryColor: '#0066FF',
-      welcomeMessage: 'Hi! I\'m here to help. What can I do for you?',
-      title: 'Support Assistant',
-      autoOpen: false
-    });
-  </script>
-</body>
-</html>
 ```
 
 ### Widget API
 
-Control the widget programmatically:
+Update the user token after initialization (e.g., after login):
 
 ```javascript
-// Open the chat window
-AttheneChat.open();
-
-// Close the chat window
-AttheneChat.close();
-
-// Send a message programmatically
-AttheneChat.sendMessage('Hello from the website!');
-
-// Listen for events
-AttheneChat.on('message', (message) => {
-  console.log('New message:', message);
-});
-
-AttheneChat.on('open', () => {
-  console.log('Chat opened');
-});
-
-AttheneChat.on('close', () => {
-  console.log('Chat closed');
-});
+// Update the user token for history persistence
+window.atthene.updateUserToken('eyJhbGciOiJIUz...');
 ```
+
+<Info>
+For the full configuration reference — including audio, voice settings, theming, and all available options — see the [Embedding Chatbot](/documentation/integration/chatbot-integration) guide.
+</Info>
 
 ---
 
