@@ -61,7 +61,7 @@ Add this script after the container element:
 <script>
   document.addEventListener('DOMContentLoaded', function() {
     const scriptElement = document.createElement('script');
-    scriptElement.src = 'https://static.arttacsolutions.com/js/atthene.js/1.2.0-amas/atthene.umd.js';
+    scriptElement.src = 'https://static.arttacsolutions.com/js/atthene.js/latest/atthene.umd.js';
     scriptElement.async = true;
 
     scriptElement.onload = function() {
@@ -99,9 +99,9 @@ When the page loads, you see the chatbot launcher button and you can open a conv
 
 ### Widget types
 
-Atthene supports two display modes:
+Atthene supports three display modes:
 
-<CardGroup cols={2}>
+<CardGroup cols={3}>
   <Card title="Floating Button" icon="comment">
     A collapsible chat widget that appears as a button in the bottom corner of your page (position configurable). Users click to expand the chat interface.
     
@@ -116,6 +116,10 @@ Atthene supports two display modes:
     <Frame>
       <img src="/images/inPlace.png" alt="In-place widget rendered opened in the center" />
     </Frame>
+  </Card>
+
+  <Card title="Modal" icon="window-maximize">
+    A centered overlay dialog that opens from a launcher button. The chat appears over a semi-transparent backdrop (clicking the backdrop closes it). On mobile screens (&lt;600px), the modal goes full-screen.
   </Card>
 </CardGroup>
 
@@ -136,10 +140,11 @@ Core technical configuration for the chatbot widget:
 | Property | Type | Description |
 |----------|------|-------------|
 | `agentKey` | `string` | Your agent identifier (required) |
-| `connectionKey` | `string` | Deprecated connection key for non-AMAS agents |
+| `connectionKey` | `string` | **Deprecated** — use `agentKey` instead. Only needed for legacy non-AMAS agents |
 | `elementId` | `string` | ID of the container element (default: `atthene-chatbot-root`) |
 | `type` | `'floatingButton' \| 'inPlace' \| 'modal'` | Chat widget display type - see [Widget types](#widget-types) for visual examples (default: `floatingButton`) |
-| `userToken` | `string` | Token for user identification and session management |
+| `userToken` | `string` | JWT token for user identification and session persistence (see [User identification](#user-identification) below) |
+| `enableAttachments` | `boolean` | Allow users to attach files in the chat (default: `false`) |
 
 #### Content
 
@@ -163,6 +168,7 @@ The `images` object allows you to customize branding:
 |----------|------|-------------|
 | `images.assistant` | `string` | URL to custom assistant avatar image |
 | `images.assistantNoBackground` | `boolean` | Whether the assistant image has no background (default: `false`) |
+| `images.launcher` | `string` | URL to a custom launcher button icon (floating button and modal modes only) |
 
 #### Styling / Theming
 
@@ -187,6 +193,8 @@ The `theme` object allows you to customize colors and appearance:
 | `theme.assistantMessage.text` | `string` | Text color for assistant messages |
 | `theme.userMessage.bg` | `string` | Background color for user messages |
 | `theme.userMessage.text` | `string` | Text color for user messages |
+| `theme.launcher.bg` | `string` | Background color for the launcher button when chat is closed |
+| `theme.launcher.bgOpen` | `string` | Background color for the launcher button when chat is open |
 
 #### Audio
 
@@ -214,6 +222,19 @@ The `voiceConfig` object configures audio output voice settings (requires `enabl
 | `voiceConfig.similarity_boost` | `number` | Voice similarity level (0.0 to 1.0) |
 | `voiceConfig.use_speaker_boost` | `boolean` | Enhance speaker clarity |
 | `voiceConfig.style_exaggeration` | `number` | Emotional expression level (0.0 to 1.0) |
+
+#### User identification
+
+Pass a `userToken` (a JWT with a `sub` claim) to enable chat history persistence across sessions. Without a token, each page load starts a fresh conversation.
+
+You can update the token after initialization — for example, after a user logs in:
+
+```javascript
+// After the user authenticates on your site
+window.atthene.updateUserToken('eyJhbGciOiJIUz...');
+```
+
+This updates the active WebSocket connection without reinitializing the widget.
 
 ### Configuration examples
 
@@ -258,7 +279,7 @@ Complete customization with branding and theme:
 <script>
   document.addEventListener('DOMContentLoaded', function() {
     const scriptElement = document.createElement('script');
-    scriptElement.src = 'https://static.arttacsolutions.com/js/atthene.js/1.2.0-amas/atthene.umd.js';
+    scriptElement.src = 'https://static.arttacsolutions.com/js/atthene.js/latest/atthene.umd.js';
     scriptElement.async = true;
 
     scriptElement.onload = function() {
@@ -288,6 +309,10 @@ Complete customization with branding and theme:
             userMessage: {
               bg: '#4e8cff',
               text: '#ffffff'
+            },
+            launcher: {
+              bg: '#4e8cff',
+              bgOpen: '#333333'
             }
           },
           images: {
@@ -301,6 +326,25 @@ Complete customization with branding and theme:
     document.head.appendChild(scriptElement);
   });
 </script>
+```
+
+#### Modal dialog
+
+Open the chat as a centered overlay:
+
+```javascript
+window.atthene.initialize({
+  agentKey: 'YOUR_AGENT_KEY',
+  elementId: 'atthene-chatbot-root',
+  type: 'modal',
+  welcomeMessage: 'Hello! Ask me anything.',
+  theme: {
+    launcher: {
+      bg: '#4e8cff',
+      bgOpen: '#333333'
+    }
+  }
+});
 ```
 
 #### With audio capabilities
