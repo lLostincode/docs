@@ -54,12 +54,15 @@ edges:
     routing:
       yes: "success_agent"
       no: "failure_agent"
-```
+    llm_model: "gemini-1.5-pro"  # Optional: specific model for evaluation
 
 **Required fields:**
 - `condition`: Template string with variable substitution
 - `condition_type`: Must be `"boolean"`
 - `routing`: Dict with `yes` and `no` keys mapping to agent names
+
+**Optional fields:**
+- `llm_model`: Specific model to use for this routing decision. Must be compatible with BAML (e.g., `gemini-1.5-pro`, `mistral-large-latest`).
 
 ### 2. Literal Edges
 
@@ -71,12 +74,16 @@ edges:
     condition: "Route based on {{agent_name.output.category}}"
     condition_type: "literal"
     possible_outputs: ["agent_a", "agent_b", "agent_c"]
+    llm_model: "gemini-1.5-pro"  # Optional override
 ```
 
 **Required fields:**
 - `condition`: Template string with variable substitution
 - `condition_type`: Must be `"literal"`
 - `possible_outputs`: List of valid agent names to route to
+
+**Optional fields:**
+- `llm_model`: Specific model to use for this routing decision. Must be compatible with BAML.
 
 ## Basic Conditional Routing
 
@@ -340,7 +347,7 @@ When `entry_point` is `"START"`, no automatic edge from `__start__` to an agent 
 Under the hood, conditional edges use a multi-step evaluation pipeline:
 
 1. **Variable substitution**: Template variables like `{{agent.output.field}}` are replaced with actual values from the workflow state
-2. **LLM evaluation**: The substituted condition is sent to an LLM via [BAML](https://docs.boundaryml.com/) structured output for reliable parsing
+2. **LLM evaluation**: The substituted condition is sent to an LLM via [BAML](https://docs.boundaryml.com/) structured output for reliable parsing. This uses the default model unless overridden by `llm_model`.
 3. **Validation**: The LLM's response is validated (against `possible_outputs` for literal, or `yes`/`no` for boolean)
 4. **Retry logic**: If the response is invalid, the evaluation is retried up to 3 times with a 1-second delay
 5. **Fallback**: If all retries fail, the edge routes to `__end__` to terminate the workflow gracefully

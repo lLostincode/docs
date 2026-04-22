@@ -290,7 +290,7 @@ Streaming enables real-time delivery of agent responses, tool calls, and reasoni
 </ParamField>
 
 <ParamField path="streaming_config.show_reasoning" type="boolean" default="false">
-  Show agent's internal reasoning and thought process. **This flag has a dual purpose**: when enabled on models that support thinking (currently all Gemini models), it also activates the model's internal reasoning mode, sending `enable_thinking=True` to the provider. The thinking content is then streamed via `ThinkingStart`, `ThinkingContent`, and `ThinkingEnd` events.
+  Show agent's internal reasoning and thought process. **This flag has a dual purpose**: when enabled on models that support thinking (currently Gemini and Vertex AI Anthropic models), it also activates the model's internal reasoning mode, sending `enable_thinking=True` to the provider. The thinking content is then streamed via `ThinkingStart`, `ThinkingContent`, and `ThinkingEnd` events. *(Note: This field is system-managed and controlled by the platform UI, so it will be automatically stripped from LLM-generated configs).*
 </ParamField>
 
 <ParamField path="streaming_config.show_memory" type="boolean" default="true">
@@ -298,11 +298,11 @@ Streaming enables real-time delivery of agent responses, tool calls, and reasoni
 </ParamField>
 
 <ParamField path="streaming_config.send_preview_snippet" type="boolean" default="false">
-  Generate and send an LLM-powered agent introduction snippet before the main response. When enabled, the agent produces a brief preview of what it's about to do, streamed via `AgentIntroductionStart`, `AgentIntroductionContent`, and `AgentIntroductionEnd` events.
+  Generate and send an LLM-powered agent introduction snippet before the main response. When enabled, the agent produces a brief preview of what it's about to do, streamed via `AgentIntroductionStart`, `AgentIntroductionContent`, and `AgentIntroductionEnd` events. *(Note: This field is system-managed and controlled by the platform UI, so it will be automatically stripped from LLM-generated configs).*
 </ParamField>
 
 <ParamField path="streaming_config.main_chatbox" type="boolean" default="false">
-  Identifies whether this is the main chatbox agent. Used by the frontend to determine which agent's output should be rendered in the primary chat area. Propagated in agent introduction events.
+  Identifies whether this is the main chatbox agent. Used by the frontend to determine which agent's output should be rendered in the primary chat area. Propagated in agent introduction events. *(Note: This field is system-managed and controlled by the platform UI, so it will be automatically stripped from LLM-generated configs).*
 </ParamField>
 
 ### Streaming Examples
@@ -342,7 +342,7 @@ streaming_config:
 - ✅ Memory retrieval events
 
 <Tip>
-Enable `show_reasoning: true` during development to understand how agents make decisions. On Gemini models, this also activates the model's built-in thinking mode, providing deeper insight into the reasoning process.
+Enable `show_reasoning: true` during development to understand how agents make decisions. On models with thinking support (like Gemini or Vertex AI Anthropic), this also activates the model's built-in thinking mode, providing deeper insight into the reasoning process.
 </Tip>
 
 #### Main Chatbox Agent with Preview
@@ -388,7 +388,7 @@ When streaming is enabled, the system emits these event types:
     - `ThinkingContent` - Streaming thinking/reasoning chunks
     - `ThinkingEnd` - Reasoning complete
     
-    Only emitted when `show_reasoning: true` and the model supports thinking (currently Gemini models only).
+    Only emitted when `show_reasoning: true` and the model supports thinking (currently Gemini and Vertex AI Anthropic models).
   </Accordion>
   
   <Accordion title="Run Events">
@@ -533,7 +533,8 @@ llm_config:
 **Available models** (see [Available Models](/documentation/agent_config/types_config/model-selection) for the full list):
 - `gpt-4o` - Azure OpenAI (text + image)
 - `gemini-2.5-flash` / `gemini-2.5-pro` - Google Gemini (text, image, audio, video + thinking)
-- `gemini-3.1-flash-lite` / `gemini-3.1-pro` - Gemini 3.1 (text, image, audio, video + thinking, 64K output)
+- `gemini-3-flash` / `gemini-3.1-flash-lite` / `gemini-3.1-pro` - Gemini 3 & 3.1 (text, image, audio, video + thinking, 64K output)
+- `claude-opus-4-6` / `claude-sonnet-4-6` - Vertex AI Anthropic (text, image + thinking)
 - `mistral-large` / `mistral-small` - Mistral AI (text + image)
 - `Llama-3.3-70B` / `Qwen3-30B` / `claude-sonnet-4` - Telekom OTC
 

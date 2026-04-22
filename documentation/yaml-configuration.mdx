@@ -257,6 +257,65 @@ agents:
   </Expandable>
 </ParamField>
 
+### Structured Output
+
+Agents can be configured to produce structured data (JSON) matching a specific schema instead of unstructured text. This uses BAML under the hood for reliable extraction.
+
+```yaml
+agents:
+  - name: "classifier"
+    agent_type: "llm_agent"
+    structured_output:                # ← Structured output config
+      enabled: true
+      schema:
+        category:
+          type: "str"
+          description: "The primary issue category"
+        confidence:
+          type: "float"
+          description: "Confidence score 0.0 to 1.0"
+```
+
+<ParamField path="structured_output" type="object">
+  Configuration for structured output generation.
+  
+  <Expandable title="Structured Output Properties">
+    <ParamField path="enabled" type="boolean" default="true">
+      Whether to enable structured output generation for this agent.
+    </ParamField>
+    
+    <ParamField path="schema" type="object">
+      Dictionary mapping field names to their definitions. Each field definition must include a `type` (e.g., `"str"`, `"int"`, `"list[str]"`) and can optionally include a `description`.
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+### Variable Assignments
+
+Map agent outputs (either structured output fields or raw text) to system variables. This allows sharing data between agents across the workflow.
+
+```yaml
+agents:
+  - name: "classifier"
+    agent_type: "llm_agent"
+    structured_output:
+      enabled: true
+      schema:
+        category: { type: "str" }
+    
+    variable_assignments:             # ← Map output to variables
+      user_category: "classifier.output.category"
+      last_response: "classifier.output"
+      max_retries: 3                  # Static assignment
+```
+
+<ParamField path="variable_assignments" type="object">
+  Dictionary mapping system variable names to their values. Values can be:
+  - References to structured output fields (e.g., `"agent_name.output.field_name"`)
+  - References to raw agent text (e.g., `"agent_name.output"`)
+  - Static values (e.g., `10`, `"fixed_string"`)
+</ParamField>
+
 ### Tool Configuration
 
 Tools can be configured at two levels. Choose the approach that best fits your use case:
@@ -379,17 +438,31 @@ Supervisor agents use `prompt_config.system_prompt` for their coordination instr
 architecture: "workflow"
 
 edges:                        # ← Edges are defined
-  - from: "__start__"          # ← at the root level
-    to: "first_agent"          # ← for workflow architecture
+  # Static edge                # ← at the root level
+  - from: "__start__"
+    to: "first_agent"
+  
+  # Dynamic edge (conditional)
   - from: "first_agent"
-    to: "second_agent"
+    condition: "Route based on category: {{ first_agent.output.category }}"
+    condition_type: "literal"
+    possible_outputs: ["second_agent", "third_agent"]
+    llm_model: "gpt-4o"       # ← Optional evaluation model
+  
+  # Final static edges
   - from: "second_agent"
+    to: "__end__"
+  - from: "third_agent"
     to: "__end__"
 ```
 
 **Special nodes:**
 - `__start__` or `START` - Entry point of the workflow
 - `__end__` or `END` - Exit point of the workflow
+
+<Note>
+Dynamic edges can use the `llm_model` parameter to specify an evaluation model compatible with BAML (e.g. `google_gemini`, `azure_openai`, `mistral`, `telekom_otc`). If omitted, the system default is used.
+</Note>
 
 <Note>
 Supervisor architecture does not require explicit edges - the supervisor handles routing dynamically.

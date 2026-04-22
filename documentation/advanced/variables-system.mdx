@@ -257,6 +257,16 @@ variable_assignments:
   customer_email: "analyzer.output.customer.email"
 ```
 
+### Type Coercion
+
+During variable assignment, values are automatically coerced to match the `type` specified in your variable definition. This means you can assign strings from user input or non-structured agent output, and the system will intelligently convert them:
+
+- **Numbers**: Strings like `"42"` become `42` (`int`), `"3.14"` becomes `3.14` (`float`)
+- **Booleans**: Strings like `"true"` or `"1"` become `true`; `"false"` or `"0"` become `false`
+- **Collections**: Valid JSON strings are parsed into `dict` or `list` types (e.g., `list[str]`)
+
+If type coercion fails, the system safely falls back to the original raw value. This coercion applies seamlessly to dynamic outputs, static values, and the final combined string when using `concat` mode.
+
 ### Concat Mode Example
 
 Build a progressive story where each agent adds a sentence:

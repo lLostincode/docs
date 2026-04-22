@@ -380,6 +380,10 @@ CSV and Excel files (`.csv`, `.xlsx`, `.xls`) support specialized processing:
   - `file` - One document per file (holistic context)
 </ParamField>
 
+<ParamField path="use_streaming" type="boolean" default="false">
+  If enabled, uses an openpyxl streaming mode for Excel processing to avoid loading entire sheets into memory. Recommended for Excel files larger than 50MB.
+</ParamField>
+
 ## Embedding Providers
 
 Choose your embedding model during knowledge base creation:

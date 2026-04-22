@@ -117,9 +117,10 @@ Auto-save checks happen after each agent execution. For each module:
 
 1. The system checks how many conversation turns have occurred since the last check
 2. If the turn count reaches the module's `auto_save_interval`, evaluation begins
-3. An LLM evaluates the conversation for relevant information to save
-4. New facts are deduplicated against existing memories
-5. Only genuinely new information is persisted
+3. Fast rejection heuristics quickly bypass evaluation for very short interactions or test/mock patterns
+4. An LLM evaluates the conversation for relevant information to save and extracts key facts in a single call
+5. New facts are deduplicated against existing *valid* memories (invalidated/expired memories are explicitly skipped so that new, contradicting facts — like a changed preference — can be saved)
+6. Only genuinely new information is persisted
 
 ### Save Frequency Examples
 
