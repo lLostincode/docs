@@ -121,13 +121,30 @@ curl -X POST https://api-be.atthene.com/api/v1/runtime/session_abc123/execute/ \
 Response:
 ```json
 {
-  "success": true,
-  "response": {
-    "content": "Hello! I'd be happy to help you with your account. What specific issue are you experiencing?",
-    "role": "assistant"
-  },
-  "session_id": "session_abc123",
-  "message_id": "msg_def456"
+  "id": "session_abc123",
+  "object": "agent.session",
+  "status": "completed",
+  "created_at": 1704067200,
+  "completed_at": 1704067215,
+  "config": {},
+  "messages": [
+    {
+      "id": "msg_def456",
+      "role": "assistant",
+      "content": "Hello! I'd be happy to help you with your account. What specific issue are you experiencing?",
+      "created_at": 1704067210
+    }
+  ],
+  "execution_time": 15,
+  "metadata": {
+    "correlation_id": null,
+    "event_count": 3,
+    "execution_id": "exec_789",
+    "usage": {
+      "input_tokens": 125,
+      "output_tokens": 42
+    }
+  }
 }
 ```
 
@@ -144,7 +161,7 @@ curl -X POST https://api-be.atthene.com/api/v1/runtime/session_abc123/execute/ \
   }'
 ```
 
-The agent remembers the conversation context and provides personalized responses.
+The response includes all new messages generated during this execution. The agent has full access to previous messages in the session and provides context-aware responses.
 
 ## Pass Variables with Your Message
 
@@ -161,7 +178,7 @@ curl -X POST https://api-be.atthene.com/api/v1/runtime/session_abc123/execute/ \
   -H "x-api-key: YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
-    "content": "Hello",
+    "content": "Hello, I need help",
     "inputs": {
       "user_id": "user_12345",
       "user_email": "john@example.com"
@@ -178,14 +195,14 @@ curl -X POST https://api-be.atthene.com/api/v1/runtime/session_abc123/execute/ \
   -H "x-api-key: YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
-    "content": "Your message",
+    "content": "What is your refund policy?",
     "inputs": {
       "current_query": "What is your refund policy?"
     }
   }'
 ```
 
-Request-level variables must be provided on every execution.
+Request-level variables must be provided on every execution. The `inputs` field accepts a dictionary of variables that are available to your agents via `{{ variables.key }}`.
 
 # Multimodal Input: Images and Files
 
@@ -244,13 +261,24 @@ curl -X POST https://api-be.atthene.com/api/v1/runtime/session_abc123/execute/ \
 Response:
 ```json
 {
-  "success": true,
-  "response": {
-    "content": "The image shows a dashboard with several metrics displayed. The main chart shows...",
-    "role": "assistant"
-  },
-  "session_id": "session_abc123",
-  "message_id": "msg_ghi789"
+  "id": "session_abc123",
+  "object": "agent.session",
+  "status": "completed",
+  "messages": [
+    {
+      "id": "msg_ghi789",
+      "role": "assistant",
+      "content": "The image shows a dashboard with several metrics displayed. The main chart shows...",
+      "created_at": 1704067220
+    }
+  ],
+  "metadata": {
+    "execution_id": "exec_ghi",
+    "usage": {
+      "input_tokens": 2048,
+      "output_tokens": 156
+    }
+  }
 }
 ```
 
@@ -288,13 +316,24 @@ curl -X POST https://api-be.atthene.com/api/v1/runtime/session_abc123/execute/ \
 Expected response (if supported):
 ```json
 {
-  "success": true,
-  "response": {
-    "content": "I've analyzed the document. Here are the key points...",
-    "role": "assistant"
-  },
-  "session_id": "session_abc123",
-  "message_id": "msg_jkl012"
+  "id": "session_abc123",
+  "object": "agent.session",
+  "status": "completed",
+  "messages": [
+    {
+      "id": "msg_jkl012",
+      "role": "assistant",
+      "content": "I've analyzed the document. Here are the key points...",
+      "created_at": 1704067230
+    }
+  ],
+  "metadata": {
+    "execution_id": "exec_jkl",
+    "usage": {
+      "input_tokens": 3456,
+      "output_tokens": 289
+    }
+  }
 }
 ```
 
