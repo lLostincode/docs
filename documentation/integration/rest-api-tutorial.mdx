@@ -3,7 +3,7 @@ title: "REST API"
 description: "Complete guide to integrating AMAS agents into your applications via REST API"
 ---
 
-This tutorial walks you through integrating AMAS agents into your applications using the REST API. You'll learn how to create agents, manage sessions, execute messages, and handle responses programmatically.
+This tutorial walks you through the different ways to use the REST API to create and communicate with AMAS agents. You'll learn how to load sessions from YAML, from existing agents, execute messages, and pass variables and files to your agents.
 
 ## Prerequisites
 
@@ -25,68 +25,94 @@ This tutorial walks you through integrating AMAS agents into your applications u
 Never expose your API key in client-side code or public repositories. Use environment variables or secure credential storage.
 </Warning>
 
-# Agent Setup and Knowledge Base Management
+# Creating Sessions
 
-Learn how to create agents, manage sessions, and build knowledge bases for enhanced AI responses.
+Learn the different ways to create and initialize a session with your agents.
 
-## Part 1: Generate Answers
+## Option 1: Load Session from YAML Configuration
 
-Create sessions from agent configurations and execute user messages to get AI responses.
-
-### Create Session from Agent Configuration
+Create a session by providing a complete agent configuration in YAML format (as JSON):
 
 ```bash
 curl -X POST https://api-be.atthene.com/api/v1/sessions/ \
   -H "x-api-key: YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
-        "name": "Basic Dynamic Agent Test",
-        "description": "Test configuration for basic dynamic agent loading",
-        "save_messages": true,
-        "persistent_state": true,
-        "agents": [
-          {
-            "name": "test_basic_agent",
-            "agent_type": "llm_agent",
-            "description": "A simple sessional agent for testing dynamic loading",
-            "prompt_config": {
-              "system_prompt": "You are a helpful AI assistant."
-            },
-            "llm_config": {
-              "temperature": 1.0,
-            },
-            "knowledge_bases": [],
-            "streaming_config": {
-              "show_output_to_user": true
-            }
-          }
-        ],
-        "edges": [
-          {
-            "from": "__start__",
-            "to": "test_basic_agent"
-          },
-          {
-            "from": "test_basic_agent",
-            "to": "__end__"
-          }
-        ],
-        "entry_point": "test_basic_agent"
+    "name": "Support Agent Session",
+    "description": "Customer support agent from inline config",
+    "save_messages": true,
+    "persistent_state": true,
+    "agents": [
+      {
+        "name": "support_agent",
+        "agent_type": "llm_agent",
+        "description": "Handles customer inquiries",
+        "prompt_config": {
+          "system_prompt": "You are a helpful customer support agent. Provide accurate and friendly responses."
+        },
+        "llm_config": {
+          "model": "gpt-4o",
+          "temperature": 0.7
+        },
+        "streaming_config": {
+          "show_output_to_user": true
+        }
+      }
+    ],
+    "edges": [
+      {
+        "from": "__start__",
+        "to": "support_agent"
+      },
+      {
+        "from": "support_agent",
+        "to": "__end__"
+      }
+    ],
+    "entry_point": "support_agent"
   }'
 ```
 
 Response:
 ```json
 {
-    "success": true,
-    "session_id": "820d6859-60d0-48f2-a4fc-c8dad229d311",
-    "config_hash": "object:f1f2510eaad449aebddc23690cb29630cebd83058d09e29c7f57969fb2177c73:u:anon"
+  "success": true,
+  "session_id": "session_abc123def456",
+  "config_hash": "object:f1f2510eaad449aebddc23690cb29630cebd83058d09e29c7f57969fb2177c73:u:anon"
 }
 ```
 
-### Execute User Message on Session ID
+## Option 2: Load Session from Existing Agent
 
-Replace `SESSION_ID` with the actual session ID from the previous response:
+Create a session from an agent already configured in Atthene Agent Studio:
+
+```bash
+curl -X POST https://api-be.atthene.com/api/v1/sessions/from-agent/ \
+  -H "x-api-key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "agent_id": "agent_xyz789",
+    "session_name": "Customer Support Chat"
+  }'
+```
+
+Response:
+```json
+{
+  "success": true,
+  "session_id": "session_runtime123",
+  "agent_id": "agent_xyz789",
+  "session_name": "Customer Support Chat"
+}
+```
+
+# Communicating with a Session
+
+Once you have a session ID, you can execute messages and interact with your agent.
+
+## Execute a Simple Message
+
+Send a message to the agent and get a response:
 
 ```bash
 curl -X POST https://api-be.atthene.com/api/v1/runtime/session_abc123/execute/ \
@@ -100,6 +126,7 @@ curl -X POST https://api-be.atthene.com/api/v1/runtime/session_abc123/execute/ \
 Response:
 ```json
 {
+  "success": true,
   "response": {
     "content": "Hello! I'd be happy to help you with your account. What specific issue are you experiencing?",
     "role": "assistant"
@@ -109,9 +136,9 @@ Response:
 }
 ```
 
-### Continue Conversation
+## Continue Conversation
 
-Send additional messages to maintain conversation context:
+Send follow-up messages. The agent maintains context from previous messages:
 
 ```bash
 curl -X POST https://api-be.atthene.com/api/v1/runtime/session_abc123/execute/ \
@@ -122,15 +149,17 @@ curl -X POST https://api-be.atthene.com/api/v1/runtime/session_abc123/execute/ \
   }'
 ```
 
-### Using Variables in Requests
+The agent remembers the conversation context and provides personalized responses.
 
-Inject dynamic values into your agents using variables. Variables allow you to pass user IDs, context, queries, and other data that gets substituted into agent prompts.
+## Pass Variables with Your Message
+
+Inject variables into the agent's context. Variables are substituted into agent prompts and maintain state across executions.
 
 <Info>
 Learn more in the [Using Variables in REST API](/documentation/integration/variables-in-rest-api) guide.
 </Info>
 
-**Session-level example** (persist across requests):
+**Session-level variables** (persist across requests):
 
 ```bash
 curl -X POST https://api-be.atthene.com/api/v1/runtime/session_abc123/execute/ \
@@ -140,12 +169,14 @@ curl -X POST https://api-be.atthene.com/api/v1/runtime/session_abc123/execute/ \
     "content": "Hello",
     "inputs": {
       "user_id": "user_12345",
-      "user_name": "John Doe"
+      "user_email": "john@example.com"
     }
   }'
 ```
 
-**Request-level example** (fresh on every request):
+On subsequent requests, these variables load automatically from the checkpoint.
+
+**Request-level variables** (fresh on every request):
 
 ```bash
 curl -X POST https://api-be.atthene.com/api/v1/runtime/session_abc123/execute/ \
@@ -159,74 +190,59 @@ curl -X POST https://api-be.atthene.com/api/v1/runtime/session_abc123/execute/ \
   }'
 ```
 
-## Part 2: Create Knowledge Bases
+Request-level variables must be provided on every execution.
 
-TODO: Replicate & Adjust documentation
+# Multimodal Input: Images and Files
 
-Upload data, create collections, and build knowledge bases for your agents to use.
+You can pass images and files to your agent for analysis. This feature is **experimental** — if you use it, please provide feedback on your experience.
 
-### Upload Data
+<Warning>
+**Experimental Feature**: Image and file input handling via REST API is not fully tested. If you encounter issues or limitations, please report them to [support](mailto:lorenz.stirnweis@arttacsolutions.de) with details about your use case.
+</Warning>
 
-Upload files to be used in your knowledge base:
+## Send an Image with Your Message
 
-```bash
-curl -X POST https://api-be.atthene.com/api/v1/files/ \
-  -H "x-api-key: YOUR_API_KEY" \
-  -F "file=@/path/to/document.pdf" \
-  -F "tags=manual,product"
-```
-
-Response:
-```json
-{
-  "id": "file_456",
-  "original_filename": "document.pdf",
-  "file_type": "document",
-  "size_bytes": 2048576,
-  "status": "uploading",
-  "tags": ["manual", "product"],
-  "created_at": "2025-01-15T10:30:00Z"
-}
-```
-
-### Create Collections
-
-Create a collection to organize related documents:
+Pass images alongside text for the agent to analyze:
 
 ```bash
-curl -X POST https://api-be.atthene.com/api/v1/collections/ \
+curl -X POST https://api-be.atthene.com/api/v1/runtime/session_abc123/execute/ \
   -H "x-api-key: YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
-    "name": "Product Documentation",
-    "description": "All product manuals and guides"
+    "content": [
+      {
+        "type": "text",
+        "text": "What is shown in this image?"
+      },
+      {
+        "type": "image_url",
+        "image_url": {
+          "url": "https://example.com/image.jpg"
+        }
+      }
+    ]
   }'
 ```
 
-Response:
-```json
-{
-  "id": "coll_456",
-  "name": "Product Documentation",
-  "description": "All product manuals and guides",
-  "status": "pending",
-  "progress": 0,
-  "data_source_count": 0,
-  "total_size": 0,
-  "created_at": "2025-01-15T10:30:00Z"
-}
-```
-
-### Add Files to Collection
-
-Add uploaded files to your collection:
+Or use a base64-encoded image:
 
 ```bash
-curl -X POST https://api-be.atthene.com/api/v1/collections/coll_456/files/ \
+curl -X POST https://api-be.atthene.com/api/v1/runtime/session_abc123/execute/ \
   -H "x-api-key: YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
-    "file_ids": ["file_456", "file_789"]
+    "content": [
+      {
+        "type": "text",
+        "text": "Analyze this screenshot"
+      },
+      {
+        "type": "image_url",
+        "image_url": {
+          "url": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEA..."
+        }
+      }
+    ]
   }'
 ```
 
@@ -234,127 +250,87 @@ Response:
 ```json
 {
   "success": true,
-  "added": 2,
-  "failed": 0,
-  "results": [
-    {
-      "file_id": "file_456",
-      "status": "added"
-    },
-    {
-      "file_id": "file_789",
-      "status": "added"
-    }
-  ]
+  "response": {
+    "content": "The image shows a dashboard with several metrics displayed. The main chart shows...",
+    "role": "assistant"
+  },
+  "session_id": "session_abc123",
+  "message_id": "msg_ghi789"
 }
 ```
 
-### Create Knowledge Base
+## Send a File for Processing
 
-Create a knowledge base from your collections:
+Pass files (PDFs, documents, etc.) to the agent:
+
+<Callout type="caution">
+File upload via REST execute endpoint is **not fully tested**. Known limitations:
+- File size limits may apply
+- Some file types may not be supported
+- Error handling may be incomplete
+
+If you encounter issues, please report them with details about file type, size, and error message.
+</Callout>
 
 ```bash
-curl -X POST https://api-be.atthene.com/api/v1/knowledge-bases/ \
+curl -X POST https://api-be.atthene.com/api/v1/runtime/session_abc123/execute/ \
   -H "x-api-key: YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
-    "name": "Product Knowledge Base",
-    "description": "Product documentation and guides",
-    "processing_engine": "milvus",
-    "collections": ["coll_456"]
-  }'
-```
-
-Response:
-```json
-{
-  "id": "kb_789",
-  "name": "Product Knowledge Base",
-  "description": "Product documentation and guides",
-  "processing_engine": "milvus",
-  "status": "pending",
-  "progress": 0,
-  "collection_count": 1,
-  "success_rate": 0,
-  "created_by_name": "John Doe",
-  "created_at": "2025-01-15T10:30:00Z"
-}
-```
-
-# Part 3: Insert Knowledge Base into Agent Configuration
-
-Add your knowledge base to the agent configuration for enhanced responses.
-
-## Create Session with Knowledge Base
-
-```bash
-curl -X POST https://api-be.atthene.com/api/v1/sessions/ \
-  -H "x-api-key: YOUR_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "Documentation Agent",
-    "agent_type": "llm_agent",
-    "system_prompt": "You are a documentation assistant. Use the knowledge base to answer questions accurately.",
-    "llm_config": {
-      "model": "gpt-4o",
-      "temperature": 0.7
-    },
-    "knowledge_bases": [
+    "content": [
       {
-        "name": "gtsre",
-        "knowledge_base_type": "milvus",
-        "id": "kb_789",
-        "config": {
-          "top_k": 5,
-          "search_ef": 64,
-          "metric_type": "COSINE"
-        }
+        "type": "text",
+        "text": "Please analyze this PDF document"
+      },
+      {
+        "type": "file",
+        "file_url": "https://example.com/document.pdf"
       }
     ]
   }'
 ```
 
-## Test Knowledge Base Integration
-
-Send a question that requires knowledge base lookup:
-
-```bash
-curl -X POST https://api-be.atthene.com/api/v1/runtime/session_xyz123/execute/ \
-  -H "x-api-key: YOUR_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "content": "How do I configure authentication in the product?"
-  }'
+Expected response (if supported):
+```json
+{
+  "success": true,
+  "response": {
+    "content": "I've analyzed the document. Here are the key points...",
+    "role": "assistant"
+  },
+  "session_id": "session_abc123",
+  "message_id": "msg_jkl012"
+}
 ```
 
-The agent will automatically search the knowledge base and provide an answer based on the uploaded documentation.
+# Error Handling
 
-## Common Errors
+Common errors and how to handle them:
 
 | Status Code | Error | Solution |
 |-------------|-------|----------|
-| `400` | Invalid configuration | Validate config with `/agent/validate/` endpoint |
-| `401` | Unauthorized | Check API key is correct and not expired |
-| `404` | Session not found | Verify session ID exists, may have been deleted |
+| `400` | Invalid configuration | Check your YAML/JSON syntax and required fields |
+| `401` | Unauthorized | Verify your API key is correct and not expired |
+| `404` | Session not found | Check the session ID exists and hasn't been deleted |
 | `429` | Rate limit exceeded | Implement exponential backoff and retry logic |
-| `500` | Internal server error | Check request format, contact support if persists |
+| `500` | Internal server error | Check request format; contact support if the issue persists |
 
 ## Next Steps
 
 <CardGroup cols={2}>
-  <Card title="API Reference" icon="book" href="/api-reference/introduction">
-    Complete API endpoint documentation
+  <Card title="Variables Guide" icon="code" href="/documentation/integration/variables-in-rest-api">
+    Master passing variables to your agents
   </Card>
   
-  <Card title="Authentication" icon="key" href="/api-reference/authentication">
-    Detailed authentication guide
+  <Card title="API Reference" icon="book" href="/api-reference/introduction">
+    Complete endpoint documentation
+  </Card>
+  
+  <Card title="YAML Configuration" icon="file-code" href="/documentation/yaml-configuration">
+    Learn agent configuration syntax
   </Card>
   
   <Card title="Chatbot Integration" icon="comments" href="/documentation/integration/chatbot-integration">
     Build real-time chat interfaces
-  </Card>
-  
-  <Card title="YAML Configuration" icon="file-code" href="/documentation/yaml-configuration">
-    Learn about agent configuration
   </Card>
 </CardGroup>
