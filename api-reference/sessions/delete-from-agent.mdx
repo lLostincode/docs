@@ -1,0 +1,29 @@
+---
+title: 'Delete Sessions from Agent'
+openapi: 'DELETE /api/v1/sessions/from-agent/'
+---
+
+Delete all sessions belonging to the authenticated user for a specified agent.
+
+## Query Parameters
+
+<ParamField query="agent_key" type="string" required>
+  Agent key identifying the agent whose sessions will be removed.
+</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl -X DELETE "https://api-be.atthene.com/api/v1/sessions/from-agent/?agent_key=my_agent" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+</CodeGroup>
+
+## Response
+
+Returns the number of deleted sessions.
+
+```json
+{
+  "deleted": 5
+}
+```

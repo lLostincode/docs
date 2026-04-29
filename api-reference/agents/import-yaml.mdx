@@ -1,0 +1,31 @@
+---
+title: 'Import YAML'
+openapi: 'POST /api/v1/agent/{id}/import_yaml/'
+---
+
+Import an agent configuration from a YAML string to update the current agent.
+
+## Path Parameters
+
+<ParamField path="id" type="string" required>
+  The UUID of the agent to update.
+</ParamField>
+
+## Request Body
+
+<ParamField body="yaml_content" type="string" required>
+  The complete YAML configuration string to import.
+</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl -X POST https://api-be.atthene.com/api/v1/agent/{id}/import_yaml/ \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"yaml_content": "name: My Updated Agent\narchitecture: llm_agent"}'
+```
+</CodeGroup>
+
+## Response
+
+Returns the updated agent configuration.

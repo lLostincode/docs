@@ -120,7 +120,9 @@
               "api-reference/agents/get",
               "api-reference/agents/update",
               "api-reference/agents/delete",
-              "api-reference/agents/validate"
+              "api-reference/agents/validate",
+              "api-reference/agents/current-version",
+              "api-reference/agents/import-yaml"
             ]
           },
           {
@@ -130,7 +132,11 @@
               "api-reference/sessions/create",
               "api-reference/sessions/list",
               "api-reference/sessions/get",
-              "api-reference/sessions/from-agent"
+              "api-reference/sessions/from-agent",
+              "api-reference/sessions/default-agent",
+              "api-reference/sessions/delete-from-agent",
+              "api-reference/sessions/feedback",
+              "api-reference/sessions/delete-all"
             ]
           },
           {
@@ -178,6 +184,12 @@
               "api-reference/knowledge-bases/delete",
               "api-reference/knowledge-bases/check-status",
               "api-reference/knowledge-bases/available-collections"
+            ]
+          },
+          {
+            "group": "Images",
+            "pages": [
+              "api-reference/images/upload"
             ]
           }
         ]

@@ -1,0 +1,25 @@
+---
+title: 'Create from Default Agent'
+openapi: 'GET /api/v1/sessions/default-agent/'
+---
+
+Create a new session using the server-default agent configuration (loaded from static YAML). No agent key is required. This is commonly used by the playground builder and contexts that need the default agent.
+
+<CodeGroup>
+```bash cURL
+curl -X GET https://api-be.atthene.com/api/v1/sessions/default-agent/ \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+</CodeGroup>
+
+## Response
+
+Returns the newly created session information.
+
+```json
+{
+  "success": true,
+  "session_id": "sess_1234567890",
+  "config_hash": "a1b2c3d4"
+}
+```

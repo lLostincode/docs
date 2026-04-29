@@ -1,0 +1,36 @@
+---
+title: 'Get Current Version'
+openapi: 'GET /api/v1/agent/{id}/versions/current/'
+---
+
+Retrieve the current active version's `system_config` formatted for YAML output. This endpoint returns the raw stored config, preserving only explicitly set fields, which is useful when dumping as YAML in the frontend.
+
+## Path Parameters
+
+<ParamField path="id" type="string" required>
+  The UUID of the agent.
+</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl -X GET https://api-be.atthene.com/api/v1/agent/{id}/versions/current/ \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+</CodeGroup>
+
+## Response
+
+Returns the active version's configuration formatted for YAML.
+
+```json
+{
+  "id": "550e8400-e29b-41d4-a716-446655440000",
+  "version_number": "1.0.0",
+  "system_config": {
+    "name": "My Agent",
+    "architecture": "llm_agent"
+  },
+  "metadata": {},
+  "agent": "550e8400-e29b-41d4-a716-446655440000"
+}
+```

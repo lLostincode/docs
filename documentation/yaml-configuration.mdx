@@ -65,10 +65,10 @@ entry_point: "agent_name"
   </Note>
 </ParamField>
 
-<ParamField path="recursion_limit" type="integer" default="5-25 (env-controlled)">
+<ParamField path="recursion_limit" type="integer" default="5-50 (env-controlled)">
   Maximum number of steps allowed in workflow execution to prevent infinite loops. Controlled by environment variables:
   - Default: `AGENT_ITERATION_LIMIT` env var (fallback: lower limit)
-  - Range: `AGENT_ITERATION_LOWER_LIMIT` (default 5) to `AGENT_ITERATION_UPPER_LIMIT` (default 25)
+  - Range: `AGENT_ITERATION_LOWER_LIMIT` (default 5) to `AGENT_ITERATION_UPPER_LIMIT` (default 50)
 </ParamField>
 
 <ParamField path="entry_point" type="string" required>
@@ -81,6 +81,14 @@ entry_point: "agent_name"
 
 <ParamField path="persistent_state" type="boolean" default="true">
   Enable checkpointing for state persistence across executions
+</ParamField>
+
+<ParamField path="variables" type="object" default="{}">
+  Variable schema for dynamic values updated during execution. Defines variables that can be modified by agents.
+</ParamField>
+
+<ParamField path="memory_config" type="object">
+  Global memory system configuration (applies to all agents unless overridden). Note that `agent` scoped modules are not allowed at the system level.
 </ParamField>
 
 ## Agent Configuration
@@ -113,6 +121,22 @@ agents:
 
 <ParamField path="description" type="string">
   Human-readable description of the agent's purpose and capabilities
+</ParamField>
+
+<ParamField path="dependencies" type="array" default="[]">
+  List of dependencies on other agents' structured outputs (e.g., `[{"agent": "classifier"}]`)
+</ParamField>
+
+<ParamField path="outputs" type="array" default="[]">
+  List of output declarations for this agent
+</ParamField>
+
+<ParamField path="knowledge_bases" type="array" default="[]">
+  List of knowledge base references or configurations accessible to this agent. Both strings and detailed objects are supported.
+</ParamField>
+
+<ParamField path="memory_config" type="object">
+  Agent-specific memory configuration (overrides system-level memory config)
 </ParamField>
 
 ### Prompt Configuration
@@ -423,6 +447,10 @@ agents:
 
 <ParamField path="max_handoffs" type="integer" default="10">
   Maximum number of agent handoffs to prevent infinite coordination loops
+</ParamField>
+
+<ParamField path="tools" type="array" default="[]">
+  Additional tools for the supervisor agent (the handoff tool is automatically injected)
 </ParamField>
 
 <Note>

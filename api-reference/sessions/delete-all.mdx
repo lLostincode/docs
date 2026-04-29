@@ -1,0 +1,23 @@
+---
+title: 'Delete All Sessions'
+openapi: 'DELETE /api/v1/sessions/delete-all/'
+---
+
+Delete all sessions owned by the authenticated user.
+
+## Headers
+
+<ParamField header="X-External-User-Token" type="string">
+  Optional JWT token for external user identification (company-specific).
+</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl -X DELETE https://api-be.atthene.com/api/v1/sessions/delete-all/ \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+</CodeGroup>
+
+## Response
+
+Returns a `204 No Content` on success.

@@ -1,0 +1,35 @@
+---
+title: 'Give Message Feedback'
+openapi: 'POST /api/v1/sessions/feedback/'
+---
+
+Update or provide feedback for a specific message in a session.
+
+## Request Body
+
+The request body must match the `AmasMessageFeedbackSerializer` schema.
+
+<ParamField body="message" type="string" required>
+  The UUID of the message.
+</ParamField>
+
+<ParamField body="rating" type="integer">
+  The rating given to the message (e.g., 1 for thumbs up, -1 for thumbs down).
+</ParamField>
+
+<ParamField body="comment" type="string">
+  Optional text feedback or reasoning.
+</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl -X POST https://api-be.atthene.com/api/v1/sessions/feedback/ \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"message": "msg_123", "rating": 1, "comment": "Great answer!"}'
+```
+</CodeGroup>
+
+## Response
+
+Returns the updated feedback object.

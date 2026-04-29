@@ -1,0 +1,26 @@
+---
+title: 'Upload Image'
+openapi: 'POST /api/v1/images/upload/'
+---
+
+Upload an image for use in multimodal messages.
+
+## Request
+
+This endpoint typically expects a `multipart/form-data` request with the file.
+
+<ParamField body="file" type="file" required>
+  The image file to upload.
+</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl -X POST https://api-be.atthene.com/api/v1/images/upload/ \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -F "file=@/path/to/image.jpg"
+```
+</CodeGroup>
+
+## Response
+
+Returns the uploaded image details and URL to be referenced in multimodal content.
