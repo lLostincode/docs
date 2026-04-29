@@ -1,0 +1,485 @@
+---
+title: "Using Variables in REST API"
+description: "Pass dynamic values to your agents via variables in REST API requests"
+---
+
+Variables allow you to inject dynamic values into your agent prompts. You can provide session-level variables once and have them persist across multiple requests, or request-level variables that must be provided fresh on each execution.
+
+## Overview
+
+When executing a message in a session, you can pass variable values using the `inputs` field in your request body. Variables are substituted into your agent's system prompts and used throughout the execution.
+
+## Request Body Structure
+
+```json
+{
+  "content": "Your message here",
+  "inputs": {
+    "variable_name_1": "value1",
+    "variable_name_2": 42,
+    "variable_name_3": true
+  }
+}
+```
+
+The `inputs` object contains key-value pairs where:
+- **Key**: Variable name (must match a variable defined in your agent configuration)
+- **Value**: The value for that variable (string, number, boolean, array, or object)
+
+## Variable Types: Session vs Request Level
+
+### Session-Level Variables
+
+Session-level variables are provided once on the first execution and automatically persist across subsequent requests using checkpoints.
+
+**When to use**: User ID, session context, configuration that doesn't change.
+
+<Tabs>
+  <Tab title="Configuration">
+    ```yaml
+    variables:
+      user_id:
+        type: "str"
+        required: true
+        description: "The user's unique identifier"
+      
+      user_department:
+        type: "str"
+        required: true
+        description: "User's department (billing, support, etc)"
+    ```
+  </Tab>
+  
+  <Tab title="First Request">
+    ```bash
+    curl -X POST https://api-be.atthene.com/api/v1/runtime/session_abc123/execute/ \
+      -H "x-api-key: YOUR_API_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "content": "Hello, I need help",
+        "inputs": {
+          "user_id": "user_12345",
+          "user_department": "billing"
+        }
+      }'
+    ```
+  </Tab>
+  
+  <Tab title="Second Request">
+    ```bash
+    curl -X POST https://api-be.atthene.com/api/v1/runtime/session_abc123/execute/ \
+      -H "x-api-key: YOUR_API_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "content": "I have another question",
+        "inputs": {}
+      }'
+    ```
+    
+    `user_id` and `user_department` are automatically loaded from the session checkpoint.
+  </Tab>
+</Tabs>
+
+### Request-Level Variables
+
+Request-level variables must be provided on **every** execution. Checkpoint values are ignored.
+
+**When to use**: User messages, search queries, form submissions—anything that changes per request.
+
+<Tabs>
+  <Tab title="Configuration">
+    ```yaml
+    variables:
+      current_query:
+        type: "str"
+        require_every_execution: true
+        description: "The user's current search or question"
+    ```
+  </Tab>
+  
+  <Tab title="Every Request">
+    ```bash
+    # First request
+    curl -X POST https://api-be.atthene.com/api/v1/runtime/session_abc123/execute/ \
+      -H "x-api-key: YOUR_API_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "inputs": {
+          "current_query": "What is your refund policy?"
+        }
+      }'
+    ```
+    
+    ```bash
+    # Second request - must provide current_query again
+    curl -X POST https://api-be.atthene.com/api/v1/runtime/session_abc123/execute/ \
+      -H "x-api-key: YOUR_API_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "inputs": {
+          "current_query": "Do you have free shipping?"
+        }
+      }'
+    ```
+  </Tab>
+</Tabs>
+
+## Complete Example: Conversational Support Agent
+
+This example shows a support agent that uses both session-level and request-level variables.
+
+### Configuration
+
+```yaml
+persistent_state: true
+
+variables:
+  # Session-level: provided once, persists
+  user_id:
+    type: "str"
+    required: true
+    description: "Customer ID"
+  
+  user_email:
+    type: "str"
+    required: true
+    description: "Customer email address"
+  
+  # Request-level: provided every time
+  current_message:
+    type: "str"
+    require_every_execution: true
+    description: "The customer's current message"
+  
+  # Dynamic: auto-populated by agent
+  extracted_issue_type:
+    type: "str"
+    description: "Issue type extracted by analyzer agent"
+
+agents:
+  - name: analyzer
+    agent_type: llm_agent
+    prompt_config:
+      system_prompt: |
+        You are a support agent analyzer.
+        Customer ID: {{ variables.user_id }}
+        Customer Email: {{ variables.user_email }}
+        
+        Analyze this message and extract the issue type:
+        {{ variables.current_message }}
+    
+    structured_output:
+      enabled: true
+      schema:
+        issue_type:
+          type: "str"
+          description: "Type of issue (billing, technical, shipping, other)"
+    
+    variable_assignments:
+      extracted_issue_type: "analyzer.output.issue_type"
+  
+  - name: responder
+    agent_type: llm_agent
+    prompt_config:
+      system_prompt: |
+        You are a helpful support agent for our company.
+        
+        Customer Details:
+        - ID: {{ variables.user_id }}
+        - Email: {{ variables.user_email }}
+        
+        Their Issue: {{ extracted_issue_type }}
+        Their Message: {{ variables.current_message }}
+        
+        Provide a helpful, personalized response.
+
+edges:
+  - from: "__start__"
+    to: analyzer
+  - from: analyzer
+    to: responder
+  - from: responder
+    to: "__end__"
+
+entry_point: "analyzer"
+```
+
+### First Request: Initialize Session
+
+```bash
+curl -X POST https://api-be.atthene.com/api/v1/runtime/session_abc123/execute/ \
+  -H "x-api-key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "content": "Hello",
+    "inputs": {
+      "user_id": "CUST_12345",
+      "user_email": "john@example.com",
+      "current_message": "I was charged twice for my last order"
+    }
+  }'
+```
+
+Response:
+```json
+{
+  "success": true,
+  "message_id": "msg_789",
+  "response": {
+    "content": "I sincerely apologize for the duplicate charge. I've located your order and can see the billing error. Let me help you get this resolved immediately..."
+  }
+}
+```
+
+### Second Request: Continue Conversation
+
+```bash
+curl -X POST https://api-be.atthene.com/api/v1/runtime/session_abc123/execute/ \
+  -H "x-api-key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "content": "Thanks for your help",
+    "inputs": {
+      "current_message": "How long will the refund take?"
+    }
+  }'
+```
+
+**What happens:**
+- `user_id` and `user_email` load from checkpoint (not provided in request)
+- `current_message` is fresh: "How long will the refund take?"
+- Agent has full context from first message + new query
+- Response is personalized to this customer
+
+## Supported Data Types
+
+Variables use BAML type notation. You can pass:
+
+| Type | Example | Use Case |
+|------|---------|----------|
+| `str` | `"hello"` | Text values |
+| `int` | `42` | Numbers without decimals |
+| `float` | `3.14` | Decimal values |
+| `bool` | `true` | Yes/no flags |
+| `list[str]` | `["item1", "item2"]` | Multiple tags or selections |
+| `list[int]` | `[1, 2, 3]` | Multiple numeric values |
+| `dict[str, int]` | `{"key": 1, "key2": 2}` | Key-value data |
+| `str \| None` | `"value"` or `null` | Optional text |
+
+### Automatic Type Coercion
+
+String values in JSON are automatically converted to match your variable's declared type:
+
+```json
+{
+  "inputs": {
+    "max_retries": "5"           // String in JSON
+  }
+}
+```
+
+If `max_retries` is typed as `int`, it becomes the integer `5`.
+
+Type conversions:
+- `"42"` → `42` (for `int` type)
+- `"true"` or `"1"` → `True` (for `bool` type)
+- `"[1,2,3]"` → `[1, 2, 3]` (for `list[int]` type)
+
+## Common Patterns
+
+### Pattern 1: Conversational Loop
+
+Use request-level variables for user messages in a multi-turn conversation:
+
+```python
+import requests
+
+session_id = "abc-123"
+api_key = "your_api_key"
+base_url = "https://api-be.atthene.com/api/v1"
+
+headers = {
+    "x-api-key": api_key,
+    "Content-Type": "application/json"
+}
+
+# First: Initialize with session variables
+response = requests.post(
+    f"{base_url}/runtime/{session_id}/execute/",
+    headers=headers,
+    json={
+        "inputs": {
+            "user_id": "user_123",
+            "user_name": "John Doe"
+        }
+    }
+)
+
+# Loop: Send user queries
+user_messages = [
+    "Hello, I need help",
+    "Can you tell me more?",
+    "What about pricing?"
+]
+
+for message in user_messages:
+    response = requests.post(
+        f"{base_url}/runtime/{session_id}/execute/",
+        headers=headers,
+        json={
+            "content": message,
+            "inputs": {
+                "current_message": message  # Fresh each iteration
+            }
+        }
+    )
+    print(response.json()["response"]["content"])
+```
+
+### Pattern 2: Configuration + Queries
+
+Store configuration once, run many queries:
+
+```bash
+# Initialize with config (session-level)
+curl -X POST https://api-be.atthene.com/api/v1/runtime/session_abc/execute/ \
+  -H "x-api-key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "inputs": {
+      "company_name": "Acme Corp",
+      "support_email": "support@acme.com",
+      "api_key": "sk_live_12345"
+    }
+  }'
+
+# Later: Just provide the query
+curl -X POST https://api-be.atthene.com/api/v1/runtime/session_abc/execute/ \
+  -H "x-api-key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "content": "User question",
+    "inputs": {
+      "user_query": "What is your refund policy?"
+    }
+  }'
+```
+
+Configuration variables persist; you only provide fresh queries each time.
+
+## Error Handling
+
+### Required Variable Missing
+
+```json
+{
+  "success": false,
+  "error": "Required variable 'user_id' not provided",
+  "error_code": "MISSING_REQUIRED_VARIABLE"
+}
+```
+
+**Solution**: Ensure all `required: true` variables are provided on first execution.
+
+### Variable Not Defined
+
+If you provide a variable name that isn't defined in your configuration:
+
+```json
+{
+  "inputs": {
+    "undefined_var": "value"
+  }
+}
+```
+
+It's silently ignored. Only variables defined in your agent configuration are used.
+
+### Type Mismatch
+
+If type coercion fails:
+
+```json
+{
+  "success": false,
+  "error": "Type coercion failed for variable 'max_retries'",
+  "error_code": "TYPE_COERCION_FAILED"
+}
+```
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Use Descriptive Names" icon="pencil">
+    ```yaml
+    # ✅ Good
+    current_user_id:
+      description: "The ID of the current user"
+    
+    # ❌ Avoid
+    uid:
+      description: "ID"
+    ```
+  </Card>
+  
+  <Card title="Provide Descriptions" icon="file-text">
+    ```yaml
+    current_query:
+      type: "str"
+      require_every_execution: true
+      description: "The user's current search or question"
+    ```
+  </Card>
+  
+  <Card title="Set Sensible Defaults" icon="gear">
+    ```yaml
+    priority:
+      type: "str"
+      default: "medium"
+      description: "Request priority level"
+    ```
+  </Card>
+  
+  <Card title="Enable Persistent State" icon="database">
+    ```yaml
+    persistent_state: true  # Required for session variables
+    ```
+  </Card>
+</CardGroup>
+
+## Troubleshooting
+
+<Accordion title="Variables not persisting between requests">
+  **Solution**: Ensure `persistent_state: true` is set in your configuration.
+  
+  ```yaml
+  persistent_state: true
+  variables:
+    user_id:
+      type: "str"
+      required: true
+  ```
+</Accordion>
+
+<Accordion title="Getting stale variable values">
+  **Solution**: If you want a fresh value on every request, use `require_every_execution: true`:
+  
+  ```yaml
+  current_query:
+    type: "str"
+    require_every_execution: true
+  ```
+</Accordion>
+
+<Accordion title="Variables not appearing in agent prompts">
+  **Solution**: Check that:
+  1. Variable is defined in `variables` section
+  2. Variable name in prompt uses correct syntax: `{{ variables.name }}`
+  3. Variable is provided in `inputs` on first execution (for required variables)
+</Accordion>
+
+## Related Documentation
+
+- [Agent Configuration Guide](/documentation/agent_config/overview) - Define variables in your config
+- [Execute Endpoint](/api-reference/runtime/execute) - API reference for execute
+- [REST API Tutorial](/documentation/integration/rest-api-tutorial) - Full integration guide

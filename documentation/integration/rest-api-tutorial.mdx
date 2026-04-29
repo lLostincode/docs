@@ -122,6 +122,43 @@ curl -X POST https://api-be.atthene.com/api/v1/runtime/session_abc123/execute/ \
   }'
 ```
 
+### Using Variables in Requests
+
+Inject dynamic values into your agents using variables. Variables allow you to pass user IDs, context, queries, and other data that gets substituted into agent prompts.
+
+<Info>
+Learn more in the [Using Variables in REST API](/documentation/integration/variables-in-rest-api) guide.
+</Info>
+
+**Session-level example** (persist across requests):
+
+```bash
+curl -X POST https://api-be.atthene.com/api/v1/runtime/session_abc123/execute/ \
+  -H "x-api-key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "content": "Hello",
+    "inputs": {
+      "user_id": "user_12345",
+      "user_name": "John Doe"
+    }
+  }'
+```
+
+**Request-level example** (fresh on every request):
+
+```bash
+curl -X POST https://api-be.atthene.com/api/v1/runtime/session_abc123/execute/ \
+  -H "x-api-key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "content": "Your message",
+    "inputs": {
+      "current_query": "What is your refund policy?"
+    }
+  }'
+```
+
 ## Part 2: Create Knowledge Bases
 
 TODO: Replicate & Adjust documentation
