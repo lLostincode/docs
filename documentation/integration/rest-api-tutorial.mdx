@@ -83,16 +83,11 @@ Response:
 
 ## Option 2: Load Session from Existing Agent
 
-Create a session from an agent already configured in Atthene Agent Studio:
+Create a session from an agent already configured in Atthene Agent Studio. Use the agent's unique key:
 
 ```bash
-curl -X POST https://api-be.atthene.com/api/v1/sessions/from-agent/ \
-  -H "x-api-key: YOUR_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "agent_id": "agent_xyz789",
-    "session_name": "Customer Support Chat"
-  }'
+curl -X GET "https://api-be.atthene.com/api/v1/sessions/from-agent/?agent_key=your-agent-key-here" \
+  -H "x-api-key: YOUR_API_KEY"
 ```
 
 Response:
@@ -100,8 +95,9 @@ Response:
 {
   "success": true,
   "session_id": "session_runtime123",
+  "config_hash": "object:f1f2510eaad449aebddc23690cb29630cebd83058d09e29c7f57969fb2177c73:u:anon",
   "agent_id": "agent_xyz789",
-  "session_name": "Customer Support Chat"
+  "agent_name": "My Support Agent"
 }
 ```
 
