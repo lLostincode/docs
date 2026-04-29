@@ -214,7 +214,30 @@ You can pass images and files to your agent for analysis. This feature is **expe
 
 ## Send an Image with Your Message
 
-Pass images alongside text for the agent to analyze:
+AMAS officially supports three different methods for sending images to an agent. 
+
+### Method 1: The "Upload First" Method (Highly Recommended)
+
+If you are building an interface where users upload local files, you should upload the image to the Atthene API first. This returns a temporary, secure URL that you then pass to the agent. This method **reduces LLM token consumption by ~95%** compared to Base64 encoding.
+
+**Step 1: Upload the Image**
+
+```bash
+curl -X POST https://api-be.atthene.com/api/v1/images/upload/ \
+  -H "x-api-key: YOUR_API_KEY" \
+  -F "image=@/path/to/your/image.jpg"
+```
+
+Response:
+```json
+{
+  "url": "https://api-be.atthene.com/media/uploaded_images/temp_xyz.jpg",
+  "media_type": "image/jpeg",
+  "size": 102400
+}
+```
+
+**Step 2: Send the URL to the Agent**
 
 ```bash
 curl -X POST https://api-be.atthene.com/api/v1/runtime/session_abc123/execute/ \
@@ -229,14 +252,40 @@ curl -X POST https://api-be.atthene.com/api/v1/runtime/session_abc123/execute/ \
       {
         "type": "image_url",
         "image_url": {
-          "url": "https://example.com/image.jpg"
+          "url": "https://api-be.atthene.com/media/uploaded_images/temp_xyz.jpg"
         }
       }
     ]
   }'
 ```
 
-Or use a base64-encoded image:
+### Method 2: Direct Public URL
+
+If your image is already hosted publicly on the internet (e.g., a product image on your website), you can pass that URL directly. This is also highly efficient for token usage.
+
+```bash
+curl -X POST https://api-be.atthene.com/api/v1/runtime/session_abc123/execute/ \
+  -H "x-api-key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "content": [
+      {
+        "type": "text",
+        "text": "What is shown in this image?"
+      },
+      {
+        "type": "image_url",
+        "image_url": {
+          "url": "https://example.com/public-image.jpg"
+        }
+      }
+    ]
+  }'
+```
+
+### Method 3: Direct Base64 String
+
+You can encode the image directly into the JSON payload. This is easy for prototyping but **incurs high token costs** and inflates your request size significantly. It is not recommended for large files in production.
 
 ```bash
 curl -X POST https://api-be.atthene.com/api/v1/runtime/session_abc123/execute/ \
@@ -258,7 +307,7 @@ curl -X POST https://api-be.atthene.com/api/v1/runtime/session_abc123/execute/ \
   }'
 ```
 
-Response:
+Response from the agent:
 ```json
 {
   "id": "session_abc123",
