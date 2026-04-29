@@ -94,6 +94,7 @@
             "icon": "plug",
             "pages": [
               "documentation/integration/rest-api-tutorial",
+              "documentation/integration/variables-in-rest-api",
               "documentation/integration/chatbot-integration",
               "documentation/integration/custom-tools"
             ]
