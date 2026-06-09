@@ -17,7 +17,7 @@ Update an existing agent configuration. You can modify any part of the agent's s
 
 <CodeGroup>
 ```bash cURL
-curl -X PATCH https://api-be.atthene.com/api/v1/agent/550e8400-e29b-41d4-a716-446655440000/ \
+curl -X PATCH https://api.artaios.ai/api/v1/agent/550e8400-e29b-41d4-a716-446655440000/ \
   -H "x-api-key: YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -43,7 +43,7 @@ data = {
 }
 
 response = requests.patch(
-    "https://api-be.atthene.com/api/v1/agent/550e8400-e29b-41d4-a716-446655440000/",
+    "https://api.artaios.ai/api/v1/agent/550e8400-e29b-41d4-a716-446655440000/",
     headers={"x-api-key": "YOUR_API_KEY"},
     json=data
 )
@@ -59,7 +59,7 @@ const data = {
   }
 };
 
-const response = await fetch('https://api-be.atthene.com/api/v1/agent/550e8400-e29b-41d4-a716-446655440000/', {
+const response = await fetch('https://api.artaios.ai/api/v1/agent/550e8400-e29b-41d4-a716-446655440000/', {
   method: 'PATCH',
   headers: {
     'x-api-key': 'YOUR_API_KEY',

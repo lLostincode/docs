@@ -11,7 +11,7 @@ Send the complete agent configuration YAML or JSON to validate.
 
 <CodeGroup>
 ```bash cURL
-curl -X POST https://api-be.atthene.com/api/v1/agent/validate/ \
+curl -X POST https://api.artaios.ai/api/v1/agent/validate/ \
   -H "x-api-key: YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -39,7 +39,7 @@ config = {
 }
 
 response = requests.post(
-    "https://api-be.atthene.com/api/v1/agent/validate/",
+    "https://api.artaios.ai/api/v1/agent/validate/",
     headers={"x-api-key": "YOUR_API_KEY"},
     json=config
 )
@@ -57,7 +57,7 @@ const config = {
   }
 };
 
-const response = await fetch('https://api-be.atthene.com/api/v1/agent/validate/', {
+const response = await fetch('https://api.artaios.ai/api/v1/agent/validate/', {
   method: 'POST',
   headers: {
     'x-api-key': 'YOUR_API_KEY',

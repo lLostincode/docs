@@ -39,8 +39,8 @@ Once you've built and tested your agent in the Playground, you can integrate it 
 
 ### API Base URLs
 
-- **REST API**: `https://api-be.atthene.com/api/v1/`
-- **WebSocket**: `wss://api-be.atthene.com/ws/amas`
+- **REST API**: `https://api.artaios.ai/api/v1/`
+- **WebSocket**: `wss://api.artaios.ai/ws/amas`
 
 ---
 
@@ -73,7 +73,7 @@ Before sending messages, create a session to establish context. An agent session
     Use this method when connecting to a saved agent:
     
     ```bash
-    GET https://api-be.atthene.com/api/v1/sessions/from-agent/?agent_key={agent_key}
+    GET https://api.artaios.ai/api/v1/sessions/from-agent/?agent_key={agent_key}
     ```
     
     **Headers:**
@@ -95,7 +95,7 @@ Before sending messages, create a session to establish context. An agent session
     Use this method to create a session with a custom YAML configuration:
     
     ```bash
-    POST https://api-be.atthene.com/api/v1/sessions/
+    POST https://api.artaios.ai/api/v1/sessions/
     ```
     
     **Headers:**
@@ -138,7 +138,7 @@ Before sending messages, create a session to establish context. An agent session
 Once you have a session ID, you can execute a user message on a session:
 
 ```bash
-POST https://api-be.atthene.com/api/v1/runtime/{session_id}/execute
+POST https://api.artaios.ai/api/v1/runtime/{session_id}/execute
 ```
 
 **Headers:**
@@ -291,18 +291,18 @@ Before embedding, you **must** configure public access in Agent Settings.
 Add a container element and load the script:
 
 ```html
-<div id="atthene-chatbot-root"></div>
+<div id="artaios-chatbot-root"></div>
 <script>
   document.addEventListener('DOMContentLoaded', function() {
     var script = document.createElement('script');
-    script.src = 'https://static.arttacsolutions.com/js/atthene.js/latest/atthene.umd.js';
+    script.src = 'https://static.arttacsolutions.com/js/artaios.js/latest/artaios.umd.js';
     script.async = true;
     script.onload = function() {
       setTimeout(function() {
-        if (window.atthene && typeof window.atthene.initialize === 'function') {
-          window.atthene.initialize({
+        if (window.artaios && typeof window.artaios.initialize === 'function') {
+          window.artaios.initialize({
             agentKey: 'YOUR_AGENT_KEY',
-            elementId: 'atthene-chatbot-root',
+            elementId: 'artaios-chatbot-root',
             type: 'floatingButton',
             welcomeMessage: 'Hi! How can I help you?'
           });
@@ -319,9 +319,9 @@ Replace `YOUR_AGENT_KEY` with the Agent Key from your agent settings.
 ### Step 3: Customize the Widget
 
 ```javascript
-window.atthene.initialize({
+window.artaios.initialize({
   agentKey: 'YOUR_AGENT_KEY',
-  elementId: 'atthene-chatbot-root',
+  elementId: 'artaios-chatbot-root',
 
   // Display mode: 'floatingButton' (default), 'inPlace', or 'modal'
   type: 'floatingButton',
@@ -359,7 +359,7 @@ Update the user token after initialization (e.g., after login):
 
 ```javascript
 // Update the user token for history persistence
-window.atthene.updateUserToken('eyJhbGciOiJIUz...');
+window.artaios.updateUserToken('eyJhbGciOiJIUz...');
 ```
 
 <Info>

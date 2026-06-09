@@ -17,7 +17,7 @@ Upload a new file to the system for use in knowledge bases.
 
 <CodeGroup>
 ```bash cURL
-curl -X POST https://api-be.atthene.com/api/v1/files/ \
+curl -X POST https://api.artaios.ai/api/v1/files/ \
   -H "x-api-key: YOUR_API_KEY" \
   -F "file=@/path/to/document.pdf" \
   -F "tags=manual,product"
@@ -30,7 +30,7 @@ files = {'file': open('/path/to/document.pdf', 'rb')}
 data = {'tags': ['manual', 'product']}
 
 response = requests.post(
-    "https://api-be.atthene.com/api/v1/files/",
+    "https://api.artaios.ai/api/v1/files/",
     headers={"x-api-key": "YOUR_API_KEY"},
     files=files,
     data=data
@@ -43,7 +43,7 @@ const formData = new FormData();
 formData.append('file', fileInput.files[0]);
 formData.append('tags', 'manual,product');
 
-const response = await fetch('https://api-be.atthene.com/api/v1/files/', {
+const response = await fetch('https://api.artaios.ai/api/v1/files/', {
   method: 'POST',
   headers: {
     'x-api-key': 'YOUR_API_KEY'

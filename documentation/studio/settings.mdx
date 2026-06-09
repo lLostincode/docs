@@ -48,7 +48,7 @@ Store API keys securely. They grant full access to your account.
 Include the API key in your requests:
 
 ```bash
-curl -X POST https://amas.atthene.com/api/amas/conversations/execute \
+curl -X POST https://amas.artaios.com/api/amas/conversations/execute \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -79,7 +79,7 @@ Manage OAuth integrations for toolkits (Microsoft Outlook, Teams, etc.).
 
 Integrations control how users authenticate with external services (like Microsoft Outlook or Teams) when using toolkits.
 
-**ATTHENE's Default Integration**: If you don't configure a custom integration, ATTHENE provides a pre-configured OAuth app that works immediately. When users authorize a toolkit connection, they'll use ATTHENE's app by default.
+**ARTAIOS's Default Integration**: If you don't configure a custom integration, ARTAIOS provides a pre-configured OAuth app that works immediately. When users authorize a toolkit connection, they'll use ARTAIOS's app by default.
 
 **Custom Integration**: You can add your own OAuth app credentials (Client ID & Secret) from your Azure portal. When users authorize connections, they can choose to use your custom integration instead. This gives your organization full control over OAuth permissions and policies.
 

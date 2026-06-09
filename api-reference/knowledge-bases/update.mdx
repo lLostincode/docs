@@ -57,7 +57,7 @@ Most commonly updated fields are `name` and `description`. Other fields are typi
 
 <CodeGroup>
 ```bash cURL
-curl -X PATCH https://api-be.atthene.com/api/v1/knowledge-bases/kb_123/ \
+curl -X PATCH https://api.artaios.ai/api/v1/knowledge-bases/kb_123/ \
   -H "x-api-key: YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -73,7 +73,7 @@ data = {
 }
 
 response = requests.patch(
-    "https://api-be.atthene.com/api/v1/knowledge-bases/kb_123/",
+    "https://api.artaios.ai/api/v1/knowledge-bases/kb_123/",
     headers={"x-api-key": "YOUR_API_KEY"},
     json=data
 )
@@ -84,7 +84,7 @@ const data = {
   name: "Updated Product Knowledge Base"
 };
 
-const response = await fetch('https://api-be.atthene.com/api/v1/knowledge-bases/kb_123/', {
+const response = await fetch('https://api.artaios.ai/api/v1/knowledge-bases/kb_123/', {
   method: 'PATCH',
   headers: {
     'x-api-key': 'YOUR_API_KEY',

@@ -43,14 +43,14 @@ Before embedding your chatbot, configure your agent's public settings.
 
 ## Step 2: Embed the widget
 
-Add the Atthene chatbot to your website using the following code.
+Add the Artaios chatbot to your website using the following code.
 
 ### Add the container element
 
 Add this container to your HTML
 
 ```html
-<div id="atthene-chatbot-root"></div>
+<div id="artaios-chatbot-root"></div>
 ```
 
 ### Load and initialize the script
@@ -61,29 +61,29 @@ Add this script after the container element:
 <script>
   document.addEventListener('DOMContentLoaded', function() {
     const scriptElement = document.createElement('script');
-    scriptElement.src = 'https://static.arttacsolutions.com/js/atthene.js/latest/atthene.umd.js';
+    scriptElement.src = 'https://static.arttacsolutions.com/js/artaios.js/latest/artaios.umd.js';
     scriptElement.async = true;
 
     scriptElement.onload = function() {
       setTimeout(function() {
         try {
-          if (window.atthene && typeof window.atthene.initialize === 'function') {
-            window.atthene.initialize({
+          if (window.artaios && typeof window.artaios.initialize === 'function') {
+            window.artaios.initialize({
               agentKey: 'YOUR_AGENT_KEY',
-              elementId: 'atthene-chatbot-root',
+              elementId: 'artaios-chatbot-root',
               type: 'floatingButton',
               placeholder: 'Write a message...',
               welcomeMessage: 'Hi! How can I help you?'
             });
           }
         } catch (error) {
-          console.error('Failed to initialize Atthene chatbot:', error);
+          console.error('Failed to initialize Artaios chatbot:', error);
         }
       }, 200);
     };
 
     scriptElement.onerror = function(error) {
-      console.error('Failed to load Atthene chatbot script:', error);
+      console.error('Failed to load Artaios chatbot script:', error);
     };
 
     document.head.appendChild(scriptElement);
@@ -99,7 +99,7 @@ When the page loads, you see the chatbot launcher button and you can open a conv
 
 ### Widget types
 
-Atthene supports three display modes:
+Artaios supports three display modes:
 
 <CardGroup cols={3}>
   <Card title="Floating Button" icon="comment">
@@ -127,11 +127,11 @@ Set the display mode using the `type` property in your configuration (see [Techn
 
 ## Step 3: Configure your chatbot (optional)
 
-You can customize the chatbot's appearance and behavior by passing additional parameters to `window.atthene.initialize()`.
+You can customize the chatbot's appearance and behavior by passing additional parameters to `window.artaios.initialize()`.
 
 ### Configuration reference
 
-The `initialize` function accepts an `AttheneOptions` object organized into the following categories:
+The `initialize` function accepts an `ArtaiosOptions` object organized into the following categories:
 
 #### Technical
 
@@ -141,7 +141,7 @@ Core technical configuration for the chatbot widget:
 |----------|------|-------------|
 | `agentKey` | `string` | Your agent identifier (required) |
 | `connectionKey` | `string` | **Deprecated** — use `agentKey` instead. Only needed for legacy non-AMAS agents |
-| `elementId` | `string` | ID of the container element (default: `atthene-chatbot-root`) |
+| `elementId` | `string` | ID of the container element (default: `artaios-chatbot-root`) |
 | `type` | `'floatingButton' \| 'inPlace' \| 'modal'` | Chat widget display type - see [Widget types](#widget-types) for visual examples (default: `floatingButton`) |
 | `userToken` | `string` | JWT token for user identification and session persistence (see [User identification](#user-identification) below) |
 | `enableAttachments` | `boolean` | Allow users to attach files in the chat (default: `false`) |
@@ -231,7 +231,7 @@ You can update the token after initialization — for example, after a user logs
 
 ```javascript
 // After the user authenticates on your site
-window.atthene.updateUserToken('eyJhbGciOiJIUz...');
+window.artaios.updateUserToken('eyJhbGciOiJIUz...');
 ```
 
 This updates the active WebSocket connection without reinitializing the widget.
@@ -243,9 +243,9 @@ This updates the active WebSocket connection without reinitializing the widget.
 Just the essentials:
 
 ```javascript
-window.atthene.initialize({
+window.artaios.initialize({
   agentKey: 'YOUR_AGENT_KEY',
-  elementId: 'atthene-chatbot-root',
+  elementId: 'artaios-chatbot-root',
   welcomeMessage: 'Welcome to our support chatbot!'
 });
 ```
@@ -255,9 +255,9 @@ window.atthene.initialize({
 With hint questions and feedback:
 
 ```javascript
-window.atthene.initialize({
+window.artaios.initialize({
   agentKey: 'YOUR_AGENT_KEY',
-  elementId: 'atthene-chatbot-root',
+  elementId: 'artaios-chatbot-root',
   type: 'floatingButton',
   launcherTooltip: 'Need help? Chat with us!',
   welcomeMessage: 'Hi! How can I assist you today?',
@@ -279,16 +279,16 @@ Complete customization with branding and theme:
 <script>
   document.addEventListener('DOMContentLoaded', function() {
     const scriptElement = document.createElement('script');
-    scriptElement.src = 'https://static.arttacsolutions.com/js/atthene.js/latest/atthene.umd.js';
+    scriptElement.src = 'https://static.arttacsolutions.com/js/artaios.js/latest/artaios.umd.js';
     scriptElement.async = true;
 
     scriptElement.onload = function() {
       setTimeout(function() {
-        if (!window.atthene || typeof window.atthene.initialize !== 'function') return;
+        if (!window.artaios || typeof window.artaios.initialize !== 'function') return;
 
-        window.atthene.initialize({
+        window.artaios.initialize({
           agentKey: 'YOUR_AGENT_KEY',
-          elementId: 'atthene-chatbot-root',
+          elementId: 'artaios-chatbot-root',
           type: 'floatingButton',
           placeholder: 'Write a message...',
           welcomeMessage: 'Hello! How can I help you?',
@@ -333,9 +333,9 @@ Complete customization with branding and theme:
 Open the chat as a centered overlay:
 
 ```javascript
-window.atthene.initialize({
+window.artaios.initialize({
   agentKey: 'YOUR_AGENT_KEY',
-  elementId: 'atthene-chatbot-root',
+  elementId: 'artaios-chatbot-root',
   type: 'modal',
   welcomeMessage: 'Hello! Ask me anything.',
   theme: {
@@ -352,9 +352,9 @@ window.atthene.initialize({
 Enable voice interaction:
 
 ```javascript
-window.atthene.initialize({
+window.artaios.initialize({
   agentKey: 'YOUR_AGENT_KEY',
-  elementId: 'atthene-chatbot-root',
+  elementId: 'artaios-chatbot-root',
   enableAudio: true,
   playAudioByDefault: true,
   voiceConfig: {

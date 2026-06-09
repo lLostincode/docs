@@ -157,7 +157,7 @@ For `.csv`, `.xlsx`, `.xls` files, use separate configuration:
 
 <CodeGroup>
 ```bash cURL
-curl -X POST https://api-be.atthene.com/api/v1/knowledge-bases/ \
+curl -X POST https://api.artaios.ai/api/v1/knowledge-bases/ \
   -H "x-api-key: YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -179,7 +179,7 @@ data = {
 }
 
 response = requests.post(
-    "https://api-be.atthene.com/api/v1/knowledge-bases/",
+    "https://api.artaios.ai/api/v1/knowledge-bases/",
     headers={"x-api-key": "YOUR_API_KEY"},
     json=data
 )
@@ -194,7 +194,7 @@ const data = {
   selected_collections: ["coll_123", "coll_456"]
 };
 
-const response = await fetch('https://api-be.atthene.com/api/v1/knowledge-bases/', {
+const response = await fetch('https://api.artaios.ai/api/v1/knowledge-bases/', {
   method: 'POST',
   headers: {
     'x-api-key': 'YOUR_API_KEY',
@@ -211,7 +211,7 @@ const kb = await response.json();
 
 <CodeGroup>
 ```bash cURL
-curl -X POST https://api-be.atthene.com/api/v1/knowledge-bases/ \
+curl -X POST https://api.artaios.ai/api/v1/knowledge-bases/ \
   -H "x-api-key: YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -259,7 +259,7 @@ data = {
 }
 
 response = requests.post(
-    "https://api-be.atthene.com/api/v1/knowledge-bases/",
+    "https://api.artaios.ai/api/v1/knowledge-bases/",
     headers={"x-api-key": "YOUR_API_KEY"},
     json=data
 )

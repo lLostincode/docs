@@ -52,7 +52,7 @@ Session-level variables are provided once on the first execution and automatical
   
   <Tab title="First Request">
     ```bash
-    curl -X POST https://api-be.atthene.com/api/v1/runtime/session_abc123/execute/ \
+    curl -X POST https://api.artaios.ai/api/v1/runtime/session_abc123/execute/ \
       -H "x-api-key: YOUR_API_KEY" \
       -H "Content-Type: application/json" \
       -d '{
@@ -67,7 +67,7 @@ Session-level variables are provided once on the first execution and automatical
   
   <Tab title="Second Request">
     ```bash
-    curl -X POST https://api-be.atthene.com/api/v1/runtime/session_abc123/execute/ \
+    curl -X POST https://api.artaios.ai/api/v1/runtime/session_abc123/execute/ \
       -H "x-api-key: YOUR_API_KEY" \
       -H "Content-Type: application/json" \
       -d '{
@@ -100,7 +100,7 @@ Request-level variables must be provided on **every** execution. Checkpoint valu
   <Tab title="Every Request">
     ```bash
     # First request
-    curl -X POST https://api-be.atthene.com/api/v1/runtime/session_abc123/execute/ \
+    curl -X POST https://api.artaios.ai/api/v1/runtime/session_abc123/execute/ \
       -H "x-api-key: YOUR_API_KEY" \
       -H "Content-Type: application/json" \
       -d '{
@@ -112,7 +112,7 @@ Request-level variables must be provided on **every** execution. Checkpoint valu
     
     ```bash
     # Second request - must provide current_query again
-    curl -X POST https://api-be.atthene.com/api/v1/runtime/session_abc123/execute/ \
+    curl -X POST https://api.artaios.ai/api/v1/runtime/session_abc123/execute/ \
       -H "x-api-key: YOUR_API_KEY" \
       -H "Content-Type: application/json" \
       -d '{
@@ -207,7 +207,7 @@ entry_point: "analyzer"
 ### First Request: Initialize Session
 
 ```bash
-curl -X POST https://api-be.atthene.com/api/v1/runtime/session_abc123/execute/ \
+curl -X POST https://api.artaios.ai/api/v1/runtime/session_abc123/execute/ \
   -H "x-api-key: YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -234,7 +234,7 @@ Response:
 ### Second Request: Continue Conversation
 
 ```bash
-curl -X POST https://api-be.atthene.com/api/v1/runtime/session_abc123/execute/ \
+curl -X POST https://api.artaios.ai/api/v1/runtime/session_abc123/execute/ \
   -H "x-api-key: YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -296,7 +296,7 @@ import requests
 
 session_id = "abc-123"
 api_key = "your_api_key"
-base_url = "https://api-be.atthene.com/api/v1"
+base_url = "https://api.artaios.ai/api/v1"
 
 headers = {
     "x-api-key": api_key,
@@ -342,7 +342,7 @@ Store configuration once, run many queries:
 
 ```bash
 # Initialize with config (session-level)
-curl -X POST https://api-be.atthene.com/api/v1/runtime/session_abc/execute/ \
+curl -X POST https://api.artaios.ai/api/v1/runtime/session_abc/execute/ \
   -H "x-api-key: YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -354,7 +354,7 @@ curl -X POST https://api-be.atthene.com/api/v1/runtime/session_abc/execute/ \
   }'
 
 # Later: Just provide the query
-curl -X POST https://api-be.atthene.com/api/v1/runtime/session_abc/execute/ \
+curl -X POST https://api.artaios.ai/api/v1/runtime/session_abc/execute/ \
   -H "x-api-key: YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{

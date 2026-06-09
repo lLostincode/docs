@@ -17,7 +17,7 @@ Add files to a collection for processing.
 
 <CodeGroup>
 ```bash cURL
-curl -X POST https://api-be.atthene.com/api/v1/collections/coll_123/files/ \
+curl -X POST https://api.artaios.ai/api/v1/collections/coll_123/files/ \
   -H "x-api-key: YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -33,7 +33,7 @@ data = {
 }
 
 response = requests.post(
-    "https://api-be.atthene.com/api/v1/collections/coll_123/files/",
+    "https://api.artaios.ai/api/v1/collections/coll_123/files/",
     headers={"x-api-key": "YOUR_API_KEY"},
     json=data
 )

@@ -11,7 +11,7 @@ Remove a collection and all its data sources.
 
 <CodeGroup>
 ```bash cURL
-curl -X DELETE https://api-be.atthene.com/api/v1/collections/coll_123/ \
+curl -X DELETE https://api.artaios.ai/api/v1/collections/coll_123/ \
   -H "x-api-key: YOUR_API_KEY"
 ```
 
@@ -19,7 +19,7 @@ curl -X DELETE https://api-be.atthene.com/api/v1/collections/coll_123/ \
 import requests
 
 response = requests.delete(
-    "https://api-be.atthene.com/api/v1/collections/coll_123/",
+    "https://api.artaios.ai/api/v1/collections/coll_123/",
     headers={"x-api-key": "YOUR_API_KEY"}
 )
 ```

@@ -21,7 +21,7 @@ Retrieve conversation history for a session.
 
 <CodeGroup>
 ```bash cURL
-curl -X GET "https://api-be.atthene.com/api/v1/runtime/session_abc123/messages/?limit=10" \
+curl -X GET "https://api.artaios.ai/api/v1/runtime/session_abc123/messages/?limit=10" \
   -H "x-api-key: YOUR_API_KEY"
 ```
 
@@ -29,7 +29,7 @@ curl -X GET "https://api-be.atthene.com/api/v1/runtime/session_abc123/messages/?
 import requests
 
 response = requests.get(
-    "https://api-be.atthene.com/api/v1/runtime/session_abc123/messages/",
+    "https://api.artaios.ai/api/v1/runtime/session_abc123/messages/",
     headers={"x-api-key": "YOUR_API_KEY"},
     params={"limit": 10}
 )
@@ -37,7 +37,7 @@ messages = response.json()
 ```
 
 ```javascript JavaScript
-const response = await fetch('https://api-be.atthene.com/api/v1/runtime/session_abc123/messages/?limit=10', {
+const response = await fetch('https://api.artaios.ai/api/v1/runtime/session_abc123/messages/?limit=10', {
   headers: {
     'x-api-key': 'YOUR_API_KEY'
   }

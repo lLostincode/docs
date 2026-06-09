@@ -1,6 +1,6 @@
 ---
 title: 'Authentication'
-description: 'Learn how to authenticate your API requests to the Atthene Multi-Agent System'
+description: 'Learn how to authenticate your API requests to the Artaios Multi-Agent System'
 ---
 
 ## Overview
@@ -19,13 +19,13 @@ Include your API key in the `x-api-key` header with every request:
 x-api-key: YOUR_API_KEY
 ```
 
-API keys are generated in the settings of the Atthene Agent Studio with an expiration date and can be invalidated when needed.
+API keys are generated in the settings of the Artaios Agent Studio with an expiration date and can be invalidated when needed.
 
 ## Usage Examples
 
 <CodeGroup>
 ```bash cURL
-curl -X POST https://api-be.atthene.com/api/v1/agent/validate/ \
+curl -X POST https://api.artaios.ai/api/v1/agent/validate/ \
   -H "x-api-key: YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -52,7 +52,7 @@ config = {
 }
 
 response = requests.post(
-    'https://api-be.atthene.com/api/v1/agent/validate/',
+    'https://api.artaios.ai/api/v1/agent/validate/',
     json=config,
     headers=headers
 )
@@ -67,7 +67,7 @@ const config = {
   llm_config: {model: "gpt-4o"}
 };
 
-const response = await fetch('https://api-be.atthene.com/api/v1/agent/validate/', {
+const response = await fetch('https://api.artaios.ai/api/v1/agent/validate/', {
   method: 'POST',
   headers: {
     'x-api-key': 'YOUR_API_KEY',

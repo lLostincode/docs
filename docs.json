@@ -1,13 +1,13 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
-  "name": "Atthene Documentation",
+  "name": "Artaios Documentation",
   "colors": {
     "primary": "#6366F1",
     "light": "#818CF8",
     "dark": "#4F46E5"
   },
-  "favicon": "/logo/atthene_white.svg",
+  "favicon": "/logo/logo_white.svg",
   "css": [
     "styles.css"
   ],
@@ -67,7 +67,7 @@
             ]
           },
           {
-            "group": "Atthene Agents Studio",
+            "group": "Artaios Agents Studio",
             "icon": "window",
             "pages": [
               "documentation/studio/platform-overview",
@@ -198,21 +198,21 @@
     "global": {
       "anchors": [
         {
-          "anchor": "Atthene Website",
-          "href": "https://atthene.ai",
+          "anchor": "Artaios Website",
+          "href": "https://artaios.ai",
           "icon": "globe"
         },
         {
-          "anchor": "Atthene Agent Studio",
-          "href": "https://amas.atthene.com",
+          "anchor": "Artaios Agent Studio",
+          "href": "https://amas.artaios.com",
           "icon": "window"
         }
       ]
     }
   },
   "logo": {
-    "light": "/logo/atthene_black.svg",
-    "dark": "/logo/atthene_white.svg"
+    "light": "/logo/logo_black.svg",
+    "dark": "/logo/logo_white.svg"
   },
   "navbar": {
     "links": [
@@ -224,7 +224,7 @@
     "primary": {
       "type": "button",
       "label": "Login",
-      "href": "https://amas.atthene.com"
+      "href": "https://amas.artaios.com"
     }
   },
   "contextual": {

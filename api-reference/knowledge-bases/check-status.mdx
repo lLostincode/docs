@@ -11,7 +11,7 @@ Monitor processing status and health of a knowledge base during background inges
 
 <CodeGroup>
 ```bash cURL
-curl -X GET https://api-be.atthene.com/api/v1/knowledge-bases/kb_123/check_status/ \
+curl -X GET https://api.artaios.ai/api/v1/knowledge-bases/kb_123/check_status/ \
   -H "x-api-key: YOUR_API_KEY"
 ```
 
@@ -19,14 +19,14 @@ curl -X GET https://api-be.atthene.com/api/v1/knowledge-bases/kb_123/check_statu
 import requests
 
 response = requests.get(
-    "https://api-be.atthene.com/api/v1/knowledge-bases/kb_123/check_status/",
+    "https://api.artaios.ai/api/v1/knowledge-bases/kb_123/check_status/",
     headers={"x-api-key": "YOUR_API_KEY"}
 )
 result = response.json()
 ```
 
 ```javascript JavaScript
-const response = await fetch('https://api-be.atthene.com/api/v1/knowledge-bases/kb_123/check_status/', {
+const response = await fetch('https://api.artaios.ai/api/v1/knowledge-bases/kb_123/check_status/', {
   headers: {
     'x-api-key': 'YOUR_API_KEY'
   }

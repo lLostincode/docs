@@ -1,17 +1,17 @@
 ---
 title: 'Prompt Configuration'
-description: 'Master prompt engineering in Atthene with dynamic context control, few-shot learning, and history management'
+description: 'Master prompt engineering in Artaios with dynamic context control, few-shot learning, and history management'
 ---
 
 ## Overview
 
-Atthene's `PromptConfig` provides sophisticated prompt engineering capabilities through dynamic context control, few-shot examples, and intelligent history management. This enables precise control over what information reaches your LLM.
+Artaios's `PromptConfig` provides sophisticated prompt engineering capabilities through dynamic context control, few-shot examples, and intelligent history management. This enables precise control over what information reaches your LLM.
 
 ## Core Concepts
 
 ### Message Ordering
 
-Atthene constructs prompts in an optimal order for LLM attention:
+Artaios constructs prompts in an optimal order for LLM attention:
 
 <Steps>
   <Step title="System Prompt">
@@ -46,7 +46,7 @@ prompt_config:
 
 ## Template Variables
 
-Atthene supports **dynamic template variables** in your `system_prompt` using `{{ variable }}` syntax. Variables are substituted recursively before the prompt is sent to the LLM, enabling powerful dynamic context injection.
+Artaios supports **dynamic template variables** in your `system_prompt` using `{{ variable }}` syntax. Variables are substituted recursively before the prompt is sent to the LLM, enabling powerful dynamic context injection.
 
 ### Variable Categories
 
@@ -901,7 +901,7 @@ agents:
 
 ### Automatic Validation
 
-Atthene automatically validates your prompt configuration:
+Artaios automatically validates your prompt configuration:
 
 <AccordionGroup>
   <Accordion title="Empty Configuration Warning">

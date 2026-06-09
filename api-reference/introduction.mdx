@@ -1,9 +1,9 @@
 ---
 title: 'Welcome'
-description: 'Complete reference documentation for the Atthene Multi-Agent System API'
+description: 'Complete reference documentation for the Artaios Multi-Agent System API'
 ---
 
-Welcome to the API reference documentation for the Atthene Multi-Agent System (AMAS). This API allows you to programmatically create, configure, and execute intelligent agents for a wide range of tasks and workflows.
+Welcome to the API reference documentation for the Artaios Multi-Agent System (AMAS). This API allows you to programmatically create, configure, and execute intelligent agents for a wide range of tasks and workflows.
 
 ## API Overview
 
@@ -13,7 +13,7 @@ The AMAS API is organized around REST principles. It accepts JSON and YAML-encod
   <Card title="Base URL" icon="server" color="#6366F1">
     All API requests should be made to:
     ```
-    https://api-be.atthene.com/api/v1
+    https://api.artaios.ai/api/v1
     ```
   </Card>
   
@@ -23,7 +23,7 @@ The AMAS API is organized around REST principles. It accepts JSON and YAML-encod
 </CardGroup>
 
 <Note>
-For a comprehensive interactive API reference, visit the [Swagger Documentation](https://api-be.atthene.com/api/v1/docs/).
+For a comprehensive interactive API reference, visit the [Swagger Documentation](https://api.artaios.ai/api/v1/docs/).
 </Note>
 
 ## Key Concepts
@@ -66,7 +66,7 @@ For a comprehensive interactive API reference, visit the [Swagger Documentation]
     
     <CodeGroup>
     ```bash cURL
-    curl -X POST https://api-be.atthene.com/api/v1/agent/validate/ \
+    curl -X POST https://api.artaios.ai/api/v1/agent/validate/ \
       -H "x-api-key: YOUR_API_KEY" \
       -H "Content-Type: application/json" \
       -d '{
@@ -88,7 +88,7 @@ For a comprehensive interactive API reference, visit the [Swagger Documentation]
     <CodeGroup>
     ```bash cURL
     # Create session
-    curl -X POST https://api-be.atthene.com/api/v1/sessions/ \
+    curl -X POST https://api.artaios.ai/api/v1/sessions/ \
       -H "x-api-key: YOUR_API_KEY" \
       -H "Content-Type: application/json" \
       -d '{
@@ -99,7 +99,7 @@ For a comprehensive interactive API reference, visit the [Swagger Documentation]
       }'
     
     # Execute message
-    curl -X POST https://api-be.atthene.com/api/v1/runtime/SESSION_ID/execute/ \
+    curl -X POST https://api.artaios.ai/api/v1/runtime/SESSION_ID/execute/ \
       -H "x-api-key: YOUR_API_KEY" \
       -H "Content-Type: application/json" \
       -d '{"content": "Hello, how can you help me?"}'

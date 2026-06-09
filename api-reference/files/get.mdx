@@ -11,7 +11,7 @@ Retrieve file details and metadata.
 
 <CodeGroup>
 ```bash cURL
-curl -X GET https://api-be.atthene.com/api/v1/files/file_123/ \
+curl -X GET https://api.artaios.ai/api/v1/files/file_123/ \
   -H "x-api-key: YOUR_API_KEY"
 ```
 
@@ -19,14 +19,14 @@ curl -X GET https://api-be.atthene.com/api/v1/files/file_123/ \
 import requests
 
 response = requests.get(
-    "https://api-be.atthene.com/api/v1/files/file_123/",
+    "https://api.artaios.ai/api/v1/files/file_123/",
     headers={"x-api-key": "YOUR_API_KEY"}
 )
 file_info = response.json()
 ```
 
 ```javascript JavaScript
-const response = await fetch('https://api-be.atthene.com/api/v1/files/file_123/', {
+const response = await fetch('https://api.artaios.ai/api/v1/files/file_123/', {
   headers: {
     'x-api-key': 'YOUR_API_KEY'
   }

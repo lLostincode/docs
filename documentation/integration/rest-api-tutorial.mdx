@@ -9,11 +9,11 @@ This tutorial walks you through the different ways to use the REST API to create
 
 <Steps>
   <Step title="Get API Key">
-    Generate an API key from the <a href="/documentation/studio/settings#settings-sections">Atthene Agent Studio settings</a>
+    Generate an API key from the <a href="/documentation/studio/settings#settings-sections">Artaios Agent Studio settings</a>
   </Step>
   
   <Step title="Base URL">
-    All API requests use: `https://api-be.atthene.com/api/v1`
+    All API requests use: `https://api.artaios.ai/api/v1`
   </Step>
   
   <Step title="Authentication">
@@ -34,7 +34,7 @@ Learn the different ways to create and initialize a session with your agents.
 Create a session by providing a complete agent configuration in YAML format (as JSON):
 
 ```bash
-curl -X POST https://api-be.atthene.com/api/v1/sessions/ \
+curl -X POST https://api.artaios.ai/api/v1/sessions/ \
   -H "x-api-key: YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -83,10 +83,10 @@ Response:
 
 ## Option 2: Load Session from Existing Agent
 
-Create a session from an agent already configured in Atthene Agent Studio. Use the agent's unique key:
+Create a session from an agent already configured in Artaios Agent Studio. Use the agent's unique key:
 
 ```bash
-curl -X GET "https://api-be.atthene.com/api/v1/sessions/from-agent/?agent_key=your-agent-key-here" \
+curl -X GET "https://api.artaios.ai/api/v1/sessions/from-agent/?agent_key=your-agent-key-here" \
   -H "x-api-key: YOUR_API_KEY"
 ```
 
@@ -110,7 +110,7 @@ Once you have a session ID, you can execute messages and interact with your agen
 Send a message to the agent and get a response:
 
 ```bash
-curl -X POST https://api-be.atthene.com/api/v1/runtime/session_abc123/execute/ \
+curl -X POST https://api.artaios.ai/api/v1/runtime/session_abc123/execute/ \
   -H "x-api-key: YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -153,7 +153,7 @@ Response:
 Send follow-up messages. The agent maintains context from previous messages:
 
 ```bash
-curl -X POST https://api-be.atthene.com/api/v1/runtime/session_abc123/execute/ \
+curl -X POST https://api.artaios.ai/api/v1/runtime/session_abc123/execute/ \
   -H "x-api-key: YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -174,7 +174,7 @@ Learn more in the [Using Variables in REST API](/documentation/integration/varia
 **Session-level variables** (persist across requests):
 
 ```bash
-curl -X POST https://api-be.atthene.com/api/v1/runtime/session_abc123/execute/ \
+curl -X POST https://api.artaios.ai/api/v1/runtime/session_abc123/execute/ \
   -H "x-api-key: YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -191,7 +191,7 @@ On subsequent requests, these variables load automatically from the checkpoint.
 **Request-level variables** (fresh on every request):
 
 ```bash
-curl -X POST https://api-be.atthene.com/api/v1/runtime/session_abc123/execute/ \
+curl -X POST https://api.artaios.ai/api/v1/runtime/session_abc123/execute/ \
   -H "x-api-key: YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -218,12 +218,12 @@ AMAS officially supports three different methods for sending images to an agent.
 
 ### Method 1: The "Upload First" Method (Highly Recommended)
 
-If you are building an interface where users upload local files, you should upload the image to the Atthene API first. This returns a temporary, secure URL that you then pass to the agent. This method **reduces LLM token consumption by ~95%** compared to Base64 encoding.
+If you are building an interface where users upload local files, you should upload the image to the Artaios API first. This returns a temporary, secure URL that you then pass to the agent. This method **reduces LLM token consumption by ~95%** compared to Base64 encoding.
 
 **Step 1: Upload the Image**
 
 ```bash
-curl -X POST https://api-be.atthene.com/api/v1/images/upload/ \
+curl -X POST https://api.artaios.ai/api/v1/images/upload/ \
   -H "x-api-key: YOUR_API_KEY" \
   -F "image=@/path/to/your/image.jpg"
 ```
@@ -231,7 +231,7 @@ curl -X POST https://api-be.atthene.com/api/v1/images/upload/ \
 Response:
 ```json
 {
-  "url": "https://api-be.atthene.com/media/uploaded_images/temp_xyz.jpg",
+  "url": "https://api.artaios.ai/media/uploaded_images/temp_xyz.jpg",
   "media_type": "image/jpeg",
   "size": 102400
 }
@@ -240,7 +240,7 @@ Response:
 **Step 2: Send the URL to the Agent**
 
 ```bash
-curl -X POST https://api-be.atthene.com/api/v1/runtime/session_abc123/execute/ \
+curl -X POST https://api.artaios.ai/api/v1/runtime/session_abc123/execute/ \
   -H "x-api-key: YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -252,7 +252,7 @@ curl -X POST https://api-be.atthene.com/api/v1/runtime/session_abc123/execute/ \
       {
         "type": "image_url",
         "image_url": {
-          "url": "https://api-be.atthene.com/media/uploaded_images/temp_xyz.jpg"
+          "url": "https://api.artaios.ai/media/uploaded_images/temp_xyz.jpg"
         }
       }
     ]
@@ -264,7 +264,7 @@ curl -X POST https://api-be.atthene.com/api/v1/runtime/session_abc123/execute/ \
 If your image is already hosted publicly on the internet (e.g., a product image on your website), you can pass that URL directly. This is also highly efficient for token usage.
 
 ```bash
-curl -X POST https://api-be.atthene.com/api/v1/runtime/session_abc123/execute/ \
+curl -X POST https://api.artaios.ai/api/v1/runtime/session_abc123/execute/ \
   -H "x-api-key: YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -288,7 +288,7 @@ curl -X POST https://api-be.atthene.com/api/v1/runtime/session_abc123/execute/ \
 You can encode the image directly into the JSON payload. This is easy for prototyping but **incurs high token costs** and inflates your request size significantly. It is not recommended for large files in production.
 
 ```bash
-curl -X POST https://api-be.atthene.com/api/v1/runtime/session_abc123/execute/ \
+curl -X POST https://api.artaios.ai/api/v1/runtime/session_abc123/execute/ \
   -H "x-api-key: YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -345,7 +345,7 @@ If you encounter issues, please report them with details about file type, size, 
 </Callout>
 
 ```bash
-curl -X POST https://api-be.atthene.com/api/v1/runtime/session_abc123/execute/ \
+curl -X POST https://api.artaios.ai/api/v1/runtime/session_abc123/execute/ \
   -H "x-api-key: YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{

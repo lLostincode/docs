@@ -7,7 +7,7 @@ List collections available for the current user to create knowledge bases.
 
 <CodeGroup>
 ```bash cURL
-curl -X GET https://api-be.atthene.com/api/v1/knowledge-bases/available-collections/ \
+curl -X GET https://api.artaios.ai/api/v1/knowledge-bases/available-collections/ \
   -H "x-api-key: YOUR_API_KEY"
 ```
 
@@ -15,14 +15,14 @@ curl -X GET https://api-be.atthene.com/api/v1/knowledge-bases/available-collecti
 import requests
 
 response = requests.get(
-    "https://api-be.atthene.com/api/v1/knowledge-bases/available-collections/",
+    "https://api.artaios.ai/api/v1/knowledge-bases/available-collections/",
     headers={"x-api-key": "YOUR_API_KEY"}
 )
 result = response.json()
 ```
 
 ```javascript JavaScript
-const response = await fetch('https://api-be.atthene.com/api/v1/knowledge-bases/available-collections/', {
+const response = await fetch('https://api.artaios.ai/api/v1/knowledge-bases/available-collections/', {
   headers: {
     'x-api-key': 'YOUR_API_KEY'
   }

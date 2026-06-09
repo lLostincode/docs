@@ -1,15 +1,15 @@
 ---
 title: 'Available Models'
-description: 'Learn how to select and configure LLM models in Atthene, including BYOK (Bring Your Own Key) and multimodal capabilities'
+description: 'Learn how to select and configure LLM models in Artaios, including BYOK (Bring Your Own Key) and multimodal capabilities'
 ---
 
 ## Overview
 
-Atthene supports multiple LLM providers and models, each with unique capabilities. The framework automatically maps model names to their providers, handles authentication, and validates configurations.
+Artaios supports multiple LLM providers and models, each with unique capabilities. The framework automatically maps model names to their providers, handles authentication, and validates configurations.
 
 ## Supported Providers
 
-Atthene integrates with the following LLM providers:
+Artaios integrates with the following LLM providers:
 
 <CardGroup cols={2}>
   <Card title="Azure OpenAI" icon="microsoft">
@@ -47,7 +47,7 @@ agents:
 
 ### Automatic Provider Detection
 
-Atthene automatically detects the provider based on the model name. You don't need to specify the provider explicitly:
+Artaios automatically detects the provider based on the model name. You don't need to specify the provider explicitly:
 
 ```yaml
 # These automatically map to their respective providers
@@ -137,7 +137,7 @@ Gemini models have **massive context windows** (1M tokens), support **all modali
 
 ### Understanding Modalities
 
-Atthene models support different input types (modalities):
+Artaios models support different input types (modalities):
 
 - **Text**: Standard text input/output
 - **Image**: Image understanding and OCR capabilities
@@ -165,7 +165,7 @@ agents:
 
 #### Sending Images via Frontend
 
-Use the Atthene GPT frontend to upload and process images:
+Use the Artaios GPT frontend to upload and process images:
 1. Click the attachment icon in the chat interface
 2. Select your image file (JPEG, PNG, etc.)
 3. Add your text prompt

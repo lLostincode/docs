@@ -23,7 +23,7 @@ Execute a message in an existing session and get the agent's response.
 
 <CodeGroup>
 ```bash cURL
-curl -X POST https://api-be.atthene.com/api/v1/runtime/session_abc123/execute/ \
+curl -X POST https://api.artaios.ai/api/v1/runtime/session_abc123/execute/ \
   -H "x-api-key: YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -39,7 +39,7 @@ data = {
 }
 
 response = requests.post(
-    "https://api-be.atthene.com/api/v1/runtime/session_abc123/execute/",
+    "https://api.artaios.ai/api/v1/runtime/session_abc123/execute/",
     headers={"x-api-key": "YOUR_API_KEY"},
     json=data
 )
@@ -51,7 +51,7 @@ const data = {
   content: "What is the weather like today?"
 };
 
-const response = await fetch('https://api-be.atthene.com/api/v1/runtime/session_abc123/execute/', {
+const response = await fetch('https://api.artaios.ai/api/v1/runtime/session_abc123/execute/', {
   method: 'POST',
   headers: {
     'x-api-key': 'YOUR_API_KEY',

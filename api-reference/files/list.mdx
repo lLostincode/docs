@@ -29,7 +29,7 @@ Retrieve all files accessible to the authenticated user.
 
 <CodeGroup>
 ```bash cURL
-curl -X GET "https://api-be.atthene.com/api/v1/files/?file_type=document&status=active" \
+curl -X GET "https://api.artaios.ai/api/v1/files/?file_type=document&status=active" \
   -H "x-api-key: YOUR_API_KEY"
 ```
 
@@ -37,7 +37,7 @@ curl -X GET "https://api-be.atthene.com/api/v1/files/?file_type=document&status=
 import requests
 
 response = requests.get(
-    "https://api-be.atthene.com/api/v1/files/",
+    "https://api.artaios.ai/api/v1/files/",
     headers={"x-api-key": "YOUR_API_KEY"},
     params={
         "file_type": "document",
@@ -53,7 +53,7 @@ const params = new URLSearchParams({
   status: 'active'
 });
 
-const response = await fetch(`https://api-be.atthene.com/api/v1/files/?${params}`, {
+const response = await fetch(`https://api.artaios.ai/api/v1/files/?${params}`, {
   headers: {
     'x-api-key': 'YOUR_API_KEY'
   }
