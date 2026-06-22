@@ -72,6 +72,7 @@
             "pages": [
               "documentation/studio/platform-overview",
               "documentation/studio/settings",
+              "documentation/studio/external-auth",
               "documentation/studio/playground",
               "documentation/studio/my-agents",
               "documentation/studio/knowledge-base",
