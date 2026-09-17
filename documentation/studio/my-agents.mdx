@@ -29,7 +29,7 @@ Each agent card shows:
 
 **Config**: Opens the agent's current version in the Playground where you can edit the YAML configuration
 
-**Settings**: Access version management, access control, statistics, and general settings
+**Settings**: Access general settings, access control, versions, statistics, tools & connections, and cron jobs
 
 **Delete**: Remove the agent and all its versions permanently
 
@@ -83,82 +83,230 @@ Test thoroughly in the Playground before deploying!
 
 ## Agent Settings
 
-Click the **Settings** button on any agent to access detailed configuration. The Settings modal has four tabs:
-
-### General
+Click the **Settings** button on any agent to open the Agent Settings modal. The left sidebar groups configuration into six sections. Expand each section below to see everything you can do.
 
 <Frame>
-  ![Agent Settings General](/images/agent_settings_general.png)
+  ![Agent Settings modal overview](/images/agent_settings_opened.PNG)
 </Frame>
-
-- **Public Access**: Enable WebSocket access for external clients
-- **Agent Key**: Unique identifier for API/WebSocket connections
-- **Origin URL**: Allowed domain for public access (CORS)
-- **Agent Details**: View architecture, entry point, and last update time
 
 <Note>
-When Public Access is enabled, you must specify an allowed origin URL for security.
+Most settings can only be changed by the **agent owner**. If you have access to a shared agent you didn't create, the controls appear in read-only mode.
 </Note>
 
-### Access Control
+<AccordionGroup>
+  <Accordion title="General" icon="gear">
+    The General tab covers the agent's identity, public access, and who is allowed to use the chatbot.
 
-<Frame>
-  ![Access Control Settings](/images/access_control.png)
-</Frame>
+    <Frame>
+      ![Agent Settings General](/images/agent_settings_general.png)
+    </Frame>
 
-Control who can see and use your agent:
+    **Agent Name**
+    - Rename the agent inline by clicking the pencil icon, editing the name, and saving.
+    - Press `Enter` to save or `Escape` to cancel.
 
-**Share with Company**
-- When enabled, other users in your organization can view and use this agent in AMAS
-- Only you (the owner) can modify settings
+    **Public Access**
+    - Toggle whether the agent is reachable from the public chatbot over WebSocket.
+    - When enabled, you must provide an **Allowed Origin URL** (the exact origin external clients connect from) for security.
+    - When enabled and fully configured, a banner shows the agent is freely accessible and lets you copy the **Agent Key**.
 
-**Show in Artaios**
-- When enabled, agent appears in the Artaios frontend interface
-- Works alongside company sharing
+    **Who can use the chatbot?**
 
-<Info>
-**Access Summary:**
-- **AMAS**: Shows your agents + shared company agents
-- **Artaios**: Shows agents with "Show in Artaios" enabled
-- **Public Chatbot**: Configured via Public Access in General tab
-</Info>
+    After enabling Public Access, choose how visitors are authenticated:
 
-### Versions
+    <CardGroup cols={2}>
+      <Card title="Everyone" icon="globe">
+        Visitors chat anonymously. Conversations are not saved.
+      </Card>
+      <Card title="Signed-in users only" icon="user-check">
+        Users sign in with your company account and keep a personal Library of their conversations.
+      </Card>
+    </CardGroup>
 
-<Frame>
-  ![Version Management](/images/agent_versions.png)
-</Frame>
+    **Sign-in system (External Auth)**
+    - When **Signed-in users only** is selected, pick the **Sign-in system** the chatbot uses to verify who is chatting.
+    - These are the External Auth configurations (for example Microsoft Entra ID or OpenID Connect) set up for your company.
+    - On every request, the user's token (JWT) is validated against the selected identity provider.
+    - If you don't have any configurations yet, use **Configure External Auth Setup** to create one.
 
-- **View all versions**: See complete version history
-- **Deploy button**: Activate a specific version (makes it "Current")
-- **View Config**: Open version's YAML in Playground
-- **Current badge**: Shows which version is actively deployed
+    <Frame>
+      ![Signed-in users only and sign-in system selection](/images/agent_external_auth_signin.png)
+    </Frame>
 
-### Statistics
+    <Info>
+    See [External Auth Setup](/documentation/studio/external-auth) for how to create and manage sign-in systems for your company.
+    </Info>
 
-<Frame>
-  ![Agent Statistics](/images/agent_statistics.png)
-</Frame>
+    **Agent Details**
+    - **Agent Key**: Unique identifier for API / WebSocket connections (copyable).
+    - **Architecture**: The agent's architecture type.
+    - **Entry Point**: The configured entry point.
+    - **Last Updated**: When the agent was last modified.
 
-View usage metrics for your agent:
+    <Warning>
+    When Public Access is enabled you must supply an Allowed Origin URL, otherwise external clients cannot use the agent key.
+    </Warning>
+  </Accordion>
 
-**Overview**
-- Total Sessions
-- Total Answer Generations
+  <Accordion title="Access Control" icon="lock">
+    Control who inside and outside your organization can see and use the agent.
 
-**Token Usage**
-- Input Tokens
-- Output Tokens  
-- Total Tokens
+    <Frame>
+      ![Access Control Settings](/images/agent_access_control.png)
+    </Frame>
 
-**Averages**
-- Answers per Session
-- Tokens per Session
-- Tokens per Answer
+    **Share with Company**
+    - When enabled, other users in your organization can view and use this agent in AMAS.
+    - Only you (the owner) can modify settings or deploy versions.
 
-<Note>
-Playground preview sessions are not included in these statistics.
-</Note>
+    **Show in Artaios**
+    - When enabled, the agent appears in the Artaios frontend interface.
+    - Works alongside company sharing.
+
+    <Info>
+    **Access Control Summary**
+    - **AMAS**: Shows your agents + shared company agents.
+    - **Artaios**: Shows your agents + shared company agents that also have "Show in Artaios" enabled.
+    - **Public Chatbot**: Configured via Public Access in the General tab.
+    </Info>
+
+    <Note>
+    Non-owners see a read-only notice and cannot toggle these options.
+    </Note>
+  </Accordion>
+
+  <Accordion title="Versions" icon="code-branch">
+    Every save creates a new version, giving you full history and safe rollback.
+
+    <Frame>
+      ![Version Management](/images/agent_versions.png)
+    </Frame>
+
+    - **View all versions**: See the complete version history with creation and update times.
+    - **Current badge**: Highlights the version that is actively deployed and serves all requests.
+    - **Deploy**: Activate a specific historical version, making it the new "Current" version.
+    - **View Config**: Open that version's YAML in the Playground to inspect or edit it.
+
+    <Warning>
+    Deploying a version immediately affects API endpoints, embedded chatbots, and WebSocket connections. Test in the Playground first.
+    </Warning>
+  </Accordion>
+
+  <Accordion title="Statistics" icon="chart-column">
+    View usage metrics for the agent.
+
+    <Frame>
+      ![Agent Statistics](/images/agent_statistics.png)
+    </Frame>
+
+    **Overview**
+    - Total Sessions
+    - Total Answer Generations
+
+    **Token Usage**
+    - Input Tokens
+    - Output Tokens
+    - Total Tokens
+
+    **Averages**
+    - Answers per Session
+    - Tokens per Session
+    - Tokens per Answer
+
+    <Note>
+    Playground preview sessions are not included in these statistics.
+    </Note>
+  </Accordion>
+
+  <Accordion title="Tools & Connections" icon="plug">
+    Review every tool the agent uses and the status of its required connections.
+
+    <Frame>
+      ![Tools & Connections](/images/agent_tools_connections.png)
+    </Frame>
+
+    - **Grouped by toolkit**: Tools are organized under their toolkit (for example Outlook, Teams) with an icon and tool count.
+    - **Connection status**: Each tool shows a green check when connected, or a warning when a connection is missing or has issues.
+    - **Connect / Disconnect**: Authorize a toolkit (or an individual tool) directly from here, or disconnect an existing connection.
+    - **Issues**: Hover the warning icon to see why a tool isn't ready (for example `No connection found`).
+    - **Summary footer**: Shows total tools and total issues, with a **Refresh** button to re-check status.
+
+    <Info>
+    Connections rely on the OAuth integrations configured on the [Settings](/documentation/studio/settings) page. Tools without integration requirements show no connection status.
+    </Info>
+  </Accordion>
+
+  <Accordion title="Cron Jobs" icon="clock">
+    Schedule the agent to run automatically on a recurring or one-time basis.
+
+    <Frame>
+      ![Cron Jobs list](/images/agent_cron_jobs.png)
+    </Frame>
+
+    Each cron job card shows its name, description, run type, run time, timezone, and an **Active / Inactive** toggle. You can edit or delete a job from its card.
+
+    **Creating a cron job**
+
+    Click **New CronJob** to open the configuration form.
+
+    <Frame>
+      ![Create / Edit Cron Job form](/images/agent_cron_job_form.png)
+    </Frame>
+
+    <ParamField path="Name" type="string" required>
+      A label to identify the cron job (e.g. "Morning sync").
+    </ParamField>
+    <ParamField path="Description" type="string">
+      Optional notes describing what the job does.
+    </ParamField>
+    <ParamField path="Run frequency" type="enum" required>
+      How often the job runs: **Daily**, **Weekly**, **Monthly**, or **One Time**.
+    </ParamField>
+    <ParamField path="Run Time" type="time" required>
+      The time of day the job executes.
+    </ParamField>
+    <ParamField path="Timezone" type="string" required>
+      A valid IANA timezone (e.g. `America/Mexico_City`) used to interpret the run time.
+    </ParamField>
+    <ParamField path="Execute Date" type="date">
+      Shown for **One Time** jobs. The single date the job runs.
+    </ParamField>
+    <ParamField path="Weekdays" type="array">
+      Shown for **Weekly** jobs. Choose at least one weekday (Mon–Sun).
+    </ParamField>
+    <ParamField path="Day of month" type="number">
+      Shown for **Monthly** jobs. Day 1–31, or `-1` to run on the last day of the month.
+    </ParamField>
+    <ParamField path="Agent Prompt" type="string" required>
+      The text sent to the agent as its input each time the job runs.
+    </ParamField>
+
+    <Steps>
+      <Step title="Open the form">
+        Click **New CronJob** in the Cron Jobs tab.
+      </Step>
+      <Step title="Set the schedule">
+        Choose a run frequency, time, and timezone. Fill in the frequency-specific fields (date, weekdays, or day of month).
+      </Step>
+      <Step title="Provide the prompt">
+        Enter the **Agent Prompt** that will be sent to the agent on each run.
+      </Step>
+      <Step title="Create">
+        Click **Create Cron Job**. The job appears in the list and runs automatically.
+        <Check>The new job shows in the list with an **Active** status.</Check>
+      </Step>
+    </Steps>
+
+    **Managing jobs**
+    - **Activate / Deactivate**: Use the toggle on each card to pause or resume a job without deleting it.
+    - **Edit**: Update any field via the edit (pencil) icon.
+    - **Delete**: Permanently remove a job. This action cannot be undone.
+
+    <Tip>
+    Use the timezone field carefully — run times are interpreted in the timezone you select, not the viewer's local time.
+    </Tip>
+  </Accordion>
+</AccordionGroup>
 
 ## Creating New Versions
 
@@ -206,6 +354,14 @@ The Playground shows a version dropdown when editing an agent. This lets you swi
 
 <Tip>
 **Check access control**: Review who can access your agent before enabling company sharing
+</Tip>
+
+<Tip>
+**Secure public agents**: When exposing an agent publicly, prefer **Signed-in users only** with an External Auth sign-in system so only verified users can chat.
+</Tip>
+
+<Tip>
+**Verify cron timezones**: Double-check the timezone on each cron job — run times are interpreted in the selected timezone, not your local one.
 </Tip>
 
 ## Sharing Agents
