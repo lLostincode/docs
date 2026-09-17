@@ -257,6 +257,76 @@ agents:
   </Expandable>
 </ParamField>
 
+### Structured Output Configuration
+
+Force an agent's response into a parsed JSON shape instead of free text. This is nested within each agent's configuration:
+
+```yaml
+agents:
+  - name: "my_agent"
+    structured_output:        # ← Structured output
+      enabled: true           # ← is nested within
+      schema:                 # ← each agent
+        sentiment:
+          type: "str"
+          description: "Overall sentiment"
+        confidence:
+          type: "float"
+```
+
+<ParamField path="structured_output" type="object">
+  Enforces a schema on the agent's response, available downstream as `agent_name.output`
+
+  <Expandable title="Structured Output Properties">
+    <ParamField path="enabled" type="boolean" default="true">
+      Enable structured output for this agent
+    </ParamField>
+
+    <ParamField path="schema" type="object" required>
+      Maps field names to a type definition object with `type` (required) and `description` (optional).
+
+      **Supported type notation:** `str`, `int`, `float`, `bool`, `dict`, `any`, `list[str]` (or any other element type), `dict[str, int]`, and nullable forms `Optional[str]` / `str | None`. Enum notation is not supported.
+
+      ```yaml
+      schema:
+        name:
+          type: "str"
+          description: "Person's name"
+        age:
+          type: "int | None"
+          description: "Person's age, if mentioned"
+        tags:
+          type: "list[str]"
+      ```
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+#### Root Schema (Bare Array/Value Output)
+
+By default `schema` describes an object, so even a single-field schema comes back wrapped, e.g. `{"keywords": [...]}`. To have the output itself be a bare value instead of an object, use the reserved key `__root__` in place of a named field:
+
+```yaml
+agents:
+  - name: "keyword_extractor"
+    structured_output:
+      enabled: true
+      schema:
+        __root__:
+          type: "list[str]"
+          description: "Extracted keywords"
+```
+
+This agent's output resolves to `["invoice", "urgent", "q3"]` directly, instead of `{"__root__": ["invoice", "urgent", "q3"]}`.
+
+<Warning>
+`__root__` must be the only key under `schema` - mixing it with named fields is rejected at validation time.
+</Warning>
+
+<Note>
+Because a root schema has no named fields, downstream references can only use the whole output (`agent_name.output`) - there is no per-field access like `agent_name.output.field_name`.
+</Note>
+
 ### Supervisor Configuration
 
 **For supervisor agents only.** These parameters are configured within the supervisor agent's configuration object:
