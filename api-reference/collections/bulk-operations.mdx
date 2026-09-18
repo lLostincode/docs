@@ -1,34 +1,28 @@
 ---
 title: 'Collection Bulk Operations'
-openapi: 'POST /api/v1/collections/{collection_id}/bulk/'
+openapi: 'POST /api/v1/collections/bulk_action/'
 ---
 
-Perform bulk operations on collection files.
-
-<ParamField path="collection_id" type="string" required>
-  The collection ID
-</ParamField>
+Perform a bulk action on multiple collections at once. This operates on the collections themselves (not on files within a collection) - only collections you created are affected.
 
 ## Request Body
 
-<ParamField body="operation" type="string" required>
-  The operation: `add_files`, `remove_files`
+<ParamField body="collection_ids" type="array" required>
+  Array of collection IDs to perform the action on
 </ParamField>
 
-<ParamField body="file_ids" type="array" required>
-  Array of file IDs to operate on
+<ParamField body="action" type="string" required>
+  The action: `delete`, `retry`, `complete`
 </ParamField>
-
-### Bulk Add Files
 
 <CodeGroup>
 ```bash cURL
-curl -X POST https://api-be.atthene.com/api/v1/collections/coll_123/bulk/ \
+curl -X POST https://api-be.atthene.com/api/v1/collections/bulk_action/ \
   -H "x-api-key: YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
-    "operation": "add_files",
-    "file_ids": ["file_123", "file_456", "file_789"]
+    "action": "delete",
+    "collection_ids": ["550e8400-e29b-41d4-a716-446655440000", "6ba7b810-9dad-11d1-80b4-00c04fd430c8"]
   }'
 ```
 
@@ -36,47 +30,29 @@ curl -X POST https://api-be.atthene.com/api/v1/collections/coll_123/bulk/ \
 import requests
 
 data = {
-    "operation": "add_files",
-    "file_ids": ["file_123", "file_456", "file_789"]
+    "action": "delete",
+    "collection_ids": ["550e8400-e29b-41d4-a716-446655440000", "6ba7b810-9dad-11d1-80b4-00c04fd430c8"]
 }
 
 response = requests.post(
-    "https://api-be.atthene.com/api/v1/collections/coll_123/bulk/",
+    "https://api-be.atthene.com/api/v1/collections/bulk_action/",
     headers={"x-api-key": "YOUR_API_KEY"},
     json=data
 )
 ```
 </CodeGroup>
 
-### Bulk Remove Files
-
-```json
-{
-  "operation": "remove_files",
-  "file_ids": ["file_456", "file_789"]
-}
-```
-
 ## Response
 
 ```json
 {
   "success": true,
-  "processed": 3,
-  "failed": 0,
-  "results": [
-    {
-      "file_id": "file_123",
-      "status": "success"
-    },
-    {
-      "file_id": "file_456",
-      "status": "success" 
-    },
-    {
-      "file_id": "file_789",
-      "status": "success"
-    }
-  ]
+  "updated_count": 2,
+  "errors": [],
+  "message": "Bulk action 'delete' completed on 2 collections"
 }
 ```
+
+<Note>
+`retry` resets a collection's status back to `pending`; `complete` marks it `completed`; `delete` removes it. Collections you don't own are silently skipped, not counted in `updated_count`.
+</Note>

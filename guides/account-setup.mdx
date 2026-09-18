@@ -1,1 +1,46 @@
-test
+---
+title: "Account Setup"
+description: "Generate and manage API keys for programmatic access"
+---
+
+API access to Atthene Agents Studio is authenticated with an API key, generated from your account settings in the platform.
+
+## Generating an API Key
+
+Navigate to **Settings** in the platform and create a new key. The full key value is only ever shown once, at creation time - store it securely, since it can't be retrieved again afterward (only a masked reference remains visible).
+
+<Note>
+By default, keys expire automatically after a fixed number of days from creation. Create a new key once yours expires.
+</Note>
+
+## Using Your Key
+
+Pass it on every request via the `x-api-key` header:
+
+```bash
+curl https://api-be.atthene.com/api/v1/agent/ \
+  -H "x-api-key: YOUR_API_KEY"
+```
+
+See [Authentication](/api-reference/authentication) for the full list of supported authentication methods.
+
+## Managing Keys
+
+- Multiple active keys can coexist on one account - creating a new key does not invalidate existing ones.
+- A key can be **invalidated** (revoked without deleting its record) or **deleted** permanently from Settings.
+- **Company admins** can see and manage the valid keys belonging to every user in their company; regular users only see their own.
+
+<Warning>
+Only the key's owner can ever view its full value again after creation - even company admins see other users' keys only in masked form.
+</Warning>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Quickstart Guide" icon="rocket" href="/guides/getting-started/quickstart">
+    Build and test your first agent
+  </Card>
+  <Card title="Connecting Your Agent" icon="plug" href="/guides/getting-started/connecting-your-agent">
+    Integrate your agent via REST API or WebSocket
+  </Card>
+</CardGroup>

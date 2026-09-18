@@ -1,38 +1,66 @@
 ---
 title: 'Remove File from Collection'
-openapi: 'DELETE /api/v1/collections/{collection_id}/files/{file_id}/'
+openapi: 'POST /api/v1/collections/{collection_id}/remove_data_source/'
 ---
 
-Remove a specific file from a collection.
+Remove a single file (data source) from a collection. Only the collection creator can modify it.
 
 <ParamField path="collection_id" type="string" required>
   The collection ID
 </ParamField>
 
-<ParamField path="file_id" type="string" required>
-  The file ID to remove
+## Request Body
+
+<ParamField body="data_source_id" type="string" required>
+  ID of the file to remove from the collection
 </ParamField>
 
 <CodeGroup>
 ```bash cURL
-curl -X DELETE https://api-be.atthene.com/api/v1/collections/coll_123/files/file_456/ \
-  -H "x-api-key: YOUR_API_KEY"
+curl -X POST https://api-be.atthene.com/api/v1/collections/550e8400-e29b-41d4-a716-446655440000/remove_data_source/ \
+  -H "x-api-key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "data_source_id": "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
+  }'
 ```
 
 ```python Python
 import requests
 
-response = requests.delete(
-    "https://api-be.atthene.com/api/v1/collections/coll_123/files/file_456/",
-    headers={"x-api-key": "YOUR_API_KEY"}
+data = {
+    "data_source_id": "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
+}
+
+response = requests.post(
+    "https://api-be.atthene.com/api/v1/collections/550e8400-e29b-41d4-a716-446655440000/remove_data_source/",
+    headers={"x-api-key": "YOUR_API_KEY"},
+    json=data
 )
 ```
 </CodeGroup>
 
 ## Response
 
-Returns `204 No Content` on success.
+```json
+{
+  "success": true,
+  "message": "Data source 'manual.pdf' removed from collection",
+  "collection": {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "name": "Product Documentation",
+    "description": "All product manuals and guides",
+    "status": "pending",
+    "progress": 0,
+    "data_source_count": 0,
+    "total_size": 0,
+    "datasources": [],
+    "created_at": "2025-01-15T10:30:00Z",
+    "updated_at": "2025-01-15T10:35:00Z"
+  }
+}
+```
 
 <Note>
-Removing a file from a collection does not delete the file itself, only the association.
+Removing a file from a collection does not delete the file itself, only the association. Returns `403` if you did not create the collection and `404` if the data source is not in the collection.
 </Note>

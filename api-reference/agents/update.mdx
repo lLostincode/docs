@@ -3,7 +3,13 @@ title: 'Update Agent'
 openapi: 'PATCH /api/v1/agent/{id}/'
 ---
 
-Update an existing agent configuration. You can modify any part of the agent's settings within the `system_config` object.
+Update an existing agent configuration.
+
+<Warning>
+`system_config` is replaced wholesale, not deep-merged. Sending only a partial object (e.g. just `llm_config`) discards the rest of the previous configuration. Always send the **complete** `system_config` - same shape as [Create Agent](/api-reference/agents/create) - with your changes applied on top of the current version, which you can read via `GET /api/v1/agent/{id}/versions/current/`.
+</Warning>
+
+Each update creates a new immutable version (`version_number` auto-increments, e.g. `v1` -> `v2`) and recomputes `config_hash`; it doesn't edit the previous version in place.
 
 <ParamField path="id" type="string" required>
   The agent ID
@@ -12,7 +18,7 @@ Update an existing agent configuration. You can modify any part of the agent's s
 ## Request Body
 
 <ParamField body="system_config" type="object" required>
-  Updated agent configuration fields
+  Complete, updated system configuration object (same schema as [Create Agent](/api-reference/agents/create) and [YAML Configuration](/guides/yaml-configuration))
 </ParamField>
 
 <CodeGroup>
@@ -22,10 +28,24 @@ curl -X PATCH https://api-be.atthene.com/api/v1/agent/550e8400-e29b-41d4-a716-44
   -H "Content-Type: application/json" \
   -d '{
     "system_config": {
-      "system_prompt": "Updated system prompt...",
-      "llm_config": {
-        "temperature": 0.8
-      }
+      "name": "Support Agent",
+      "description": "Answers customer support questions",
+      "entry_point": "support_agent",
+      "agents": [
+        {
+          "name": "support_agent",
+          "agent_type": "llm_agent",
+          "system_prompt": "You are a helpful customer support agent.",
+          "llm_config": {
+            "model": "gpt-4o",
+            "temperature": 0.8
+          }
+        }
+      ],
+      "edges": [
+        {"from": "__start__", "to": "support_agent"},
+        {"from": "support_agent", "to": "__end__"}
+      ]
     }
   }'
 ```
@@ -35,10 +55,24 @@ import requests
 
 data = {
     "system_config": {
-        "system_prompt": "Updated system prompt...",
-        "llm_config": {
-            "temperature": 0.8
-        }
+        "name": "Support Agent",
+        "description": "Answers customer support questions",
+        "entry_point": "support_agent",
+        "agents": [
+            {
+                "name": "support_agent",
+                "agent_type": "llm_agent",
+                "system_prompt": "You are a helpful customer support agent.",
+                "llm_config": {
+                    "model": "gpt-4o",
+                    "temperature": 0.8
+                }
+            }
+        ],
+        "edges": [
+            {"from": "__start__", "to": "support_agent"},
+            {"from": "support_agent", "to": "__end__"}
+        ]
     }
 }
 
@@ -52,10 +86,24 @@ response = requests.patch(
 ```javascript JavaScript
 const data = {
   system_config: {
-    system_prompt: "Updated system prompt...",
-    llm_config: {
-      temperature: 0.8
-    }
+    name: "Support Agent",
+    description: "Answers customer support questions",
+    entry_point: "support_agent",
+    agents: [
+      {
+        name: "support_agent",
+        agent_type: "llm_agent",
+        system_prompt: "You are a helpful customer support agent.",
+        llm_config: {
+          model: "gpt-4o",
+          temperature: 0.8
+        }
+      }
+    ],
+    edges: [
+      {from: "__start__", to: "support_agent"},
+      {from: "support_agent", to: "__end__"}
+    ]
   }
 };
 
@@ -72,4 +120,4 @@ const response = await fetch('https://api-be.atthene.com/api/v1/agent/550e8400-e
 
 ## Response
 
-Returns the updated agent configuration with new `config_hash` and `updated_at` timestamp.
+Returns the agent's metadata with the bumped `version_number` and new `config_hash`/`updated_at`. `system_config` is write-only and is **not** included - see [Get Agent](/api-reference/agents/get).

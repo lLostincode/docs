@@ -62,7 +62,7 @@ For a comprehensive interactive API reference, visit the [Swagger Documentation]
   </Step>
   
   <Step title="Validate your agent configuration">
-    Test your agent configuration before creating a session:
+    Test your agent configuration before creating a session. The request body is a full system configuration (same shape as [YAML Configuration](/guides/yaml-configuration)), sent as-is - not wrapped in a `system_config` key:
     
     <CodeGroup>
     ```bash cURL
@@ -71,19 +71,30 @@ For a comprehensive interactive API reference, visit the [Swagger Documentation]
       -H "Content-Type: application/json" \
       -d '{
         "name": "My First Agent",
-        "agent_type": "llm_agent",
-        "system_prompt": "You are a helpful assistant.",
-        "llm_config": {
-          "model": "gpt-4o",
-          "temperature": 0.7
-        }
+        "description": "A helpful assistant",
+        "entry_point": "assistant",
+        "agents": [
+          {
+            "name": "assistant",
+            "agent_type": "llm_agent",
+            "system_prompt": "You are a helpful assistant.",
+            "llm_config": {
+              "model": "gpt-4o",
+              "temperature": 0.7
+            }
+          }
+        ],
+        "edges": [
+          {"from": "__start__", "to": "assistant"},
+          {"from": "assistant", "to": "__end__"}
+        ]
       }'
     ```
     </CodeGroup>
   </Step>
   
   <Step title="Create a session and execute">
-    Create a session with your configuration and start executing messages:
+    Create a session with your configuration (again, the full config as the raw body) and start executing messages:
     
     <CodeGroup>
     ```bash cURL
@@ -93,10 +104,22 @@ For a comprehensive interactive API reference, visit the [Swagger Documentation]
       -H "Content-Type: application/json" \
       -d '{
         "name": "My Session",
-        "agent_type": "llm_agent",
-        "system_prompt": "You are a helpful assistant.",
-        "llm_config": {"model": "gpt-4o"}
+        "description": "A helpful assistant",
+        "entry_point": "assistant",
+        "agents": [
+          {
+            "name": "assistant",
+            "agent_type": "llm_agent",
+            "system_prompt": "You are a helpful assistant.",
+            "llm_config": {"model": "gpt-4o"}
+          }
+        ],
+        "edges": [
+          {"from": "__start__", "to": "assistant"},
+          {"from": "assistant", "to": "__end__"}
+        ]
       }'
+    # -> {"success": true, "session_id": "...", "config_hash": "..."}
     
     # Execute message
     curl -X POST https://api-be.atthene.com/api/v1/runtime/SESSION_ID/execute/ \

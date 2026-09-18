@@ -3,64 +3,13 @@ title: "Agent Types"
 description: "Understand different agent types and when to use each"
 ---
 
-The Atthene Multi-Agent System provides different agent types, each optimized for specific use cases and interaction patterns. This guide helps you choose the right agent type for your needs.
+The Atthene Multi-Agent System currently registers two selectable agent types - `react_agent` and `supervisor`. This guide helps you choose the right one for your needs.
+
+<Warning>
+**`llm_agent` has been retired as a selectable type.** It still exists in the codebase as the internal base class that `react_agent` extends, but it is no longer registered in the component registry - submitting `agent_type: "llm_agent"` in a new or updated config now fails validation with `agent_type 'llm_agent' not found in registry`. A plain conversational agent with no tools is simply a `react_agent` with an empty (or omitted) `tools` list, which runs in a lightweight "simple mode" (single turn, no tool schemas sent to the model) equivalent to the old `llm_agent` behavior. Existing stored configs are migrated automatically; if you have configs or examples using `agent_type: "llm_agent"`, update them to `react_agent`.
+</Warning>
 
 ## Available Agent Types
-
-### LLM Agent
-
-**Type identifier**: `llm_agent`
-
-The most basic agent type, powered by a large language model. Best for conversational interactions and tasks that don't require external tools or complex reasoning patterns.
-
-<CardGroup cols={2}>
-  <Card title="Best For" icon="comments">
-    - Conversational assistants
-    - Content generation
-    - Question answering
-    - Text summarization
-    - General chat interactions
-  </Card>
-  
-  <Card title="Capabilities" icon="check">
-    - ✅ Streaming support
-    - ✅ Knowledge base integration
-    - ✅ Memory support
-    - ❌ No tool calling
-    - Configurable LLM parameters
-    - Multi-turn conversations
-  </Card>
-</CardGroup>
-
-#### Configuration Example
-
-```yaml
-agents:
-  - name: "assistant"
-    agent_type: "llm_agent"
-    description: "A helpful conversational assistant"
-    
-    system_prompt: |
-      You are a helpful AI assistant. Provide clear, accurate, 
-      and friendly responses to user questions.
-    
-    llm_config:
-      model: "gpt-4o"
-      temperature: 0.7
-      max_tokens: 1000
-    
-    streaming_config:
-      enable_streaming: true
-      show_output_to_user: true
-```
-
-#### When to Use
-
-<Check>Use LLM agents when you need straightforward conversational interactions without external tool access</Check>
-
-<Check>Ideal for customer support, content creation, or general Q&A scenarios</Check>
-
----
 
 ### ReAct Agent
 
@@ -79,11 +28,12 @@ Implements the ReAct (Reasoning + Acting) pattern, enabling agents to use tools 
   
   <Card title="Capabilities" icon="check">
     - ✅ **Tool calling and execution**
+    - ✅ Streaming support (including tool-call events)
     - ✅ Knowledge base integration
     - ✅ Memory support
-    - ❌ Streaming disabled
     - Iterative reasoning loops
     - Thought process visibility
+    - Runs with no `tools` configured for plain conversational use (no tool schemas sent to the model)
   </Card>
 </CardGroup>
 
@@ -234,10 +184,10 @@ Combine different agent types under a supervisor: use ReAct agents for research,
 
 ## Agent Type Comparison
 
-| Feature | LLM Agent | ReAct Agent | Supervisor |
-|---------|-----------|-------------|------------|
-| **Tool Calling** | ❌ No | ✅ Yes | ✅ Yes (handoffs) |
-| **Streaming** | ✅ Yes | ❌ No | ✅ Yes |
+| Feature | ReAct Agent (no tools) | ReAct Agent (with tools) | Supervisor |
+|---------|------------------------|---------------------------|------------|
+| **Tool Calling** | ❌ No (simple mode) | ✅ Yes | ✅ Yes (handoffs) |
+| **Streaming** | ✅ Yes | ✅ Yes | ✅ Yes |
 | **Knowledge Base** | ✅ Yes | ✅ Yes | ✅ Yes |
 | **Memory** | ✅ Yes | ✅ Yes | ✅ Yes |
 | **Reasoning Loop** | ❌ Single pass | ✅ Iterative | ✅ Coordination |
@@ -263,7 +213,7 @@ Combine different agent types under a supervisor: use ReAct agents for research,
   </Step>
   
   <Step title="Do you need basic conversation?">
-    **Yes** → Use **LLM Agent**
+    **Yes** → Use **ReAct Agent** with no `tools` configured
   </Step>
 </Steps>
 
@@ -271,8 +221,8 @@ Combine different agent types under a supervisor: use ReAct agents for research,
 
 <AccordionGroup>
   <Accordion title="Customer Support Chatbot">
-    **Recommended**: `llm_agent`
-    
+    **Recommended**: `react_agent` with no `tools`
+
     Simple conversational interface for answering common questions. No external tools needed.
   </Accordion>
   
@@ -283,7 +233,7 @@ Combine different agent types under a supervisor: use ReAct agents for research,
   </Accordion>
   
   <Accordion title="Content Creation Team">
-    **Recommended**: `supervisor` + multiple `llm_agent` workers
+    **Recommended**: `supervisor` + multiple `react_agent` workers
     
     Supervisor coordinates research, writing, and editing agents for comprehensive content creation.
   </Accordion>
@@ -303,7 +253,7 @@ Combine different agent types under a supervisor: use ReAct agents for research,
 
 ## Configuration Best Practices
 
-### LLM Agent Best Practices
+### ReAct Agent (Conversational) Best Practices
 
 <Tip>
 **Temperature**: Use 0.7-1.0 for creative tasks, 0.1-0.3 for factual responses
@@ -313,7 +263,7 @@ Combine different agent types under a supervisor: use ReAct agents for research,
 **System Prompt**: Be specific about tone, style, and response format
 </Tip>
 
-### ReAct Agent Best Practices
+### ReAct Agent (Tool-Enabled) Best Practices
 
 <Tip>
 **Max Iterations**: Set to 5-10 for most tasks. Higher values (15+) only for complex research.
@@ -364,9 +314,9 @@ agents:
     agent_type: "react_agent"
     tools: ["calculator"]
   
-  # LLM agent for final synthesis
+  # Tool-free ReAct agent for final synthesis
   - name: "writer"
-    agent_type: "llm_agent"
+    agent_type: "react_agent"
     llm_config:
       temperature: 0.8  # More creative for writing
 ```
@@ -381,10 +331,10 @@ Create domain-specific agents by customizing system prompts:
   system_prompt: |
     You are a senior software engineer specializing in Python and system architecture.
     Provide technical, detailed responses with code examples.
-  tools: ["web_search"]
+  tools: ["tavily_search"]
 
 - name: "business_expert"
-  agent_type: "llm_agent"
+  agent_type: "react_agent"
   system_prompt: |
     You are a business strategy consultant with MBA-level expertise.
     Focus on ROI, market analysis, and strategic recommendations.

@@ -8,7 +8,7 @@ The Knowledge Bases API allows you to create and manage knowledge bases that age
 ## Key Features
 
 - **AI-Powered Retrieval**: Vector-based semantic search
-- **Multiple Processing Engines**: Milvus and Cognee support
+- **Vector Processing Engine**: Milvus-backed ingestion and retrieval
 - **Collection Integration**: Build from organized file collections
 - **Status Monitoring**: Track processing and health
 - **Agent Integration**: Direct use in agent configurations
@@ -44,28 +44,13 @@ All endpoints require authentication using your API key:
   </Card>
 </CardGroup>
 
-## Processing Engines
+## Processing Engine
 
-<Tabs>
-  <Tab title="Milvus">
-    **Vector Database Engine**
-    - High-performance vector similarity search
-    - Scalable for large document collections
-    - Advanced indexing algorithms
-    - Real-time updates and queries
-    
-    Best for: Large-scale deployments, high-performance requirements
-  </Tab>
-  <Tab title="Cognee">
-    **Graph-Based Engine**
-    - Knowledge graph construction
-    - Relationship extraction
-    - Contextual understanding
-    - Multi-hop reasoning
-    
-    Best for: Complex reasoning, relationship-heavy content
-  </Tab>
-</Tabs>
+**Milvus** is the `processing_engine` used for knowledge bases:
+- High-performance vector similarity search
+- Scalable for large document collections
+- Advanced indexing algorithms
+- Real-time updates and queries
 
 ## Knowledge Base Lifecycle
 
@@ -76,7 +61,7 @@ Define knowledge base with collections and processing engine:
   "name": "Product Knowledge Base",
   "description": "Product documentation and guides",
   "processing_engine": "milvus",
-  "collections": ["coll_123", "coll_456"]
+  "selected_collections": ["123e4567-e89b-12d3-a456-426614174000"]
 }
 ```
 
@@ -123,8 +108,8 @@ Knowledge bases track their data sources:
   Percentage of successfully processed data sources
 </ResponseField>
 
-<ResponseField name="collection_count" type="integer">
-  Number of collections included in the knowledge base
+<ResponseField name="datasource_count" type="integer">
+  Number of underlying datasources/files included in the knowledge base (there is no separate `collection_count` field)
 </ResponseField>
 
 ## Agent Integration
@@ -138,7 +123,11 @@ system_prompt: "You are a helpful support agent..."
 knowledge_bases:
   - name: "product_kb"
     knowledge_base_type: "milvus"
-    knowledge_base_id: "kb_123"
+    id: "kb_123"
+    enabled: true
+    config:
+      top_k: 10
+      score_threshold: 0.7
 ```
 
 ### Retrieval Configuration

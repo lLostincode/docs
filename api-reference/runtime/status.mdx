@@ -39,26 +39,35 @@ const status = await response.json();
 
 ```json
 {
-  "session_id": "session_abc123",
-  "status": "active",
-  "message_count": 12,
-  "last_activity": "2025-01-15T10:35:00Z",
-  "created_at": "2025-01-15T10:30:00Z",
-  "health": "healthy"
+  "id": "session_abc123",
+  "status": "completed",
+  "created_at": 1736936000,
+  "updated_at": 1736937005,
+  "title": "Support Session"
 }
 ```
+
+<Note>
+`created_at` and `updated_at` are Unix timestamps (seconds). This endpoint does not return `message_count` - use [List Sessions](/api-reference/sessions/list) or [Get Session](/api-reference/sessions/get) for that.
+</Note>
 
 ## Status Values
 
 <AccordionGroup>
-  <Accordion title="active">
-    Session is ready to receive and process messages
+  <Accordion title="initialized">
+    Session created but no execution has run yet
   </Accordion>
-  <Accordion title="processing">
+  <Accordion title="queued">
+    An execution has been queued and is waiting to start
+  </Accordion>
+  <Accordion title="running">
     Session is currently processing a message
   </Accordion>
-  <Accordion title="idle">
-    Session exists but has been inactive
+  <Accordion title="completed">
+    Last execution finished successfully
+  </Accordion>
+  <Accordion title="cancelled">
+    The running execution was cancelled
   </Accordion>
   <Accordion title="error">
     Session encountered an error and may need attention

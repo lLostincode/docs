@@ -21,6 +21,10 @@ x-api-key: YOUR_API_KEY
 
 API keys are generated in the settings of the Atthene Agent Studio with an expiration date and can be invalidated when needed.
 
+<Note>
+Browser/dashboard sessions may also authenticate with a JWT Bearer token (`Authorization: Bearer <token>` header). This section covers `x-api-key`, the mechanism intended for external API consumers.
+</Note>
+
 ## Usage Examples
 
 <CodeGroup>
@@ -30,9 +34,20 @@ curl -X POST https://api-be.atthene.com/api/v1/agent/validate/ \
   -H "Content-Type: application/json" \
   -d '{
     "name": "My Agent",
-    "agent_type": "llm_agent",
-    "system_prompt": "You are a helpful assistant.",
-    "llm_config": {"model": "gpt-4o"}
+    "description": "A test agent",
+    "entry_point": "assistant",
+    "agents": [
+      {
+        "name": "assistant",
+        "agent_type": "llm_agent",
+        "system_prompt": "You are a helpful assistant.",
+        "llm_config": {"model": "gpt-4o"}
+      }
+    ],
+    "edges": [
+      {"from": "__start__", "to": "assistant"},
+      {"from": "assistant", "to": "__end__"}
+    ]
   }'
 ```
 
@@ -46,9 +61,20 @@ headers = {
 
 config = {
     "name": "My Agent",
-    "agent_type": "llm_agent",
-    "system_prompt": "You are a helpful assistant.",
-    "llm_config": {"model": "gpt-4o"}
+    "description": "A test agent",
+    "entry_point": "assistant",
+    "agents": [
+        {
+            "name": "assistant",
+            "agent_type": "llm_agent",
+            "system_prompt": "You are a helpful assistant.",
+            "llm_config": {"model": "gpt-4o"}
+        }
+    ],
+    "edges": [
+        {"from": "__start__", "to": "assistant"},
+        {"from": "assistant", "to": "__end__"}
+    ]
 }
 
 response = requests.post(
@@ -62,9 +88,20 @@ print(response.json())
 ```javascript JavaScript
 const config = {
   name: "My Agent",
-  agent_type: "llm_agent",
-  system_prompt: "You are a helpful assistant.",
-  llm_config: {model: "gpt-4o"}
+  description: "A test agent",
+  entry_point: "assistant",
+  agents: [
+    {
+      name: "assistant",
+      agent_type: "llm_agent",
+      system_prompt: "You are a helpful assistant.",
+      llm_config: {model: "gpt-4o"}
+    }
+  ],
+  edges: [
+    {from: "__start__", to: "assistant"},
+    {from: "assistant", to: "__end__"}
+  ]
 };
 
 const response = await fetch('https://api-be.atthene.com/api/v1/agent/validate/', {

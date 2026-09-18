@@ -7,7 +7,7 @@ Validate an agent configuration without creating it. This is useful for testing 
 
 ## Request Body
 
-Send the complete agent configuration YAML or JSON to validate.
+Send the complete system configuration - the same shape as `system_config` in [Create Agent](/api-reference/agents/create) and in [YAML Configuration](/guides/yaml-configuration) - as the raw request body (do **not** wrap it in a `system_config` key here).
 
 <CodeGroup>
 ```bash cURL
@@ -16,12 +16,23 @@ curl -X POST https://api-be.atthene.com/api/v1/agent/validate/ \
   -H "Content-Type: application/json" \
   -d '{
     "name": "Test Agent",
-    "agent_type": "llm_agent",
-    "system_prompt": "You are a helpful assistant.",
-    "llm_config": {
-      "model": "gpt-4o",
-      "temperature": 0.7
-    }
+    "description": "A test agent",
+    "entry_point": "assistant",
+    "agents": [
+      {
+        "name": "assistant",
+        "agent_type": "llm_agent",
+        "system_prompt": "You are a helpful assistant.",
+        "llm_config": {
+          "model": "gpt-4o",
+          "temperature": 0.7
+        }
+      }
+    ],
+    "edges": [
+      {"from": "__start__", "to": "assistant"},
+      {"from": "assistant", "to": "__end__"}
+    ]
   }'
 ```
 
@@ -30,12 +41,23 @@ import requests
 
 config = {
     "name": "Test Agent",
-    "agent_type": "llm_agent",
-    "system_prompt": "You are a helpful assistant.",
-    "llm_config": {
-        "model": "gpt-4o",
-        "temperature": 0.7
-    }
+    "description": "A test agent",
+    "entry_point": "assistant",
+    "agents": [
+        {
+            "name": "assistant",
+            "agent_type": "llm_agent",
+            "system_prompt": "You are a helpful assistant.",
+            "llm_config": {
+                "model": "gpt-4o",
+                "temperature": 0.7
+            }
+        }
+    ],
+    "edges": [
+        {"from": "__start__", "to": "assistant"},
+        {"from": "assistant", "to": "__end__"}
+    ]
 }
 
 response = requests.post(
@@ -49,12 +71,23 @@ validation_result = response.json()
 ```javascript JavaScript
 const config = {
   name: "Test Agent",
-  agent_type: "llm_agent",
-  system_prompt: "You are a helpful assistant.",
-  llm_config: {
-    model: "gpt-4o",
-    temperature: 0.7
-  }
+  description: "A test agent",
+  entry_point: "assistant",
+  agents: [
+    {
+      name: "assistant",
+      agent_type: "llm_agent",
+      system_prompt: "You are a helpful assistant.",
+      llm_config: {
+        model: "gpt-4o",
+        temperature: 0.7
+      }
+    }
+  ],
+  edges: [
+    {from: "__start__", to: "assistant"},
+    {from: "assistant", to: "__end__"}
+  ]
 };
 
 const response = await fetch('https://api-be.atthene.com/api/v1/agent/validate/', {
@@ -72,11 +105,34 @@ const validation = await response.json();
 
 ## Response
 
+<ResponseField name="valid" type="boolean">
+  Whether the configuration is valid
+</ResponseField>
+
+<ResponseField name="message" type="string">
+  Human-readable summary, e.g. `"Configuration is valid"` or `"Invalid configuration"`
+</ResponseField>
+
+<ResponseField name="warnings" type="array">
+  List of `{"message": string}` objects for non-fatal issues
+</ResponseField>
+
+<ResponseField name="errors" type="array">
+  List of `{"message": string}` objects describing what's invalid
+</ResponseField>
+
+<ResponseField name="suggestions" type="array">
+  List of `{"message": string}` objects with suggested fixes, when available
+</ResponseField>
+
 ### Valid Configuration
 ```json
 {
   "valid": true,
-  "message": "Configuration is valid"
+  "message": "Configuration is valid",
+  "warnings": [],
+  "errors": [],
+  "suggestions": []
 }
 ```
 
@@ -84,12 +140,14 @@ const validation = await response.json();
 ```json
 {
   "valid": false,
+  "message": "Invalid configuration",
+  "warnings": [],
   "errors": [
     {
-      "field": "llm_config.model",
-      "message": "Invalid model specified"
+      "message": "Unsupported model specified for 'llm_config.model'"
     }
-  ]
+  ],
+  "suggestions": []
 }
 ```
 

@@ -1,34 +1,30 @@
 ---
 title: 'Bulk File Operations'
-openapi: 'POST /api/v1/files/bulk/'
+openapi: 'POST /api/v1/files/bulk_action/'
 ---
 
-Perform operations on multiple files efficiently.
+Perform an action on multiple files you own in one call.
 
 ## Request Body
 
-<ParamField body="operation" type="string" required>
-  The operation to perform: `delete`, `update_tags`, `change_status`
+<ParamField body="action" type="string" required>
+  The action to perform: `delete`, `archive`, `make_public`, `make_private`
 </ParamField>
 
 <ParamField body="file_ids" type="array" required>
-  Array of file IDs to operate on
-</ParamField>
-
-<ParamField body="parameters" type="object">
-  Operation-specific parameters
+  Array of file UUIDs to operate on. Must be at least 1 ID, and every ID must belong to your company and be accessible to you, or the whole request is rejected.
 </ParamField>
 
 ### Bulk Delete
 
 <CodeGroup>
 ```bash cURL
-curl -X POST https://api-be.atthene.com/api/v1/files/bulk/ \
+curl -X POST https://api-be.atthene.com/api/v1/files/bulk_action/ \
   -H "x-api-key: YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
-    "operation": "delete",
-    "file_ids": ["file_123", "file_456", "file_789"]
+    "action": "delete",
+    "file_ids": ["550e8400-e29b-41d4-a716-446655440000", "6ba7b810-9dad-11d1-80b4-00c04fd430c8"]
   }'
 ```
 
@@ -36,12 +32,12 @@ curl -X POST https://api-be.atthene.com/api/v1/files/bulk/ \
 import requests
 
 data = {
-    "operation": "delete",
-    "file_ids": ["file_123", "file_456", "file_789"]
+    "action": "delete",
+    "file_ids": ["550e8400-e29b-41d4-a716-446655440000", "6ba7b810-9dad-11d1-80b4-00c04fd430c8"]
 }
 
 response = requests.post(
-    "https://api-be.atthene.com/api/v1/files/bulk/",
+    "https://api-be.atthene.com/api/v1/files/bulk_action/",
     headers={"x-api-key": "YOUR_API_KEY"},
     json=data
 )
@@ -49,38 +45,27 @@ result = response.json()
 ```
 </CodeGroup>
 
-### Bulk Update Tags
+### Bulk Make Public
 
 ```json
 {
-  "operation": "update_tags",
-  "file_ids": ["file_123", "file_456"],
-  "parameters": {
-    "tags": ["updated", "batch_processed"]
-  }
+  "action": "make_public",
+  "file_ids": ["550e8400-e29b-41d4-a716-446655440000"]
 }
 ```
+
+<Note>
+`delete` permanently removes the file from storage. `archive` is applied to any file matched, but `delete`, `make_public`, and `make_private` are only applied to files you own - files you don't own are skipped and reported in `errors`.
+</Note>
 
 ## Response
 
 ```json
 {
   "success": true,
-  "processed": 3,
-  "failed": 0,
-  "results": [
-    {
-      "file_id": "file_123",
-      "status": "success"
-    },
-    {
-      "file_id": "file_456", 
-      "status": "success"
-    },
-    {
-      "file_id": "file_789",
-      "status": "success"
-    }
-  ]
+  "updated_count": 2,
+  "errors": []
 }
 ```
+
+`errors` is a list of human-readable strings describing any files that were skipped (e.g. not the owner) or failed during processing.

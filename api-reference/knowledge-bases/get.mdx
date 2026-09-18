@@ -43,21 +43,32 @@ const kb = await response.json();
   "name": "Product Knowledge Base",
   "description": "Product documentation and guides",
   "processing_engine": "milvus",
+  "dataset_name": "product_knowledge_base",
   "status": "completed",
   "progress": 100,
-  "collection_count": 2,
+  "datasource_count": 2,
+  "datasources": [],
   "ingested_datasources": [
     {
-      "id": "cds_1",
-      "data_source": "file_123",
-      "data_source_name": "manual.pdf",
-      "status": "completed"
+      "id": "ds_1",
+      "name": "manual.pdf",
+      "original_filename": "manual.pdf",
+      "file_type": "pdf",
+      "status": "active"
     }
   ],
   "failed_datasources": [],
   "success_rate": 100,
+  "chunking_strategy": {},
+  "llm_config": {},
+  "embedding_config": {},
   "created_by_name": "John Doe",
+  "company_name": "Acme Inc",
   "created_at": "2025-01-15T10:30:00Z",
   "updated_at": "2025-01-15T10:35:00Z"
 }
 ```
+
+<Note>
+There is no `collection_count` field - use `datasource_count` (the number of underlying files/datasources, regardless of which collection they came from).
+</Note>

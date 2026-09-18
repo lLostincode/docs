@@ -3,7 +3,15 @@ title: 'List Sessions'
 openapi: 'GET /api/v1/sessions/'
 ---
 
-Retrieve all sessions for your account.
+Retrieve sessions for your account. By default, sessions with zero messages are excluded.
+
+<ParamField query="agent_id" type="string">
+  Filter to sessions created from a specific agent (by agent UUID).
+</ParamField>
+
+<ParamField query="has_messages" type="boolean" default="true">
+  When `true` (the default), sessions with no messages yet are excluded. Pass `false` to include them.
+</ParamField>
 
 <CodeGroup>
 ```bash cURL
@@ -33,15 +41,19 @@ const sessions = await response.json();
 
 ## Response
 
-Returns an array of session objects:
+Returns an array of session summaries (no `config_hash` - that's only present on create):
 
 ```json
 [
   {
     "session_id": "session_abc123",
-    "config_hash": "a1b2c3d4e5f6",
+    "title": "Support Session",
+    "status": "active",
     "created_at": "2025-01-15T10:30:00Z",
-    "status": "active"
+    "last_execution": "2025-01-15T10:32:00Z",
+    "message_count": 4,
+    "is_scheduled": false,
+    "schedule_id": null
   }
 ]
 ```

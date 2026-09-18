@@ -9,8 +9,8 @@ The Collections API allows you to create and manage collections of files. Collec
 
 - **File Organization**: Group related files into logical collections
 - **Collection Management**: Create, update, and delete collections
-- **File Operations**: Add and remove files from collections
-- **Bulk Processing**: Handle multiple files efficiently
+- **File Operations**: Add and remove individual files from a collection
+- **Bulk Processing**: Delete, retry, or complete multiple collections at once
 - **Status Tracking**: Monitor collection processing progress
 
 ## Authentication
@@ -37,13 +37,13 @@ All endpoints require authentication using your API key:
     Remove a collection
   </Card>
   <Card title="Add File" icon="plus-circle" href="/api-reference/collections/add-file">
-    Add files to a collection
+    Add a file to a collection
   </Card>
   <Card title="Remove File" icon="minus-circle" href="/api-reference/collections/remove-file">
-    Remove files from a collection
+    Remove a file from a collection
   </Card>
   <Card title="Bulk Operations" icon="layers" href="/api-reference/collections/bulk-operations">
-    Perform bulk file operations
+    Delete, retry, or complete multiple collections at once
   </Card>
 </CardGroup>
 
@@ -59,10 +59,9 @@ Collections start empty and ready to receive files:
 ```
 
 ### 2. File Addition
-Add files individually or in bulk:
-- **Single files**: Add one file at a time
-- **Bulk upload**: Add multiple files efficiently
-- **Validation**: Ensure files exist and are accessible
+Add or remove one file at a time via `add_data_source` / `remove_data_source`:
+- **Single files**: Each call adds or removes exactly one file
+- **Validation**: Ensure the file exists and is accessible to you
 
 ### 3. Processing
 Collections process their files for knowledge base integration:
@@ -102,16 +101,20 @@ Collections contain data sources (files) with metadata:
   Reference to the original file ID
 </ResponseField>
 
-<ResponseField name="data_source_name" type="string">
-  Human-readable name of the file
+<ResponseField name="data_source_original_filename" type="string">
+  Original filename as uploaded
 </ResponseField>
 
-<ResponseField name="data_source_type" type="string">
+<ResponseField name="data_source_file_type" type="string">
   Type of content (document, image, etc.)
 </ResponseField>
 
 <ResponseField name="data_source_size" type="integer">
   Size of the file in bytes
+</ResponseField>
+
+<ResponseField name="data_source_status" type="string">
+  Status of the underlying file (uploading, active, archived, deleted, error)
 </ResponseField>
 
 ## Collection Organization

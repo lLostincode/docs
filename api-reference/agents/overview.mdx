@@ -41,42 +41,40 @@ All endpoints require authentication using your API key:
 
 ## Agent Configuration Structure
 
-Agents are configured using a `system_config` object that includes:
-
-- **Basic Settings**: Name, type, and architecture
-- **LLM Configuration**: Model, temperature, and other parameters
-- **System Prompt**: Instructions defining agent behavior
-- **Tools**: Available capabilities like search, code execution
-- **Knowledge Bases**: Connected data sources for retrieval
+Agents are configured using a `system_config` object - the same top-level shape documented in [YAML Configuration](/guides/yaml-configuration): `name`, `description`, `architecture`, `entry_point`, an `agents` list (each with `agent_type`, `system_prompt`/`prompt_config`, `llm_config`, `tools`, `knowledge_bases`, ...), and `edges`.
 
 <Note>
-The `agent_key` is automatically derived from the agent name and serves as a unique identifier.
+`agent_key` is a randomly generated identifier (a UUID), not derived from the agent's name. It's assigned once and shared across all versions of the same agent.
 </Note>
 
 ## Common Response Fields
 
-All agent endpoints return objects with these key fields:
+List, create, get, and update all return the same `Agent` object shape:
 
 <ResponseField name="id" type="string">
   Unique agent identifier (UUID)
 </ResponseField>
 
 <ResponseField name="agent_key" type="string">
-  Unique key derived from agent name
+  Randomly generated identifier, stable across versions of this agent
 </ResponseField>
 
 <ResponseField name="name" type="string">
   Human-readable agent name
 </ResponseField>
 
-<ResponseField name="system_config" type="object">
-  Complete agent configuration including prompts, LLM settings, tools, and knowledge bases
+<ResponseField name="description" type="string">
+  Description pulled from the `description` field of `system_config`
 </ResponseField>
 
 <ResponseField name="version_number" type="string">
-  Current version of the agent configuration
+  Current version identifier of the agent configuration (e.g. `v1`, `v2`, ...)
 </ResponseField>
 
 <ResponseField name="config_hash" type="string">
-  Hash of the current configuration for change detection
+  SHA-256 hash of the current `system_config`, useful for change detection
 </ResponseField>
+
+<Warning>
+`system_config` is write-only: you send it on create/update, but it is **not** included in the create/get/list/update response. To read back the full configuration, use `GET /api/v1/agent/{id}/versions/current/`, which returns `{ "id", "version_number", "system_config", "agent" }` for the active version.
+</Warning>

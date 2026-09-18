@@ -48,4 +48,25 @@ response = requests.patch(
 
 ## Response
 
-Returns the updated collection object with new `updated_at` timestamp.
+```json
+{
+  "success": true,
+  "message": "Collection updated successfully",
+  "collection": {
+    "id": "coll_123",
+    "name": "Updated Product Documentation",
+    "description": "Comprehensive product manuals and user guides",
+    "status": "pending",
+    "progress": 0,
+    "data_source_count": 15,
+    "total_size": 52428800,
+    "datasources": [],
+    "created_at": "2025-01-15T10:30:00Z",
+    "updated_at": "2025-01-15T10:40:00Z"
+  }
+}
+```
+
+<Note>
+Only the collection creator can update it - returns `403` otherwise.
+</Note>

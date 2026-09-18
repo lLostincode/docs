@@ -18,6 +18,10 @@ The Files API allows you to upload, manage, and organize files that can be used 
 All endpoints require authentication using your API key:
 - **API Key**: `x-api-key: <key>`
 
+<Note>
+Files are private to the uploading user - each user can only see and manage their own files.
+</Note>
+
 ## Available Endpoints
 
 <CardGroup cols={2}>
@@ -127,8 +131,12 @@ Each file includes comprehensive metadata:
   Categorized file type (document, image, etc.)
 </ResponseField>
 
-<ResponseField name="size_bytes" type="integer">
+<ResponseField name="file_size" type="integer">
   File size in bytes
+</ResponseField>
+
+<ResponseField name="file_size_formatted" type="string">
+  Human-readable file size (e.g. `"2.0 MB"`)
 </ResponseField>
 
 <ResponseField name="status" type="string">
@@ -137,6 +145,14 @@ Each file includes comprehensive metadata:
 
 <ResponseField name="tags" type="array">
   Associated tags for organization
+</ResponseField>
+
+<ResponseField name="is_public" type="boolean">
+  Whether the file is publicly accessible
+</ResponseField>
+
+<ResponseField name="file_url" type="string">
+  Download URL, present only if the requesting user has access
 </ResponseField>
 
 ## Usage in Knowledge Bases

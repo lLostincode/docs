@@ -3,7 +3,7 @@ title: 'Execute Message'
 openapi: 'POST /api/v1/runtime/{session_id}/execute/'
 ---
 
-Execute a message in an existing session and get the agent's response.
+Execute a message in an existing session and get the agent's response. This call runs the agent to completion and returns the result (it is not a streaming endpoint).
 
 <ParamField path="session_id" type="string" required>
   The session ID
@@ -12,11 +12,19 @@ Execute a message in an existing session and get the agent's response.
 ## Request Body
 
 <ParamField body="content" type="string | array" required>
-  The message content. Can be a simple string or multimodal content blocks.
+  The message content. Can be a simple string or an array of multimodal content blocks (`text`, `image`, `file`).
 </ParamField>
 
 <ParamField body="correlation_id" type="string">
   Optional correlation ID for tracking related events
+</ParamField>
+
+<ParamField body="inputs" type="object">
+  Optional input parameters for this execution (e.g. `{"user_id": "123"}`), accessible in prompts via `{{ variables.key }}`.
+</ParamField>
+
+<ParamField body="timezone" type="string">
+  Optional IANA timezone name of the end user (e.g. `Europe/Berlin`), used to render the agent's current time in the caller's local zone. Falls back to `Europe/Berlin` if omitted or invalid.
 </ParamField>
 
 ### Simple Text Message
@@ -66,6 +74,8 @@ const result = await response.json();
 
 ### Multimodal Message (with images)
 
+Files should be uploaded via `/api/v1/sessions/{session_id}/artifacts/` first and referenced by `artifact_id`; inline base64 is also supported but not recommended for large files.
+
 ```json
 {
   "content": [
@@ -74,8 +84,10 @@ const result = await response.json();
       "text": "What's in this image?"
     },
     {
-      "type": "image_url",
-      "image_url": {
+      "type": "image",
+      "source": {
+        "type": "url",
+        "media_type": "image/jpeg",
         "url": "https://example.com/image.jpg"
       }
     }
@@ -87,16 +99,29 @@ const result = await response.json();
 
 ```json
 {
-  "success": true,
-  "message_id": "msg_789",
-  "response": {
-    "content": "Based on the current weather data, it's sunny and 72°F today.",
-    "tool_calls": []
-  },
-  "correlation_id": "corr_123"
+  "id": "session_abc123",
+  "object": "agent.session",
+  "status": "completed",
+  "created_at": "2025-01-15T10:30:00Z",
+  "completed_at": "2025-01-15T10:30:04Z",
+  "config": {},
+  "messages": [
+    {
+      "role": "assistant",
+      "content": "Based on the current weather data, it's sunny and 72°F today.",
+      "tool_calls": []
+    }
+  ],
+  "execution_time": 1.8,
+  "metadata": {
+    "correlation_id": "corr_123",
+    "event_count": 6,
+    "execution_id": "exec_456",
+    "usage": {}
+  }
 }
 ```
 
 <Note>
-The response includes the agent's generated content and any tool calls that were made during execution.
+`messages` contains the messages generated during this execution (not the full conversation history - use [Get Messages](/api-reference/runtime/messages) or [Get Session](/api-reference/sessions/get) for that). On failure the response is a standard error envelope with an `execution_error` type instead of this shape.
 </Note>

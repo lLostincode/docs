@@ -3,50 +3,36 @@ title: 'Create Agent'
 openapi: 'POST /api/v1/agent/'
 ---
 
-Create a new agent configuration. All agent configuration must be provided within the `system_config` object. The `name` field in the config is required and will be used to derive the `agent_key`.
+Create a new agent configuration. The full configuration must be provided within the `system_config` object, using the same shape as a [YAML Configuration](/guides/yaml-configuration) system config (JSON-encoded). The top-level `name` field inside `system_config` is required.
+
+<Note>
+`system_config` is **write-only** - it's accepted on create, but not echoed back in the response. Read it back via `GET /api/v1/agent/{id}/versions/current/`.
+</Note>
 
 ## Request Body
 
 <ParamField body="system_config" type="object" required>
-  Complete agent configuration object
-  
+  Complete system configuration object (same schema as a YAML config file, JSON-encoded)
+
   <Expandable title="system_config Properties">
     <ParamField body="name" type="string" required>
-      Agent name (used to derive agent_key)
+      System/agent name
     </ParamField>
-    
-    <ParamField body="agent_type" type="string" required>
-      Type of agent (e.g., "llm_agent")
+
+    <ParamField body="description" type="string" required>
+      Description of what this agent does
     </ParamField>
-    
-    <ParamField body="system_prompt" type="string" required>
-      Instructions defining agent behavior
+
+    <ParamField body="entry_point" type="string" required>
+      Name of the agent (from `agents`) that receives the initial input
     </ParamField>
-    
-    <ParamField body="llm_config" type="object" required>
-      LLM configuration settings
-      
-      <Expandable title="llm_config Properties">
-        <ParamField body="model" type="string" required>
-          Model to use (e.g., "gpt-4o")
-        </ParamField>
-        
-        <ParamField body="temperature" type="number">
-          Response randomness (0.0-1.0)
-        </ParamField>
-        
-        <ParamField body="max_tokens" type="integer">
-          Maximum response length
-        </ParamField>
-      </Expandable>
+
+    <ParamField body="agents" type="array" required>
+      List of agent definitions. Each entry needs at least `name` and `agent_type` (e.g. `llm_agent`), plus `system_prompt`, `llm_config`, `tools`, and `knowledge_bases` as needed - see [Agent Configuration](/guides/yaml-configuration#agent-configuration).
     </ParamField>
-    
-    <ParamField body="knowledge_bases" type="array">
-      Connected knowledge bases for retrieval
-    </ParamField>
-    
-    <ParamField body="tools" type="array">
-      Available tools (e.g., ["tavily_search"])
+
+    <ParamField body="edges" type="array">
+      Workflow edges connecting agents (required when `architecture` is `workflow`, the default). See [Workflow Edges](/guides/yaml-configuration#workflow-edges).
     </ParamField>
   </Expandable>
 </ParamField>
@@ -59,12 +45,23 @@ curl -X POST https://api-be.atthene.com/api/v1/agent/ \
   -d '{
     "system_config": {
       "name": "Support Agent",
-      "agent_type": "llm_agent",
-      "system_prompt": "You are a helpful customer support agent.",
-      "llm_config": {
-        "model": "gpt-4o",
-        "temperature": 0.7
-      }
+      "description": "Answers customer support questions",
+      "entry_point": "support_agent",
+      "agents": [
+        {
+          "name": "support_agent",
+          "agent_type": "llm_agent",
+          "system_prompt": "You are a helpful customer support agent.",
+          "llm_config": {
+            "model": "gpt-4o",
+            "temperature": 0.7
+          }
+        }
+      ],
+      "edges": [
+        {"from": "__start__", "to": "support_agent"},
+        {"from": "support_agent", "to": "__end__"}
+      ]
     }
   }'
 ```
@@ -75,12 +72,23 @@ import requests
 data = {
     "system_config": {
         "name": "Support Agent",
-        "agent_type": "llm_agent",
-        "system_prompt": "You are a helpful customer support agent.",
-        "llm_config": {
-            "model": "gpt-4o",
-            "temperature": 0.7
-        }
+        "description": "Answers customer support questions",
+        "entry_point": "support_agent",
+        "agents": [
+            {
+                "name": "support_agent",
+                "agent_type": "llm_agent",
+                "system_prompt": "You are a helpful customer support agent.",
+                "llm_config": {
+                    "model": "gpt-4o",
+                    "temperature": 0.7
+                }
+            }
+        ],
+        "edges": [
+            {"from": "__start__", "to": "support_agent"},
+            {"from": "support_agent", "to": "__end__"}
+        ]
     }
 }
 
@@ -96,12 +104,23 @@ agent = response.json()
 const data = {
   system_config: {
     name: "Support Agent",
-    agent_type: "llm_agent",
-    system_prompt: "You are a helpful customer support agent.",
-    llm_config: {
-      model: "gpt-4o",
-      temperature: 0.7
-    }
+    description: "Answers customer support questions",
+    entry_point: "support_agent",
+    agents: [
+      {
+        name: "support_agent",
+        agent_type: "llm_agent",
+        system_prompt: "You are a helpful customer support agent.",
+        llm_config: {
+          model: "gpt-4o",
+          temperature: 0.7
+        }
+      }
+    ],
+    edges: [
+      {from: "__start__", to: "support_agent"},
+      {from: "support_agent", to: "__end__"}
+    ]
   }
 };
 
@@ -120,44 +139,30 @@ const agent = await response.json();
 
 ## Response
 
-Returns the created agent configuration:
+Returns the created agent's metadata. Note `system_config` is **not** included (write-only) - fetch it separately via the `versions/current` endpoint:
 
 ```json
 {
   "id": "550e8400-e29b-41d4-a716-446655440001",
-  "agent_key": "support_agent",
+  "agent_key": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
   "name": "Support Agent",
-  "architecture": "llm_agent",
-  "entry_point": "main",
+  "description": "Answers customer support questions",
+  "icon": "",
   "is_public": false,
   "is_shared": false,
+  "show_in_atthene": true,
   "origin_url": null,
-  "owner": "user_123",
-  "company": "company_456",
-  "system_config": {
-    "name": "Support Agent",
-    "agent_type": "llm_agent",
-    "system_prompt": "You are a helpful customer support agent.",
-    "llm_config": {
-      "model": "gpt-4o",
-      "temperature": 0.7,
-      "max_tokens": 1000
-    },
-    "knowledge_bases": [
-      {
-        "name": "support_docs",
-        "knowledge_base_type": "milvus",
-        "knowledge_base_id": "kb_123"
-      }
-    ]
-  },
-  "version_number": "1.0.0",
-  "config_hash": "b2c3d4e5f6a7",
+  "external_auth_config": null,
+  "owner": 12,
+  "owner_name": "Jane Doe",
+  "company": "8f14e45f-ceea-467e-b71b-7c8ed4d8b3d1",
+  "version_number": "v1",
+  "config_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b85",
   "created_at": "2025-01-15T10:30:00Z",
   "updated_at": "2025-01-15T10:30:00Z"
 }
 ```
 
 <Note>
-The `agent_key` is automatically derived from the agent name and serves as a unique identifier for the agent.
+`agent_key` is a randomly generated UUID, not derived from the agent's name.
 </Note>

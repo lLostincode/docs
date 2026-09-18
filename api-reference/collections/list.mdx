@@ -44,18 +44,26 @@ const collections = await response.json();
 
 ## Response
 
+Results are paginated (20 per page by default; use `?page_size=` up to 100, and `?page=` to navigate):
+
 ```json
-[
-  {
-    "id": "coll_123",
-    "name": "Product Documentation",
-    "description": "All product manuals and guides",
-    "status": "completed",
-    "progress": 100,
-    "data_source_count": 15,
-    "total_size": 52428800,
-    "created_at": "2025-01-15T10:30:00Z",
-    "updated_at": "2025-01-15T10:35:00Z"
-  }
-]
+{
+  "count": 1,
+  "next": null,
+  "previous": null,
+  "results": [
+    {
+      "id": "coll_123",
+      "name": "Product Documentation",
+      "description": "All product manuals and guides",
+      "status": "completed",
+      "progress": 100,
+      "data_source_count": 15,
+      "total_size": 52428800,
+      "datasources": [],
+      "created_at": "2025-01-15T10:30:00Z",
+      "updated_at": "2025-01-15T10:35:00Z"
+    }
+  ]
+}
 ```

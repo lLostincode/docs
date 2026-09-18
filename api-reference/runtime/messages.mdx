@@ -3,25 +3,15 @@ title: 'Get Messages'
 openapi: 'GET /api/v1/runtime/{session_id}/messages/'
 ---
 
-Retrieve conversation history for a session.
+Retrieve all messages for a session (no pagination - the full history is returned in one call).
 
 <ParamField path="session_id" type="string" required>
   The session ID
 </ParamField>
 
-## Query Parameters
-
-<ParamField query="limit" type="integer">
-  Maximum number of messages to return (default: 50)
-</ParamField>
-
-<ParamField query="offset" type="integer">
-  Number of messages to skip (default: 0)
-</ParamField>
-
 <CodeGroup>
 ```bash cURL
-curl -X GET "https://api-be.atthene.com/api/v1/runtime/session_abc123/messages/?limit=10" \
+curl -X GET https://api-be.atthene.com/api/v1/runtime/session_abc123/messages/ \
   -H "x-api-key: YOUR_API_KEY"
 ```
 
@@ -30,14 +20,13 @@ import requests
 
 response = requests.get(
     "https://api-be.atthene.com/api/v1/runtime/session_abc123/messages/",
-    headers={"x-api-key": "YOUR_API_KEY"},
-    params={"limit": 10}
+    headers={"x-api-key": "YOUR_API_KEY"}
 )
 messages = response.json()
 ```
 
 ```javascript JavaScript
-const response = await fetch('https://api-be.atthene.com/api/v1/runtime/session_abc123/messages/?limit=10', {
+const response = await fetch('https://api-be.atthene.com/api/v1/runtime/session_abc123/messages/', {
   headers: {
     'x-api-key': 'YOUR_API_KEY'
   }
@@ -48,25 +37,35 @@ const messages = await response.json();
 
 ## Response
 
-Returns an array of message objects:
-
 ```json
 {
+  "session_id": "session_abc123",
   "messages": [
     {
-      "id": "msg_001",
+      "id": "msg_1a2b3c4d-0000-0000-0000-000000000001",
       "role": "user",
       "content": "Hello, I need help with my account.",
-      "timestamp": "2025-01-15T10:30:00Z"
+      "agentName": null,
+      "run_id": null,
+      "tool_calls": null,
+      "metadata": {},
+      "created_at": 1736937000
     },
     {
-      "id": "msg_002", 
+      "id": "msg_1a2b3c4d-0000-0000-0000-000000000002",
       "role": "assistant",
       "content": "I'd be happy to help you with your account. What specific issue are you experiencing?",
-      "timestamp": "2025-01-15T10:30:05Z"
+      "agentName": "support_agent",
+      "run_id": "run_789",
+      "tool_calls": null,
+      "metadata": {},
+      "created_at": 1736937005
     }
   ],
-  "total": 2,
-  "has_more": false
+  "total": 2
 }
 ```
+
+<Note>
+`created_at` is a Unix timestamp (seconds), not an ISO string. For paginated history instead, use [Get Session](/api-reference/sessions/get), which supports `limit`/`before` cursor params.
+</Note>

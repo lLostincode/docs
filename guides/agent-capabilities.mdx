@@ -7,7 +7,7 @@ Agents in the Atthene Multi-Agent System can be enhanced with various capabiliti
 
 ## Tools
 
-Tools extend agent capabilities by providing access to external systems, APIs, and computational resources. Only **ReAct agents** (`react_agent`) support tool calling.
+Tools extend agent capabilities by providing access to external systems, APIs, and computational resources. `react_agent` is the only user-configurable agent type for tool calling (a `react_agent` with no `tools` simply runs as a plain conversational agent); `supervisor` agents also call tools internally for agent handoffs, but that's not user-configured via the `tools` field.
 
 <Note>
 We're actively working on integrating with the **Model Context Protocol (MCP)** to expand the available tools and enable seamless integration with external services.
@@ -55,13 +55,23 @@ We're actively working on integrating with the **Model Context Protocol (MCP)** 
     
     Search YouTube for videos and content.
   </Card>
-  
-  <Card title="python_repl" icon="code">
-    **Python REPL**
-    
-    Execute Python code in a safe environment.
+
+  <Card title="google_search" icon="magnifying-glass">
+    **Google Search with Gemini**
+
+    Web search grounded through Gemini.
+  </Card>
+
+  <Card title="search_knowledge_bases" icon="database">
+    **Search Knowledge Bases**
+
+    Query an agent's connected knowledge bases as a tool call.
   </Card>
 </CardGroup>
+
+<Note>
+This is a representative sample - the tool registry includes many more (image generation, text-to-speech, Wikipedia/ArXiv search, memory management, and others).
+</Note>
 
 
 ### Configuring Tools
@@ -319,7 +329,7 @@ When streaming is enabled, the system emits these event types:
 
 ## Knowledge Base Integration
 
-Agents can access knowledge bases to retrieve domain-specific information and documents. Both **LLM agents** and **ReAct agents** support knowledge base integration.
+Agents can access knowledge bases to retrieve domain-specific information and documents. `react_agent` supports knowledge base integration whether or not it has `tools` configured.
 
 <Tip>
 For comprehensive knowledge base configuration details, see the [Knowledge Base Setup](/guides/knowledge-base-setup) guide.
@@ -334,7 +344,7 @@ For comprehensive knowledge base configuration details, see the [Knowledge Base 
 </Card>
 
 <Note>
-Additional vector database integrations will be supported in future releases.
+`uknow` is also a supported `knowledge_base_type` (used for connected cloud-storage sources); see [Knowledge Base Setup](/guides/knowledge-base-setup) for the fully documented type. Additional vector database integrations will be supported in future releases.
 </Note>
 
 ### Configuration
@@ -344,7 +354,7 @@ Add knowledge bases directly to agent configuration:
 ```yaml
 agents:
   - name: "knowledge_agent"
-    agent_type: "llm_agent"  # or react_agent
+    agent_type: "react_agent"
     
     knowledge_bases:
       - name: "company_docs"
@@ -460,7 +470,7 @@ Supervisor agents coordinate multiple specialized agents:
 ```
 
 <Check>
-Supervisors can coordinate both LLM agents and ReAct agents, creating hybrid teams with diverse capabilities.
+Supervisors can coordinate `react_agent` workers with different `tools` configurations - some tool-enabled, some plain conversational - creating hybrid teams with diverse capabilities.
 </Check>
 
 ### Agent Handoffs
@@ -493,7 +503,7 @@ supervisor_prompt: |
     - "tavily_search"
     - "tavily_extract"
     - "calculator"
-    - "knowledge_base"
+    - "search_knowledge_bases"
   
   tool_calling:
     enabled: true
@@ -512,8 +522,8 @@ supervisor_prompt: |
   
   knowledge_bases:
     - name: "research_db"
-      knowledge_base_type: "cognee"
-      enabled: true
+      knowledge_base_type: "milvus"
+      knowledge_base_id: "kb_research_001"
   
   system_prompt: |
     You are a research analyst with comprehensive capabilities.
@@ -536,7 +546,7 @@ supervisor_prompt: |
 
 ```yaml
 - name: "creative_writer"
-  agent_type: "llm_agent"
+  agent_type: "react_agent"
   
   llm_config:
     model: "gpt-4o"

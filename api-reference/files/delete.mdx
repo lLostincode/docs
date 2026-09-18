@@ -3,7 +3,7 @@ title: 'Delete File'
 openapi: 'DELETE /api/v1/files/{file_id}/'
 ---
 
-Remove a file from the system.
+Permanently delete a file. Only the file's owner can delete it.
 
 <ParamField path="file_id" type="string" required>
   The file ID

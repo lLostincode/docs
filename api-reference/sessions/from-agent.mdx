@@ -1,33 +1,41 @@
 ---
 title: 'Create Session from Agent'
-openapi: 'POST /api/v1/sessions/from-agent/{agent_id}/'
+openapi: 'GET /api/v1/sessions/from-agent/'
 ---
 
-Create a session from an existing agent configuration.
+Create a session from a saved agent configuration, identified by its `agent_key` (not the numeric/UUID agent `id`). This is a `GET` request - the agent key and options are passed as query parameters, not a JSON body.
 
-<ParamField path="agent_id" type="string" required>
-  The agent ID to create a session from
+<ParamField query="agent_key" type="string" required>
+  The key of the saved agent to create a session from
+</ParamField>
+
+<ParamField query="version" type="string">
+  Pin the session to a specific agent version (e.g. `v2`). Omit to use the agent's current active version.
+</ParamField>
+
+<ParamField header="X-External-User-Token" type="string">
+  Optional JWT for identifying an external end-user (company-specific). Required for public/embedded connections alongside the `Origin` header.
 </ParamField>
 
 <CodeGroup>
 ```bash cURL
-curl -X POST https://api-be.atthene.com/api/v1/sessions/from-agent/550e8400-e29b-41d4-a716-446655440000/ \
+curl -X GET "https://api-be.atthene.com/api/v1/sessions/from-agent/?agent_key=YOUR_AGENT_KEY" \
   -H "x-api-key: YOUR_API_KEY"
 ```
 
 ```python Python
 import requests
 
-response = requests.post(
-    "https://api-be.atthene.com/api/v1/sessions/from-agent/550e8400-e29b-41d4-a716-446655440000/",
+response = requests.get(
+    "https://api-be.atthene.com/api/v1/sessions/from-agent/",
+    params={"agent_key": "YOUR_AGENT_KEY"},
     headers={"x-api-key": "YOUR_API_KEY"}
 )
 session = response.json()
 ```
 
 ```javascript JavaScript
-const response = await fetch('https://api-be.atthene.com/api/v1/sessions/from-agent/550e8400-e29b-41d4-a716-446655440000/', {
-  method: 'POST',
+const response = await fetch('https://api-be.atthene.com/api/v1/sessions/from-agent/?agent_key=YOUR_AGENT_KEY', {
   headers: {
     'x-api-key': 'YOUR_API_KEY'
   }
@@ -42,11 +50,16 @@ const session = await response.json();
 {
   "success": true,
   "session_id": "session_def456",
+  "config_hash": "a1b2c3d4e5f6",
   "agent_id": "550e8400-e29b-41d4-a716-446655440000",
-  "config_hash": "a1b2c3d4e5f6"
+  "agent_name": "Support Agent"
 }
 ```
 
 <Note>
-This method creates a session using the current configuration of the specified agent.
+This creates a session using the agent's current active configuration (or a pinned `version`, if given) - it does not look up an existing session.
 </Note>
+
+## Deleting sessions for an agent
+
+`DELETE` on this same path (`/api/v1/sessions/from-agent/?agent_key=...`) removes every session the authenticated user has for that agent.

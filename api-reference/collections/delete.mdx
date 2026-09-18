@@ -27,8 +27,13 @@ response = requests.delete(
 
 ## Response
 
-Returns `204 No Content` on success.
+```json
+{
+  "success": true,
+  "message": "Collection 'Product Documentation' deleted successfully"
+}
+```
 
 <Warning>
-This action permanently deletes the collection and removes it from any knowledge bases that reference it.
+This action permanently deletes the collection and its data source associations. Only the collection creator can delete it - returns `403` otherwise.
 </Warning>

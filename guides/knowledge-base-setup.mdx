@@ -14,7 +14,7 @@ Knowledge bases provide agents with access to domain-specific information, docum
 </Card>
 
 <Note>
-Additional vector database integrations will be supported in future releases.
+`uknow` is also a supported `knowledge_base_type`, used for knowledge bases backed by connected cloud-storage sources rather than a directly-managed vector index. It isn't documented in depth here yet. Additional vector database integrations will be supported in future releases.
 </Note>
 
 ## Milvus Knowledge Base
@@ -26,7 +26,7 @@ Milvus is a production-ready vector database that enables semantic search over y
 ```yaml
 agents:
   - name: "support_agent"
-    agent_type: "llm_agent"
+    agent_type: "react_agent"
     
     knowledge_bases:
       - name: "company_docs"
@@ -104,7 +104,7 @@ The `retrieval_config` object controls how documents are retrieved:
 ```yaml
 agents:
   - name: "support_agent"
-    agent_type: "llm_agent"
+    agent_type: "react_agent"
     
     knowledge_bases:
       - name: "support_kb"
@@ -155,7 +155,7 @@ agents:
 ```yaml
 agents:
   - name: "comprehensive_agent"
-    agent_type: "llm_agent"
+    agent_type: "react_agent"
     
     knowledge_bases:
       - name: "technical_docs"

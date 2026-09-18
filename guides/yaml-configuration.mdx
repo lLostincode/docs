@@ -19,7 +19,7 @@ entry_point: "agent_name"
 
 agents:
   - name: "agent_name"
-    agent_type: "llm_agent" | "react_agent" | "supervisor"
+    agent_type: "react_agent" | "supervisor"
     # ... agent configuration
 
 # Optional: System-level tool definitions (advanced usage)
@@ -80,7 +80,7 @@ Each agent in the `agents` list requires these fields. These parameters are defi
 ```yaml
 agents:
   - name: "agent_name"         # ← Agent configuration
-    agent_type: "llm_agent"    # ← parameters are defined
+    agent_type: "react_agent"  # ← parameters are defined
     description: "..."         # ← within each agent object
     system_prompt: "..."
     # ... additional agent config
@@ -95,10 +95,13 @@ agents:
 <ParamField path="agent_type" type="string" required>
   Type of agent to instantiate. See [Agent Types](/guides/agent-types) for available options.
   
-  **Common types:**
-  - `llm_agent` - Basic LLM-powered conversational agent
-  - `react_agent` - ReAct pattern agent with tool calling
+  **Available types:**
+  - `react_agent` - ReAct pattern agent; supports tool calling when `tools` is set, or runs as a plain conversational agent when `tools` is empty/omitted
   - `supervisor` - Supervisor agent for multi-agent coordination
+
+  <Warning>
+  `llm_agent` is no longer a registered agent type - use `react_agent` with no `tools` for a plain conversational agent instead.
+  </Warning>
 </ParamField>
 
 <ParamField path="description" type="string">
@@ -394,14 +397,14 @@ Supervisor architecture does not require explicit edges - the supervisor handles
 ### Basic Conversational Agent
 
 ```yaml
-name: "Basic LLM Agent"
+name: "Basic Conversational Agent"
 description: "Simple conversational assistant"
 save_messages: true
 persistent_state: true
 
 agents:
   - name: "assistant"
-    agent_type: "llm_agent"
+    agent_type: "react_agent"
     description: "A helpful AI assistant"
     system_prompt: "You are a helpful AI assistant."
     llm_config:
@@ -550,7 +553,7 @@ agents:
 
   # Synthesis Agent
   - name: "synthesis_agent"
-    agent_type: "llm_agent"
+    agent_type: "react_agent"
     description: "Specialized in synthesizing information"
     
     streaming_config:

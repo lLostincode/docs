@@ -84,9 +84,11 @@ Before sending messages, create a session to establish context. An agent session
     **Response:**
     ```json
     {
+      "success": true,
       "session_id": "sess_abc123xyz",
-      "agent_key": "agent_456def",
-      "created_at": "2025-10-06T10:30:00Z"
+      "config_hash": "hash_789ghi",
+      "agent_id": "agent_456def",
+      "agent_name": "Support Agent"
     }
     ```
   </Tab>
@@ -109,7 +111,7 @@ Before sending messages, create a session to establish context. An agent session
     name: "Dynamic Agent"
     agents:
       - name: "assistant"
-        agent_type: "llm_agent"
+        agent_type: "react_agent"
         system_prompt: "You are a helpful assistant."
         llm_config:
           temperature: 0.7
@@ -125,9 +127,9 @@ Before sending messages, create a session to establish context. An agent session
     **Response:**
     ```json
     {
+      "success": true,
       "session_id": "sess_abc123xyz",
-      "config_hash": "hash_789ghi",
-      "created_at": "2025-10-06T10:30:00Z"
+      "config_hash": "hash_789ghi"
     }
     ```
   </Tab>
@@ -167,9 +169,6 @@ Content-Type: application/json
   </Tab>
   
   <Tab title="Multimodal Message">
-    <Note>
-    NOT YET SUPPORTED
-    </Note> 
     For messages with images, files, or mixed content, use an array of content blocks:
     
     ```json
@@ -191,13 +190,14 @@ Content-Type: application/json
       "correlation_id": "image-analysis-123"
     }
     ```
+
+    <Tip>
+    `source.type: "url"` (a public or presigned URL) is recommended over inline `base64` - it's far cheaper on tokens.
+    </Tip>
   </Tab>
   
   <Tab title="File Upload">
-    <Note>
-    NOT YET SUPPORTED
-    </Note>
-    For file uploads (PDFs, documents, etc.):
+    Upload the file first via `POST /api/v1/sessions/{session_id}/artifacts/`, then reference the returned artifact's presigned URL (or `artifact_id`, for URL refresh) in a `file` content block instead of inline base64:
     
     ```json
     {
@@ -209,15 +209,20 @@ Content-Type: application/json
         {
           "type": "file",
           "source": {
-            "type": "base64",
+            "type": "url",
             "media_type": "application/pdf",
             "filename": "report.pdf",
-            "data": "base64-encoded-file-data"
+            "url": "https://...presigned-s3-url...",
+            "artifact_id": "artifact_abc123"
           }
         }
       ]
     }
     ```
+
+    <Note>
+    Inline `base64` file data is also accepted but is a legacy path - prefer uploading via the artifacts endpoint above for anything but small files.
+    </Note>
   </Tab>
 </Tabs>
 
@@ -264,7 +269,7 @@ Content-Type: application/json
 
 ## Direct WebSocket Integration
 
-Currently only supported with the embedded chatbot. Please let us know if you need this feature.
+A WebSocket endpoint is available at `wss://api-be.atthene.com/ws/amas` for authenticated, real-time streaming (the same transport the embedded chatbot uses internally). Full message-protocol documentation for direct WebSocket consumers is still in progress - if you need this for a non-embedded integration, please let us know via the feedback button.
 
 ---
 
@@ -454,12 +459,6 @@ AttheneChat.on('close', () => {
 <CardGroup cols={2}>
   <Card title="API Reference" icon="book" href="/api-reference/introduction">
     Complete API documentation with all endpoints
-  </Card>
-  <Card title="TypeScript SDK" icon="code" href="/sdk/typescript">
-    Full SDK documentation and examples
-  </Card>
-  <Card title="Monitoring & Tracing" icon="chart-line" href="/guides/monitoring-analytics">
-    Track agent performance in production
   </Card>
   <Card title="Give Feedback" icon="comment">
     Request features or report integration issues
