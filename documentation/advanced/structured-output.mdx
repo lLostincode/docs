@@ -69,107 +69,106 @@ agents:
 
 ## Type Notation
 
-Define field types using our type notation syntax:
+Define field types using our type notation syntax. The common types are `str`, `int`, `float`, `bool`, `list[T]`, `dict[K, V]`, and their nullable forms `T | None` / `Optional[T]`:
 
-### Basic Types
-
-<ParamField path="string" type="type">
-  Text data
-  
-  ```yaml
+```yaml
+schema:
   name:
     type: "str"
     description: "Person's full name"
-  ```
-</ParamField>
-
-<ParamField path="int" type="type">
-  Integer numbers
-  
-  ```yaml
   age:
     type: "int"
     description: "Age in years"
-  ```
-</ParamField>
-
-<ParamField path="float" type="type">
-  Decimal numbers
-  
-  ```yaml
-  confidence:
-    type: "float"
-    description: "Confidence score between 0.0 and 1.0"
-  ```
-</ParamField>
-
-<ParamField path="bool" type="type">
-  Boolean values (true/false)
-  
-  ```yaml
-  is_verified:
-    type: "bool"
-    description: "Whether the information is verified"
-  ```
-</ParamField>
-
-### Collection Types
-
-<ParamField path="list[T]" type="type">
-  List of items of type T
-  
-  ```yaml
   skills:
     type: "list[str]"
     description: "List of technical skills"
-  
-  scores:
-    type: "list[float]"
-    description: "List of test scores"
-  ```
-</ParamField>
-
-<ParamField path="dict[K, V]" type="type">
-  Dictionary mapping keys of type K to values of type V
-  
-  ```yaml
   metadata:
     type: "dict[str, str]"
     description: "Additional metadata fields"
-  
-  scores_by_subject:
-    type: "dict[str, float]"
-    description: "Subject name to score mapping"
-  ```
-</ParamField>
-
-### Nullable Types
-
-<ParamField path="T | None" type="type">
-  Optional/nullable value of type T
-  
-  ```yaml
   middle_name:
     type: "str | None"
     description: "Middle name if available, null otherwise"
-  
-  score:
-    type: "float | None"
-    description: "Score if calculable, null otherwise"
-  ```
-</ParamField>
-
-You can also use `Optional[T]` syntax:
-
-```yaml
-notes:
-  type: "Optional[str]"
-  description: "Optional notes"
 ```
+
+See [Type Notation](/documentation/advanced/type-notation) for the full reference — every supported scalar and collection form, nesting, coercion rules, and the nullability interaction between structured output fields and variables.
 
 <Note>
 **Enum types are not currently supported.** Use `str` type with clear descriptions for fields that should have restricted values. Guide the LLM via your system prompt to output specific allowed values.
 </Note>
+
+<Warning>
+**Any field can come back `null`.** Every field is marked optional at the schema-building layer regardless of the type you declare, so an agent that omits a field — or answers `null` for a field you declared `str` — does not crash the run. This is deliberate: without it a single `null` would fail the whole generation call with *"Expected string, got null"* and take the agent turn down with it.
+
+Consequences to design for:
+
+- Treat every field as potentially absent in downstream prompts and conditional edges.
+- A `null` is **not** written into a non-nullable variable by `variable_assignments` — the assignment is skipped and the previous value kept. Declare the variable `T | None` if storing `null` is what you want. See [Type Notation](/documentation/advanced/type-notation).
+- Declaring the field itself `T | None` is good practice for documenting intent, but it is not what makes the parse succeed.
+</Warning>
+
+## Root Schemas
+
+Normally a schema defines named fields and the agent returns a JSON object. Use the reserved field name `__root__` when you want the agent to return a **bare value** instead — most usefully a bare array:
+
+```yaml
+agents:
+  - name: "topic_extractor"
+    agent_type: "llm_agent"
+    prompt_config:
+      system_prompt: "List the key topics discussed in the conversation."
+
+    structured_output:
+      schema:
+        __root__:
+          type: "list[str]"
+          description: "Key topics mentioned, most significant first"
+```
+
+The agent's output is then the list itself — `["billing", "refunds"]` — not `{"topics": [...]}`.
+
+<Warning>
+`__root__` must be the **only** key in the schema. Mixing it with named fields fails validation:
+
+```
+'__root__' must be the only key in the schema (got ['__root__', 'summary'])
+ - a root schema has no named fields alongside it
+```
+</Warning>
+
+Any type notation works as the root type, not just lists:
+
+```yaml
+# A bare list of objects
+schema:
+  __root__:
+    type: "list[dict[str, str]]"
+
+# A bare scalar
+schema:
+  __root__:
+    type: "float"
+    description: "Confidence score between 0 and 1"
+```
+
+### Referencing a root schema downstream
+
+A root-schema output is stored as a bare list or value rather than a field map, so there is no field name to address. Reference the whole output:
+
+```yaml
+# ✅ The entire root value
+variable_assignments:
+  key_topics: "topic_extractor.output"
+
+# ❌ No named fields exist on a root schema
+variable_assignments:
+  key_topics: "topic_extractor.output.topics"
+```
+
+The same applies in prompts — use `{{ topic_extractor.output }}`, not `{{ topic_extractor.output.field }}`.
+
+<Tip>
+Prefer a named field when you are unsure. A root schema buys you a cleaner payload, but it gives up per-field addressing in prompts, variable assignments and conditional edges.
+</Tip>
 
 ## Quick Start Example
 
@@ -361,20 +360,26 @@ The `structured_output` field has the following structure:
       Each key is a field name, and each value is an object with `type` and optional `description`.
       
       **Required when** `enabled: true`
+      
+      The single reserved key `__root__` makes the agent return a bare value instead of an object — see [Root Schemas](#root-schemas).
     </ParamField>
   </Expandable>
 </ParamField>
+
+<Note>
+`enabled` defaults to `true`, so providing a `schema` is enough to turn structured output on. Set `enabled: false` to keep a schema in the config while temporarily reverting the agent to free-form text.
+
+No other keys are accepted under `structured_output` — a typo fails validation rather than being ignored.
+</Note>
 
 ### Field Specification
 
 Each field in the schema must have:
 
 <ParamField path="type" type="string" required>
-  Type notation for the field
+  Type notation for the field. Common types: `str`, `int`, `float`, `bool`, `list[T]`, `dict[K, V]`, `T | None`, `Optional[T]`, `Any`.
   
-  See [Type Notation Reference](/documentation/advanced/reference/type-notation) for all supported types.
-  
-  **Supported types**: `str`, `int`, `float`, `bool`, `list[T]`, `dict[K, V]`, `T | None`, `Optional[T]`, `Any`
+  See [Type Notation](/documentation/advanced/type-notation) for the full reference.
 </ParamField>
 
 <ParamField path="description" type="string">
@@ -417,7 +422,7 @@ The system automatically validates structured output:
 
 | Error | Cause | Solution |
 |-------|-------|----------|
-| `Invalid type notation` | Unsupported type syntax | Check [Type Notation Reference](/documentation/advanced/reference/type-notation) |
+| `Invalid type notation` | Unsupported type syntax | Check [Type Notation](/documentation/advanced/type-notation) |
 | `Missing required field` | Agent didn't provide all fields | Improve system prompt to mention all fields |
 | `Type validation failed` | Value doesn't match expected type | Ensure agent outputs correct type for the field |
 | `Type mismatch` | Wrong data type | Ensure agent outputs correct type (e.g., number not string) |
@@ -484,9 +489,10 @@ Variable assignments also support static values and non-structured output. The s
 - Structured output is currently supported for `llm_agent` and `react_agent` types
 - Complex nested objects may require careful prompt engineering
 - Very large schemas (>20 fields) may impact performance
-- Use `str | None` or `Optional[str]` for optional fields
+- Every field is effectively optional — any field can return `null` regardless of its declared type
 - Output must be valid JSON
 - Enum types are not supported
+- A `__root__` schema gives up per-field addressing in prompts, variable assignments and conditional edges
 </Note>
 
 ## Next Steps

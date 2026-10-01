@@ -86,7 +86,8 @@ modules:
 
 ### Global Settings
 
-These fields go directly under `memory_config`:
+These fields go directly under `memory_config`. No other keys are accepted — an
+unrecognised key fails validation rather than being ignored:
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -105,6 +106,7 @@ Each entry in the `modules` list supports:
 | `name` | string | auto-generated | Unique identifier for the module |
 | `scope` | string | *required* | Isolation level: `user`, `agent`, `session`, `company`, `space` |
 | `auto_save` | bool | `true` | Auto-save this module, or use Memory Tool |
+| `auto_save_trigger` | string | inherit global | Override the global trigger for this module: `on_interval_turns` or `manual` |
 | `auto_save_interval` | integer | inherit global | Override global save interval for this module |
 | `relevance_prompt` | string | scope template | Guide what information to extract and save |
 | `space_id` | string | — | Required when `scope: space` (alphanumeric, underscores, dashes only) |

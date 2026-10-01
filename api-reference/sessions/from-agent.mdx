@@ -1,33 +1,38 @@
 ---
 title: 'Create Session from Agent'
-openapi: 'POST /api/v1/sessions/from-agent/{agent_id}/'
+openapi: 'GET /api/v1/sessions/from-agent/'
 ---
 
 Create a session from an existing agent configuration.
 
-<ParamField path="agent_id" type="string" required>
-  The agent ID to create a session from
+<ParamField query="agent_key" type="string" required>
+  The key of the agent to create a session from.
+</ParamField>
+
+<ParamField query="version" type="string">
+  A specific pinned version number to use for the agent's configuration. If omitted, the agent's current active configuration is used.
 </ParamField>
 
 <CodeGroup>
 ```bash cURL
-curl -X POST https://api.artaios.ai/api/v1/sessions/from-agent/550e8400-e29b-41d4-a716-446655440000/ \
+curl -X GET "https://api.artaios.ai/api/v1/sessions/from-agent/?agent_key=agent_456def" \
   -H "x-api-key: YOUR_API_KEY"
 ```
 
 ```python Python
 import requests
 
-response = requests.post(
-    "https://api.artaios.ai/api/v1/sessions/from-agent/550e8400-e29b-41d4-a716-446655440000/",
+response = requests.get(
+    "https://api.artaios.ai/api/v1/sessions/from-agent/",
+    params={"agent_key": "agent_456def"},
     headers={"x-api-key": "YOUR_API_KEY"}
 )
 session = response.json()
 ```
 
 ```javascript JavaScript
-const response = await fetch('https://api.artaios.ai/api/v1/sessions/from-agent/550e8400-e29b-41d4-a716-446655440000/', {
-  method: 'POST',
+const response = await fetch('https://api.artaios.ai/api/v1/sessions/from-agent/?agent_key=agent_456def', {
+  method: 'GET',
   headers: {
     'x-api-key': 'YOUR_API_KEY'
   }
@@ -42,11 +47,16 @@ const session = await response.json();
 {
   "success": true,
   "session_id": "session_def456",
+  "config_hash": "a1b2c3d4e5f6",
   "agent_id": "550e8400-e29b-41d4-a716-446655440000",
-  "config_hash": "a1b2c3d4e5f6"
+  "agent_name": "My Agent"
 }
 ```
 
 <Note>
-This method creates a session using the current configuration of the specified agent.
+This method creates a session using the current configuration of the specified agent. To use a specific pinned version instead, pass the `version` query parameter.
+</Note>
+
+<Note>
+To delete all sessions created from a given agent, see [Delete Sessions from Agent](/api-reference/sessions/delete-from-agent), which uses the same `DELETE /api/v1/sessions/from-agent/` route.
 </Note>

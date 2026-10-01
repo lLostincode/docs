@@ -107,6 +107,10 @@ Once you have a session ID, you can execute messages and interact with your agen
 
 ## Execute a Simple Message
 
+<Warning>
+`/execute` returns one finished result — no streaming, and **no Human-in-the-Loop**. An agent with a tool gated for human approval suspends mid-run and REST has no way to answer the card. Keep tools ungated for a REST-only integration, or use the [WebSocket API](/documentation/integration/websocket-api). Details in [Human-in-the-Loop](/documentation/agent_config/human-in-the-loop).
+</Warning>
+
 Send a message to the agent and get a response:
 
 ```bash
@@ -415,5 +419,9 @@ Common errors and how to handle them:
   
   <Card title="Chatbot Integration" icon="comments" href="/documentation/integration/chatbot-integration">
     Build real-time chat interfaces
+  </Card>
+  
+  <Card title="WebSocket API" icon="bolt" href="/documentation/integration/websocket-api">
+    Streaming output and Human-in-the-Loop approvals
   </Card>
 </CardGroup>

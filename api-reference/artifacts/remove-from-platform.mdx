@@ -1,0 +1,68 @@
+---
+title: 'Remove Artifact from Knowledge Base'
+openapi: 'POST /api/v1/sessions/{session_id}/artifacts/{artifact_id}/remove-from-platform/'
+---
+
+<Warning>
+There is no endpoint to permanently delete a chat artifact from a session — artifacts are retained for the lifetime of the session that owns them. This endpoint does something narrower: it reverses a [copy-to-platform](#copying-an-artifact-to-the-knowledge-base) call, removing an **AI-generated** artifact's copy from the platform's persistent file storage (Knowledge Base). The original chat artifact is unaffected and remains in the session.
+</Warning>
+
+<ParamField path="session_id" type="string" required>
+  The session ID the artifact belongs to
+</ParamField>
+
+<ParamField path="artifact_id" type="string" required>
+  The artifact ID to remove from the Knowledge Base
+</ParamField>
+
+Only artifacts with `origin: "ai_generated"` (files the agent produced during the conversation) can be managed this way — artifacts a user uploaded cannot be copied to or removed from the platform through this route.
+
+<CodeGroup>
+```bash cURL
+curl -X POST https://api.artaios.ai/api/v1/sessions/session_abc123/artifacts/7b7a6e2a-7c7a-4a2e-9a3e-2e6e7a6e7a6e/remove-from-platform/ \
+  -H "x-api-key: YOUR_API_KEY"
+```
+
+```python Python
+import requests
+
+response = requests.post(
+    "https://api.artaios.ai/api/v1/sessions/session_abc123/artifacts/7b7a6e2a-7c7a-4a2e-9a3e-2e6e7a6e7a6e/remove-from-platform/",
+    headers={"x-api-key": "YOUR_API_KEY"},
+)
+```
+
+```javascript JavaScript
+const response = await fetch(
+  'https://api.artaios.ai/api/v1/sessions/session_abc123/artifacts/7b7a6e2a-7c7a-4a2e-9a3e-2e6e7a6e7a6e/remove-from-platform/',
+  {
+    method: 'POST',
+    headers: { 'x-api-key': 'YOUR_API_KEY' }
+  }
+);
+```
+</CodeGroup>
+
+## Response
+
+`200 OK` on success:
+
+```json
+{
+  "status": "removed"
+}
+```
+
+### Error responses
+
+<ResponseField name="400 Bad Request" type="object">
+  Returned as `{"error": "Only AI-generated artifacts can be managed"}` when the artifact's `origin` is not `ai_generated`.
+</ResponseField>
+
+<ResponseField name="404 Not Found" type="object">
+  Returned as `{"error": "Artifact not found."}` when no matching artifact exists, or `{"error": "not_found_on_platform", "message": "Artifact is not saved to Knowledge Base"}` when the artifact was never copied to the platform (or was already removed).
+</ResponseField>
+
+## Copying an artifact to the Knowledge Base
+
+This endpoint undoes `POST /api/v1/sessions/{session_id}/artifacts/{artifact_id}/copy-to-platform/`, which copies an AI-generated artifact into the platform's persistent file storage so it survives beyond the session (optionally into a specific workspace via a `version`/workspace body field). That route isn't covered in depth in this reference — see the [Artifacts overview](/api-reference/artifacts/overview) for the full endpoint table.

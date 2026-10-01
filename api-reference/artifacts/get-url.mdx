@@ -1,0 +1,70 @@
+---
+title: 'Get Presigned URL'
+openapi: 'GET /api/v1/sessions/{session_id}/artifacts/{artifact_id}/url/'
+---
+
+Return a freshly-signed download URL for an existing artifact. Use this when a previously-obtained presigned URL has expired.
+
+<ParamField path="session_id" type="string" required>
+  The session ID the artifact belongs to
+</ParamField>
+
+<ParamField path="artifact_id" type="string" required>
+  The artifact ID (the `artifact_id` returned by [Upload Artifact](/api-reference/artifacts/upload))
+</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl -X GET https://api.artaios.ai/api/v1/sessions/session_abc123/artifacts/7b7a6e2a-7c7a-4a2e-9a3e-2e6e7a6e7a6e/url/ \
+  -H "x-api-key: YOUR_API_KEY"
+```
+
+```python Python
+import requests
+
+response = requests.get(
+    "https://api.artaios.ai/api/v1/sessions/session_abc123/artifacts/7b7a6e2a-7c7a-4a2e-9a3e-2e6e7a6e7a6e/url/",
+    headers={"x-api-key": "YOUR_API_KEY"},
+)
+fresh_url = response.json()["url"]
+```
+
+```javascript JavaScript
+const response = await fetch(
+  'https://api.artaios.ai/api/v1/sessions/session_abc123/artifacts/7b7a6e2a-7c7a-4a2e-9a3e-2e6e7a6e7a6e/url/',
+  { headers: { 'x-api-key': 'YOUR_API_KEY' } }
+);
+const { url } = await response.json();
+```
+</CodeGroup>
+
+## Response
+
+`200 OK`:
+
+```json
+{
+  "url": "https://storage.example.com/company/.../report.pdf?X-Amz-Signature=..."
+}
+```
+
+<Note>
+For an artifact backed by an external reference (for example a file sourced from a connected provider rather than uploaded bytes), `url` may instead be a relative path to the download proxy, e.g. `/api/v1/sessions/{session_id}/artifacts/{artifact_id}/download/`. Treat the returned value as opaque and use it as-is.
+</Note>
+
+## URL expiry and the refresh pattern
+
+Presigned URLs default to a **4-hour** validity window. A URL captured at upload time (or stored from an earlier `execute` call) can expire if a session is long-running or resumed later. Two ways to handle this:
+
+<Steps>
+  <Step title="Carry the artifact_id, not just the URL">
+    When you build a `file` content block for [`/execute`](/api-reference/runtime/execute), include both `source.url` and `source.artifact_id`. The backend uses `artifact_id` to mint a fresh URL on its own if the one you sent has expired, so you don't always need to call this endpoint manually.
+  </Step>
+  <Step title="Refresh explicitly when needed">
+    For `image` content blocks (which carry no `artifact_id` field), or whenever you want a verified-fresh URL ahead of time, call this endpoint with the same `artifact_id` and substitute the returned `url` into your next request.
+  </Step>
+</Steps>
+
+<Note>
+This endpoint is read-only and never changes artifact state — you can call it as often as you like to re-check or refresh delivery URLs.
+</Note>

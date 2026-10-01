@@ -1,0 +1,305 @@
+---
+title: "Human-in-the-Loop (HITL)"
+description: "Pause an agent run for human approval before a tool executes"
+---
+
+Human-in-the-Loop (HITL) suspends an agent run just before a tool call and waits for a person to approve, edit or decline it. The approval card shows the tool, the arguments the model proposed, and lets the reviewer change those arguments before the tool runs.
+
+HITL is a **per-tool** gate. It is not a global switch — each tool is either gated or not, and three independent layers decide which.
+
+<Warning>
+HITL requires checkpointing. Set `persistent_state: true` on the system config, otherwise the configuration fails to compile with:
+
+```
+Human-in-the-loop is enabled for the following tool(s) but `persistent_state=False`.
+HITL needs checkpointing to suspend & resume the run; please set `persistent_state: true`
+on the system config or remove HITL from these tools.
+```
+
+The run has to be suspended and resumed later, which is impossible without a checkpointer.
+</Warning>
+
+---
+
+## Quick start
+
+Gate one tool for one agent:
+
+```yaml
+name: "Support Agent"
+persistent_state: true          # ← required for HITL
+
+agents:
+  - name: "assistant"
+    agent_type: "react_agent"
+    tools:
+      - "tavily_search"                      # plain string: no gate
+      - name: "mail_send_email"              # object form: carries hitl_config
+        tool_type: "mail_send_email"
+        hitl_config:
+          requires_human_approval: true
+          confirmation_prompt: "Send this email?"
+
+edges:
+  - from: "__start__"
+    to: "assistant"
+  - from: "assistant"
+    to: "__end__"
+entry_point: "assistant"
+```
+
+A tool entry can be either a **bare string** (no HITL config possible) or an **object**. Only the object form accepts `hitl_config`.
+
+---
+
+## The three layers
+
+Whether a given call pauses is decided by a precedence ladder. Higher layers win and cannot be turned off by lower ones.
+
+<Steps>
+  <Step title="Tool source (strongest)">
+    The tool author declares `hitl_requirement` in the tool's own code. Three values:
+
+    - `mandatory` — always pauses. Nothing can switch it off. Used for irreversible operations (delete, deactivate, financial transactions). Example: `mail_delete_email`.
+    - `default_on` — pauses by default, but **can** be switched off per instance with `disable_human_approval`. Used for consequential but reversible actions. Example: `mail_send_email`, most TwentyCRM and Jira write tools.
+    - `never` (the default) — no source-level gate. Read-only and otherwise safe tools.
+  </Step>
+  <Step title="Policy mandate">
+    `mandate_human_approval: true` forces a gate onto a tool that has no source-level declaration — typically an MCP server tool or another foreign tool whose code you do not own. Stronger than the per-instance opt-in below and cannot be ratcheted off by it.
+  </Step>
+  <Step title="Per-instance opt-in (weakest)">
+    `requires_human_approval: true` gates this particular use of the tool. Purely additive — it can never disable a gate, only add one.
+  </Step>
+</Steps>
+
+### Ratchet rules
+
+| Tool source | `requires_human_approval` | `mandate_human_approval` | `disable_human_approval` | Result |
+|---|---|---|---|---|
+| `never` | — | — | — | No pause |
+| `never` | `true` | — | — | Pauses (source `instance`) |
+| `never` | — | `true` | — | Pauses (source `policy`) |
+| `never` | — | `true` | `true` | Pauses — a policy mandate ignores the opt-out |
+| `default_on` | — | — | — | Pauses (source `tool_default`) |
+| `default_on` | — | — | `true` | **No pause** — the only case where the opt-out works |
+| `mandatory` | — | — | `true` | Pauses — `disable_human_approval` is silently ignored |
+
+<Note>
+`disable_human_approval` is honoured **only** against a `default_on` source. Against `mandatory` or against any policy mandate it is ignored without error.
+</Note>
+
+---
+
+## Configuration reference
+
+`hitl_config` sits on a tool object inside an agent's `tools` list.
+
+<ParamField path="agents[].tools[].hitl_config" type="object">
+  Per-instance Human-in-the-Loop configuration for a single use of a tool.
+
+  <Expandable title="hitl_config properties">
+    <ParamField path="requires_human_approval" type="boolean" default="false">
+      Per-instance opt-in. Pause the run for human approval when this agent uses the tool. Cannot disable a higher-precedence layer.
+    </ParamField>
+
+    <ParamField path="mandate_human_approval" type="boolean" default="false">
+      Policy-layer mandate. Force HITL on this tool even though its source declares nothing — intended for MCP and other foreign tools. Stronger than `requires_human_approval`; cannot be ratcheted off by it.
+    </ParamField>
+
+    <ParamField path="disable_human_approval" type="boolean" default="false">
+      Per-instance opt-out. Skip the source-level pause for this specific use. Honoured **only** when the tool declares `hitl_requirement: default_on`; silently ignored against `mandatory` and against any policy mandate.
+    </ParamField>
+
+    <ParamField path="confirmation_prompt" type="string">
+      Override for the text shown at the top of the approval form. Falls back to a generic prompt (`"Confirm action?"`) when omitted.
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<Warning>
+`hitl_config` rejects unknown keys. A typo (for example `require_human_approval` without the `s`) makes the whole tool config invalid and the HITL knobs are dropped — check the validation output after editing.
+</Warning>
+
+---
+
+## Examples
+
+### Gate a tool that has no source-level requirement
+
+`calculator` declares `never`. Opt in per instance:
+
+```yaml
+persistent_state: true
+agents:
+  - name: "analyst"
+    agent_type: "react_agent"
+    tools:
+      - name: "calculator"
+        tool_type: "calculator"
+        hitl_config:
+          requires_human_approval: true
+```
+
+### Skip the gate on a `default_on` tool
+
+`mail_send_email` pauses by default. In a controlled setup (sandbox mailbox only) you can turn it off:
+
+```yaml
+agents:
+  - name: "notifier"
+    agent_type: "react_agent"
+    tools:
+      - name: "mail_send_email"
+        tool_type: "mail_send_email"
+        hitl_config:
+          disable_human_approval: true
+```
+
+<Note>
+With every gate removed this way, `persistent_state: true` is no longer required by the HITL compile guard.
+</Note>
+
+### Force a gate onto an MCP tool
+
+MCP server tools have no Artaios source code to declare a requirement. Use the policy mandate:
+
+```yaml
+persistent_state: true
+agents:
+  - name: "ops"
+    agent_type: "react_agent"
+    tools:
+      - name: "deploy_service"
+        tool_type: "deploy_service"
+        hitl_config:
+          mandate_human_approval: true
+          confirmation_prompt: "Deploy to production?"
+```
+
+<Tip>
+For MCP servers added through **Settings → Tools**, Artaios already does this for you: on manifest discovery every newly-found tool that is **not** marked read-only by the server is added to the server's approval set automatically. You only need `mandate_human_approval` for tools defined directly in YAML.
+</Tip>
+
+### Separate instances, separate policies
+
+The same tool can be gated for one agent and open for another, because `hitl_config` is per instance:
+
+```yaml
+persistent_state: true
+agents:
+  - name: "drafter"
+    agent_type: "react_agent"
+    tools:
+      - name: "mail_send_email"
+        tool_type: "mail_send_email"
+        hitl_config:
+          requires_human_approval: true
+          confirmation_prompt: "Review before sending to the customer"
+
+  - name: "internal_notifier"
+    agent_type: "react_agent"
+    tools:
+      - name: "mail_send_email"
+        tool_type: "mail_send_email"
+        hitl_config:
+          disable_human_approval: true
+```
+
+---
+
+## What the reviewer sees
+
+When the gate trips, the run suspends and the client receives a `HitlRequired` event carrying everything needed to render the form: the tool name, its display name, the arguments the model proposed, and a schema for each parameter.
+
+The reviewer has three outcomes:
+
+<AccordionGroup>
+  <Accordion title="Accept" icon="circle-check">
+    The tool runs. The reviewer may edit the arguments first — edited arguments are re-validated against the tool's own schema, and a validation failure turns into an automatic decline rather than a bad call.
+  </Accordion>
+  <Accordion title="Decline" icon="circle-xmark">
+    The tool is skipped. The reviewer can attach free-text feedback ("no, do it differently and this is how"), which is surfaced to the model as the reason for the decline so it can try another route.
+  </Accordion>
+  <Accordion title="Approve for the session" icon="clock-rotate-left">
+    Accept, and additionally pre-approve every further call of the same tool for the rest of the session. Only offered for the ratchetable layers — `tool_default` and `instance`. A `mandatory` tool or a policy mandate always pauses again, and the server rejects a session-scope approval sent for one anyway.
+  </Accordion>
+</AccordionGroup>
+
+### Parameter presentation
+
+Tool authors can annotate parameters to keep the form readable. These are source-level, not YAML:
+
+| Annotation | Effect on the form |
+|---|---|
+| `show` (default) | Rendered above the fold |
+| `advanced` | Rendered inside the collapsed **Advanced** section; the value still flows through unchanged |
+| `hidden` | Not rendered at all; the proposed value flows through unchanged |
+| `readonly` | Rendered but disabled — visible for context, not editable |
+
+---
+
+## Non-interactive runs
+
+A paused run needs someone to answer. Two consequences:
+
+- **Webhook and scheduled triggers**: a tool that always pauses can never complete in a trigger with no human attached. Artaios surfaces a warning on the trigger when the agent equips a `mandatory` HITL tool.
+- **The `/execute` REST endpoint** is request/response and runs the agent to completion. There is no resume step on it — approvals are answered over the WebSocket connection. See [WebSocket API](/documentation/integration/websocket-api#human-in-the-loop-over-websocket) for the pause and resume messages.
+
+---
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Config fails to compile: HITL needs checkpointing">
+    **Cause**: a gated tool with `persistent_state: false` (the default).
+
+    **Fix**: add `persistent_state: true` at the root of the configuration, or remove the gate from the tools listed in the error.
+  </Accordion>
+
+  <Accordion title="disable_human_approval has no effect">
+    **Cause**: the tool declares `hitl_requirement: mandatory`, or a `mandate_human_approval` is also set. Both outrank the opt-out and ignore it silently.
+
+    **Fix**: nothing to configure — a `mandatory` tool is designed to always pause. Use a different tool if the gate is unacceptable.
+  </Accordion>
+
+  <Accordion title="Tool pauses although no hitl_config is set">
+    **Cause**: the tool's own source declares `default_on`. Most write-type integration tools (Mail, TwentyCRM, Jira, Scheduler) do.
+
+    **Fix**: set `disable_human_approval: true` on that tool instance if the gate is not wanted.
+  </Accordion>
+
+  <Accordion title="New message rejected while a card is open">
+    **Error**: `hitl_session_busy` — *"This session is waiting for a human-in-the-loop response."*
+
+    **Cause**: the session has an unresolved approval card. A session can hold only one open pause.
+
+    **Fix**: accept or decline the open card before sending the next user message.
+  </Accordion>
+
+  <Accordion title="Resume rejected">
+    `hitl_no_pending_pause` — nothing is waiting; the pause was already resolved or the run ended.
+
+    `hitl_tool_call_mismatch` — the `tool_call_id` sent does not match the open pause. Always echo back the id from the `HitlRequired` payload rather than caching one.
+
+    `hitl_resume_in_progress` — a resume for this pause is already being applied. Do not retry on a timeout; wait for `HitlResolved`.
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="WebSocket API" icon="bolt" href="/documentation/integration/websocket-api">
+    Pause and resume messages, and the full event protocol
+  </Card>
+  <Card title="Agent Capabilities" icon="screwdriver-wrench" href="/documentation/agent_config/agent-capabilities">
+    Tools, streaming and knowledge bases
+  </Card>
+  <Card title="YAML Configuration" icon="file-code" href="/documentation/yaml-configuration">
+    Full configuration reference
+  </Card>
+  <Card title="Tools" icon="plug" href="/documentation/studio/tools">
+    Connect integrations and MCP servers
+  </Card>
+</CardGroup>

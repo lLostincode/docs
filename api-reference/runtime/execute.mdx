@@ -3,7 +3,13 @@ title: 'Execute Message'
 openapi: 'POST /api/v1/runtime/{session_id}/execute/'
 ---
 
-Execute a message in an existing session and get the agent's response.
+Execute a message in an existing session and get the agent's response. This call runs the agent to completion and returns the result — it is not a streaming endpoint.
+
+<Warning>
+**Human-in-the-Loop is not supported on this endpoint.** There is no way to receive an approval card or send a resume over REST. If the agent equips a tool that pauses for human approval — see [Human-in-the-Loop](/documentation/agent_config/human-in-the-loop) — the run suspends with no way to answer it, and the call cannot complete normally.
+
+Either use the [WebSocket API](/documentation/integration/websocket-api#human-in-the-loop-over-websocket), or make sure no tool on the agent is gated: set `disable_human_approval: true` on tools whose source declares `default_on`, and avoid tools declared `mandatory` (those cannot be ungated at all).
+</Warning>
 
 <ParamField path="session_id" type="string" required>
   The session ID

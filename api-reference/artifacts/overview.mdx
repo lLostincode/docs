@@ -1,0 +1,95 @@
+---
+title: "Artifacts API Overview"
+description: "Upload files and images into a session and reference them in agent runs"
+---
+
+A **chat artifact** is a file attached to a single agent session — an image, PDF, DOCX, CSV, XLSX, TXT, Markdown, HTML, or JSON document that a user uploads (or that the agent itself generates) during a conversation. Artifacts are session-scoped: they live alongside the session's messages and are what the `file` and `image` content blocks on [`/execute`](/api-reference/runtime/execute) and the [WebSocket API](/documentation/integration/websocket-api) point at.
+
+## Key Features
+
+- **Multi-format upload**: images, PDFs, Office documents, spreadsheets, and plain text/JSON in one endpoint
+- **Background processing**: vision, RAG indexing, or structural parsing is chosen automatically based on file type
+- **Presigned delivery**: artifacts are served from object storage (local/S3/Azure) via short-lived URLs, refreshable on demand
+- **Knowledge Base promotion**: AI-generated artifacts can be copied into the platform's persistent file storage and later removed again
+
+## Authentication
+
+Every artifact endpoint accepts the same credentials as the rest of the API:
+- **API Key**: `x-api-key: <key>`
+- **Bearer token** (platform session)
+- **Public agent/connection key** (`agent_key` or `connection_key` query parameter together with an `Origin` header), for embedded chatbot widgets
+
+## The Upload-Then-Reference Lifecycle
+
+Artifacts are never embedded inline in a request — they're uploaded once and then referenced by id. This keeps large files out of the agent's context and lets the backend pick the right processing strategy for each file type.
+
+<Steps>
+  <Step title="Upload the file">
+    `POST` the file to [`/api/v1/sessions/{session_id}/artifacts/`](/api-reference/artifacts/upload). The response contains an `artifact_id`, a presigned `url`, and the `processing_strategy` the backend will use (vision, RAG indexing, or structural parsing).
+  </Step>
+  <Step title="Poll processing status (if needed)">
+    Document uploads are processed asynchronously — `processing_status` starts at `pending`. Poll `GET /api/v1/sessions/{session_id}/artifacts/{artifact_id}/status/` until it reports `ready` before relying on extracted text or RAG indexing. Images are typically usable immediately.
+  </Step>
+  <Step title="Reference the artifact in a content block">
+    Build a `file` or `image` content block for the `content` array on `/execute`, using the `url` from the upload response. A `file` block's `source.artifact_id` lets the backend refresh the URL automatically; see [Get Presigned URL](/api-reference/artifacts/get-url) for the manual refresh pattern.
+  </Step>
+  <Step title="Execute">
+    `POST /api/v1/runtime/{session_id}/execute/` with the content array. See [Execute Message](/api-reference/runtime/execute) for the full request shape.
+  </Step>
+</Steps>
+
+<Note>
+Presigned URLs are not permanent — they default to a 4-hour validity window. If a session is reused later and the stored URL has expired, call the `url` endpoint again with the same `artifact_id` to mint a fresh one rather than re-uploading the file.
+</Note>
+
+## Available Endpoints
+
+Three of the nine artifact routes get their own page because they cover the full lifecycle a typical integration needs — upload, refresh the delivery URL, and manage a Knowledge Base copy:
+
+<CardGroup cols={2}>
+  <Card title="Upload Artifact" icon="upload" href="/api-reference/artifacts/upload">
+    Upload a file as a session-scoped artifact
+  </Card>
+  <Card title="Get Presigned URL" icon="link" href="/api-reference/artifacts/get-url">
+    Refresh an expired download URL for an existing artifact
+  </Card>
+  <Card title="Remove from Knowledge Base" icon="rotate-left" href="/api-reference/artifacts/remove-from-platform">
+    Undo a copy-to-platform for an AI-generated artifact
+  </Card>
+</CardGroup>
+
+The remaining six routes exist and are fully functional, but are listed here for completeness rather than documented in depth:
+
+| Method | Path | What it does |
+|---|---|---|
+| `POST` | `/api/v1/sessions/{session_id}/artifacts/` | Upload a file as a chat artifact — see [Upload Artifact](/api-reference/artifacts/upload) |
+| `GET` | `/api/v1/sessions/{session_id}/artifacts/{artifact_id}/status/` | Poll processing and RAG-index status |
+| `GET` | `/api/v1/sessions/{session_id}/artifacts/{artifact_id}/url/` | Refresh the presigned download URL — see [Get Presigned URL](/api-reference/artifacts/get-url) |
+| `GET` | `/api/v1/sessions/{session_id}/artifacts/download-all/` | Download every artifact in the session as a single ZIP archive |
+| `GET` | `/api/v1/sessions/{session_id}/artifacts/{artifact_id}/download/` | Proxy-download one artifact's raw bytes (`?preview=1` for inline display) |
+| `GET` | `/api/v1/sessions/{session_id}/artifacts/{artifact_id}/preview/` | Structured preview (sheets/headers/sample rows) for a CSV or XLSX artifact |
+| `GET` | `/api/v1/artifacts/{id}/` | Full artifact details (read-only — this route accepts no other verb) |
+| `POST` | `/api/v1/sessions/{session_id}/artifacts/{artifact_id}/copy-to-platform/` | Copy an AI-generated artifact into the platform's persistent Knowledge Base storage |
+| `POST` | `/api/v1/sessions/{session_id}/artifacts/{artifact_id}/remove-from-platform/` | Undo the above — see [Remove from Knowledge Base](/api-reference/artifacts/remove-from-platform) |
+
+<Note>
+There is no endpoint that permanently deletes a chat artifact from a session. Artifacts live for the lifetime of their session; "Remove from Knowledge Base" only reverses a `copy-to-platform` call for AI-generated files.
+</Note>
+
+## Supported File Types
+
+<Tabs>
+  <Tab title="Images">
+    `.png`, `.jpg` / `.jpeg`, `.webp`, `.gif`, `.bmp`
+  </Tab>
+  <Tab title="Documents">
+    `.pdf`, `.docx`, `.doc`, `.txt`, `.md`, `.html`
+  </Tab>
+  <Tab title="Data">
+    `.csv`, `.xlsx`, `.xls`, `.json`
+  </Tab>
+</Tabs>
+
+<Warning>
+Maximum upload size is 50 MB. Uploads above that limit are rejected with `413 Request Entity Too Large`.
+</Warning>

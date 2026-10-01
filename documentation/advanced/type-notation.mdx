@@ -1,0 +1,190 @@
+---
+title: "Type Notation"
+description: "The BAML-style type notation shared by structured output schemas and the variables system, including coercion and nullability rules"
+---
+
+Both [Structured Output](/documentation/advanced/structured-output) schema fields and [Variables](/documentation/advanced/variables-system) share a single type system. A `VariableDefinition` extends the same `SchemaFieldDefinition` base that structured output fields use — that's why a `type` string written for a schema field and a `type` string written for a variable follow identical rules, are parsed by the same type parser, and are coerced by the same logic. This page is the single reference for that notation.
+
+<Info>
+Type strings are parsed with Python's `ast` module (no `eval`), then handed to Pydantic for runtime validation. Only the forms documented below are recognized — anything else raises a parse error.
+</Info>
+
+## Scalars
+
+<ParamField path="str" type="type">
+  Text data.
+</ParamField>
+
+<ParamField path="int" type="type">
+  Integer numbers.
+</ParamField>
+
+<ParamField path="float" type="type">
+  Decimal numbers.
+</ParamField>
+
+<ParamField path="bool" type="type">
+  Boolean values (`true`/`false`).
+</ParamField>
+
+<ParamField path="Any" type="type">
+  Accepts any value, no validation. Both `Any` and `any` are accepted spellings.
+</ParamField>
+
+<Note>
+**Enum types are not supported.** Use `str` with a clear description, and steer allowed values through the system prompt.
+</Note>
+
+## Collections
+
+<ParamField path="list[T]" type="type">
+  A list of items of type `T`, e.g. `list[str]`, `list[int]`.
+</ParamField>
+
+<ParamField path="dict[K, V]" type="type">
+  A mapping from keys of type `K` to values of type `V`, e.g. `dict[str, int]`.
+</ParamField>
+
+Bare `list` and `dict` (with no type arguments) are also valid.
+
+Collections nest to arbitrary depth — the parser recurses through subscripts, so `dict[str, list[int]]`, `list[dict[str, float]]`, and deeper combinations all parse correctly:
+
+```yaml
+scores_by_category:
+  type: "dict[str, list[float]]"
+  description: "Category name to list of scores"
+```
+
+## Nullability
+
+<ParamField path="T | None" type="type">
+  Optional/nullable value of type `T`. `None | T` (reversed order) works identically.
+</ParamField>
+
+<ParamField path="Optional[T]" type="type">
+  Equivalent alternate spelling for `T | None`.
+</ParamField>
+
+A third spelling is also accepted because the parser maps `Union` directly: `Union[T, None]` parses to the same nullable type as `T | None` and `Optional[T]`.
+
+<Warning>
+Capitalization matters. `Optional` and `Union` must be capitalized exactly as shown — `optional[str]` or `union[str, None]` are rejected as unknown types. Likewise, the generic container keywords are lowercase: `list` and `dict`, not `List` or `Dict`. Typing-module-style capitalized generics (`List[str]`, `Dict[str, int]`) are **not** supported — the parser only knows the lowercase builtins.
+</Warning>
+
+General, non-nullable unions are also accepted (e.g. `str | int`), though in practice nullable forms (`T | None`) are by far the most common use.
+
+## Coercion rules
+
+Coercion only applies to **variables** — specifically when a value is assigned to a variable via `variable_assignments`, a runtime input, or a checkpoint-restored value. Structured output fields are produced by the model directly and validated by BAML; they are not run through this coercion step.
+
+| Target type | Accepted inputs | Behavior |
+|---|---|---|
+| `int` | `int`, numeric string (`"42"`) | `int(value)`. A string like `"3.14"` fails (not an int literal) and falls back to the raw value. |
+| `float` | `int`, `float`, numeric string (`"3.14"`) | `float(value)`. |
+| `bool` | `"true"` / `"1"` → `True`; `"false"` / `"0"` → `False` (case-insensitive, whitespace-trimmed) | Any other string falls through to Python's `bool(value)` truthiness — e.g. `"no"` becomes `True` because it's a non-empty string. Non-string values use plain `bool(value)`. |
+| `dict`, `list`, `list[T]` | JSON string, or already the right Python type | If the value is a string, it's parsed with `json.loads`. If that fails, the original string is returned unchanged — silently, with no warning logged. |
+| `str` | Anything | `str(value)`. This essentially always succeeds. |
+| `T \| None` / `Optional[T]` | Same as `T`, plus `None` | `None` short-circuits immediately and is returned as-is. Otherwise the `None` member is stripped and the value is coerced against the inner type `T`. |
+
+<Warning>
+If coercion raises (only possible for `int`/`float`/`bool` conversions), the system logs:
+
+```
+Type coercion failed for variable '{var_name}'. Expected '{expected_type}', got '{type(value).__name__}'. Falling back to raw value.
+```
+
+and keeps the original, uncoerced value rather than failing the run.
+</Warning>
+
+## Nullability interaction: variables vs. structured output
+
+This is the one interaction worth understanding before you rely on `null` values flowing between agents.
+
+<Steps>
+  <Step title="A null field does not overwrite a non-nullable variable">
+    When a `variable_assignments` entry reads a structured output field that the model set to `null`, and the **variable's** declared type is not nullable (no `None`/`Optional[...]` in its `type`), the assignment is skipped entirely — the variable keeps whatever value it already had. The system logs:
+
+    ```
+    Agent '{agent_name}' returned null for '{field_path}'; keeping previous value of non-nullable variable '{var_name}'
+    ```
+
+    This exists because a `None` value assigned into a non-nullable variable would otherwise be rejected the next time variables are assembled (e.g. on the following execution, once it's been through a checkpoint), failing the whole session.
+  </Step>
+  <Step title="The structured output layer tolerates null on any field, regardless of notation">
+    Internally, every structured output field is marked optional at the BAML schema-building layer, even if you declared it as a plain non-nullable type like `str`. This is deliberate: without it, a model returning `null` for a field typed `str` would hard-fail the generation call (`Expected string, got null`) for the entire agent turn. So declaring a structured output field as `T | None` is **not** required merely to keep BAML from rejecting the model's `null` — the runtime already tolerates that for every field.
+  </Step>
+  <Step title="Declare both sides nullable anyway, if null is meaningful">
+    To actually *store and use* a null result, declare the **variable's** type nullable (`float | None`, not `float`) — that's what determines whether the assignment in Step 1 is skipped or allowed through. Declaring the structured output field as `T | None` too keeps the schema's intent explicit and matches the variable it feeds, even though the BAML layer would tolerate `null` either way.
+  </Step>
+</Steps>
+
+```yaml
+structured_output:
+  schema:
+    discount:
+      type: "float | None"          # explicit: this field may legitimately be absent
+      description: "Discount percentage, or null if none applies"
+
+variables:
+  applied_discount:
+    type: "float | None"            # must be nullable, or a null result is silently skipped
+    default: 0.0
+
+agents:
+  - name: "pricer"
+    variable_assignments:
+      applied_discount: "pricer.output.discount"
+```
+
+## Common errors
+
+<AccordionGroup>
+  <Accordion title="Cannot parse type string '...'">
+    The type string isn't valid Python expression syntax at all. Exact message:
+
+    ```
+    Cannot parse type string '{type_str}': {error}. Valid examples: 'str', 'list[str]', 'dict[str, int]'
+    ```
+  </Accordion>
+
+  <Accordion title="Unknown type '...'">
+    The base name isn't one of the recognized keywords (`str`, `int`, `float`, `bool`, `list`, `dict`, `any`/`Any`, `Optional`, `Union`). This is the error you'll hit for things like `List[str]`, `enum[...]`, or a typo. Exact message:
+
+    ```
+    Unknown type '{type_name}'. Valid types: ['str', 'int', 'float', 'bool', 'list', 'dict', 'any', 'Any', 'Optional', 'Union']
+    ```
+  </Accordion>
+
+  <Accordion title="Invalid type '...'">
+    The string parsed into a type, but Pydantic couldn't build a validator for it. Exact message: `Invalid type '{type_str}': {error}`.
+  </Accordion>
+
+  <Accordion title="Variable has invalid BAML type">
+    Raised at config-validation time for a variable whose `type` doesn't parse. Exact message:
+
+    ```
+    Variable '{var_name}' has invalid BAML type '{type}'
+       💡 Common types: str, int, float, bool, str[], int[], dict
+       Error: {error}
+    ```
+
+    <Note>
+    The hint text in this message is misleading — `str[]`/`int[]` are not valid notation. Use `list[str]`/`list[int]` instead.
+    </Note>
+  </Accordion>
+
+  <Accordion title="'{field}' expected {type}, got {type}">
+    Raised when a variable's current value doesn't match its declared type after coercion (for example, a non-nullable variable ended up holding `None`, or a static assignment can't be coerced into the declared type).
+  </Accordion>
+</AccordionGroup>
+
+## Used by
+
+<CardGroup cols={2}>
+  <Card title="Structured Output" icon="database" href="/documentation/advanced/structured-output">
+    Define typed fields the agent must extract.
+  </Card>
+  <Card title="Variables" icon="code" href="/documentation/advanced/variables-system">
+    Define typed values threaded through prompts and assignments.
+  </Card>
+</CardGroup>

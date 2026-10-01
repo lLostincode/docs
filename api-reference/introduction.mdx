@@ -50,6 +50,15 @@ For a comprehensive interactive API reference, visit the [Swagger Documentation]
   </Accordion>
 </AccordionGroup>
 
+## REST Limitations
+
+This REST API is request/response. Two things it cannot do:
+
+- **Streaming** — `/execute` runs the agent to completion and returns one result. There is no token-by-token output and no visibility into tool calls while they happen.
+- **Human-in-the-Loop** — approval cards cannot be delivered or answered over REST. An agent with a gated tool suspends mid-run with nothing able to resume it.
+
+Both are available on the [WebSocket API](/documentation/integration/websocket-api). For a REST-only integration, keep every tool on the agent ungated — see [Human-in-the-Loop](/documentation/agent_config/human-in-the-loop).
+
 ## Getting Started
 
 <Steps>

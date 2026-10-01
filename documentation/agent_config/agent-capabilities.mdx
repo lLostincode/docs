@@ -206,6 +206,31 @@ agents:
   </Accordion>
 </AccordionGroup>
 
+### Human Approval on Tools
+
+The object form of a tool entry also accepts `hitl_config`, which pauses the run for human approval before the tool executes:
+
+```yaml
+persistent_state: true          # ← required when any tool uses HITL
+
+agents:
+  - name: "assistant"
+    agent_type: "react_agent"
+    tools:
+      - "tavily_search"
+      - name: "mail_send_email"
+        tool_type: "mail_send_email"
+        hitl_config:
+          requires_human_approval: true
+          confirmation_prompt: "Send this email?"
+```
+
+Many write-type integration tools (Mail, TwentyCRM, Jira, Scheduler) already pause by default, and some irreversible ones always do regardless of configuration.
+
+<Card title="Human-in-the-Loop" icon="user-check" href="/documentation/agent_config/human-in-the-loop">
+  The precedence rules, every `hitl_config` option, and how approvals are answered
+</Card>
+
 ### Tool Calling Configuration
 
 <ParamField path="max_iterations" type="integer" default="10">
@@ -440,7 +465,7 @@ When streaming is enabled, the system emits these event types:
 Agents can access knowledge bases to retrieve domain-specific information and documents. Both **LLM agents** and **ReAct agents** support knowledge base integration.
 
 <Tip>
-For comprehensive knowledge base configuration details, see the [Knowledge Base Setup](/documentation/knowledge-base-setup) guide.
+For comprehensive knowledge base configuration details, see the [Knowledge Base Setup](/documentation/agent_config/knowledge-base-setup) guide.
 </Tip>
 
 ### Available Knowledge Base Types

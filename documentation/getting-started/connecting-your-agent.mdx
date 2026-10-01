@@ -264,7 +264,18 @@ Content-Type: application/json
 
 ## Direct WebSocket Integration
 
-Currently only supported with the embedded chatbot. Please let us know if you need this feature.
+Connect to `wss://api.artaios.ai/ws/amas/` for token-by-token streaming, tool-call visibility, and Human-in-the-Loop approval cards. This is the same transport the Playground and the embedded chatbot use. A session must already exist — create it over REST as shown above, then subscribe.
+
+Use it instead of `/execute` when you need any of:
+
+- Streamed assistant text rather than one final response
+- Visibility into tool calls, reasoning steps and knowledge-base lookups while they happen
+- Human-in-the-Loop approvals — `/execute` cannot answer an approval card
+- Cancelling a running execution
+
+<Card title="WebSocket API" icon="bolt" href="/documentation/integration/websocket-api">
+  Authentication, message protocol, event types, variables and HITL
+</Card>
 
 ---
 

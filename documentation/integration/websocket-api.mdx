@@ -1,0 +1,653 @@
+---
+title: "WebSocket API"
+description: "Stream agent runs in real time, pass variables, and answer approval cards"
+---
+
+The WebSocket API is the streaming transport behind the Playground and the embedded chatbot. Use it directly when you build your own frontend and need token-by-token output, tool-call visibility, or Human-in-the-Loop approval cards — none of which the request/response [`/execute`](/api-reference/runtime/execute) endpoint can deliver.
+
+<Info>
+**Endpoint**: `wss://api.artaios.ai/ws/amas/`
+
+A session must already exist. Create one over REST first — see [Connecting Your Agent](/documentation/getting-started/connecting-your-agent#step-1-create-a-session).
+</Info>
+
+---
+
+## Authentication
+
+Pick whichever fits your client. The connection is rejected (close code `4003`) when none of them authenticates.
+
+<Tabs>
+  <Tab title="API key (server-side)">
+    Send your API key as a header on the upgrade request:
+
+    ```
+    x-api-key: YOUR_API_KEY
+    ```
+
+    Browsers cannot set headers on a `WebSocket`, so this works only from a server-side client (Node, Python, Go …).
+  </Tab>
+
+  <Tab title="JWT (browser)">
+    Pass the platform access token as a query parameter, since headers are unavailable in the browser:
+
+    ```
+    wss://api.artaios.ai/ws/amas/?authorization=Bearer%20<access_token>
+    ```
+
+    The `Bearer ` prefix is optional — the raw token works too.
+  </Tab>
+
+  <Tab title="Agent key (public agent)">
+    For an agent with **Public Access** enabled, authenticate with its agent key:
+
+    ```
+    wss://api.artaios.ai/ws/amas/?agent_key=<agent_key>
+    ```
+
+    The allowed origin configured in Agent Settings is enforced on the handshake.
+  </Tab>
+</Tabs>
+
+### End-user identity (optional)
+
+When the agent has External Auth configured, send your own end user's JWT as a header on the handshake:
+
+```
+X-External-User-Token: <end_user_jwt>
+```
+
+It is validated against the agent's identity-provider configuration on connect, and must then be repeated on **every** `user_message` as `ext_token` — otherwise the message is rejected with `missing_ext_token`. See [External Authentication](/documentation/studio/external-auth).
+
+### Close codes
+
+| Code | Meaning |
+|---|---|
+| `4000` | External token could not be decoded, or no agent resolvable for the connection |
+| `4001` | Invalid external token |
+| `4003` | Permission denied |
+
+---
+
+## Message envelope
+
+Every message in both directions carries `type` and `client_type`.
+
+<ParamField body="type" type="string" required>
+  Message type discriminator.
+</ParamField>
+
+<ParamField body="client_type" type="string" required>
+  Who is speaking: `web_frontend`, `mobile_frontend`, `desktop_frontend`, `api`, or `backend`. Server-to-client messages are always `backend`.
+</ParamField>
+
+<Warning>
+`client_type` is **required** on every client message. Omitting it fails with `missing_client_type`.
+</Warning>
+
+---
+
+## Connection flow
+
+<Steps>
+  <Step title="Create a session over REST">
+    `GET /api/v1/sessions/from-agent/?agent_key=…` or `POST /api/v1/sessions/`. Keep the returned `session_id`.
+  </Step>
+  <Step title="Open the socket and subscribe">
+    Send `connect` with the `session_id`. The session is validated against your credentials; an unknown or inaccessible session returns `invalid_session`.
+  </Step>
+  <Step title="Send user messages">
+    Send `user_message` and read the `event` stream until `ExecutionFinished`.
+  </Step>
+  <Step title="Answer any approval card">
+    If a `HitlRequired` event arrives, the run is suspended until you send `hitl_response`.
+  </Step>
+</Steps>
+
+---
+
+## Client messages
+
+### `connect`
+
+Subscribe to a session's event stream.
+
+```json
+{
+  "type": "connect",
+  "client_type": "api",
+  "session_id": "sess_abc123xyz",
+  "event_types": ["*"]
+}
+```
+
+<ParamField body="session_id" type="string" required>
+  The session to subscribe to.
+</ParamField>
+
+<ParamField body="event_types" type="array" default='["*"]'>
+  Event types to receive. `["*"]` subscribes to everything.
+</ParamField>
+
+### `user_message`
+
+Run the agent on a user turn. This is also where **variables** are supplied.
+
+```json
+{
+  "type": "user_message",
+  "client_type": "api",
+  "session_id": "sess_abc123xyz",
+  "content": "Help me with my order",
+  "inputs": {
+    "current_user_id": "user_123",
+    "current_department": "support",
+    "current_query": "Help me with my order"
+  },
+  "correlation_id": "req-42",
+  "timezone": "Europe/Berlin"
+}
+```
+
+<ParamField body="content" type="string | array" required>
+  The user turn. A plain string, or an array of multimodal content blocks (`text`, `image`, `file`) — the same shapes the REST endpoint accepts.
+</ParamField>
+
+<ParamField body="inputs" type="object">
+  Variable values for this execution, keyed by variable name. Readable in prompts as `{{ variables.key }}`. See [Variables over WebSocket](#variables-over-websocket).
+</ParamField>
+
+<ParamField body="artifacts" type="array">
+  `ChatArtifact` UUIDs attached to this message. The backend resolves them to presigned URLs and injects them into the agent context.
+</ParamField>
+
+<ParamField body="correlation_id" type="string">
+  Echoed back on every event produced by this turn, so you can attribute events to the request that caused them.
+</ParamField>
+
+<ParamField body="timezone" type="string">
+  IANA timezone of the end user, e.g. `Europe/Berlin`. Used to render the agent's current time. Defaults to `Europe/Berlin`.
+</ParamField>
+
+<ParamField body="ext_token" type="string">
+  The end user's external JWT. **Required on every message** when the session was created with an external identity.
+</ParamField>
+
+### `hitl_response`
+
+Answer an open approval card. See [Human-in-the-Loop over WebSocket](#human-in-the-loop-over-websocket).
+
+### `cancel_execution`
+
+Stop the running execution for this session.
+
+```json
+{
+  "type": "cancel_execution",
+  "client_type": "api",
+  "session_id": "sess_abc123xyz"
+}
+```
+
+### `reconnect`
+
+Resubscribe after a dropped connection and replay what you missed.
+
+```json
+{
+  "type": "reconnect",
+  "client_type": "api",
+  "session_id": "sess_abc123xyz",
+  "last_message_id": "1738249102371-0"
+}
+```
+
+<ParamField body="last_message_id" type="string" required>
+  The `message_id` of the last event you processed. Events are replayed from there.
+</ParamField>
+
+### `disconnect`
+
+Unsubscribe gracefully.
+
+```json
+{
+  "type": "disconnect",
+  "client_type": "api",
+  "session_id": "sess_abc123xyz"
+}
+```
+
+---
+
+## Server messages
+
+Three wrappers come back from the server, all with `client_type: "backend"`.
+
+### `event`
+
+The workhorse. Wraps one agent event.
+
+```json
+{
+  "type": "event",
+  "client_type": "backend",
+  "message_id": "1738249102371-0",
+  "prev_message_id": "1738249102340-0",
+  "payload": {
+    "type": "TextMessageContent",
+    "messageId": "9f2c…",
+    "run_id": "run_1",
+    "delta": "Based on your order",
+    "timestamp": "2026-10-01T10:31:00.123456+00:00",
+    "correlation_id": "req-42"
+  }
+}
+```
+
+<ParamField body="payload" type="object">
+  The event itself. `payload.type` selects the shape — see [Event types](#event-types).
+</ParamField>
+
+<ParamField body="message_id" type="string">
+  Stream entry id, monotonic per session. Use it to deduplicate replayed events after a `reconnect`, and as `last_message_id` on the next reconnect.
+</ParamField>
+
+<ParamField body="prev_message_id" type="string">
+  Entry id of the immediately preceding event, so a gap in the stream is detectable precisely. `null` for the first event of a turn.
+</ParamField>
+
+### `error`
+
+```json
+{
+  "type": "error",
+  "client_type": "backend",
+  "message": "Session sess_x not found or access denied",
+  "error_code": "invalid_session"
+}
+```
+
+### `execution_result`
+
+The terminal summary of a turn — the same shape the REST `/execute` endpoint returns.
+
+---
+
+## Event types
+
+`payload.type` is one of the following. Every event carries `timestamp` and an optional `correlation_id`.
+
+<AccordionGroup>
+  <Accordion title="Lifecycle" icon="play">
+    `ExecutionStarted` · `ExecutionFinished` · `ExecutionCancelled` · `ExecutionError` · `RunStarted` · `RunFinished` · `RunError` · `StepStarted` · `StepFinished`
+
+    `ExecutionFinished` carries `finish_reason` (`stop`, `length`, `content_filter`, `tool_calls`, `error`) and a `usage` object with token counts and a cost estimate.
+  </Accordion>
+
+  <Accordion title="Assistant text" icon="message">
+    `TextMessageStart` → `TextMessageContent` (repeated) → `TextMessageEnd`, plus `MessageError`.
+
+    Each carries `messageId` and `run_id`; `TextMessageContent.delta` is the chunk to append. Group by `messageId`, not by arrival order.
+  </Accordion>
+
+  <Accordion title="Reasoning and progress" icon="brain">
+    `ThinkingStart` · `ThinkingContent` · `ThinkingEnd` · `ProcessStep` · `AgentIntroductionStart` · `AgentIntroductionContent` · `AgentIntroductionEnd`
+  </Accordion>
+
+  <Accordion title="Tool calls" icon="screwdriver-wrench">
+    `ToolCallStart` · `ToolCallArgs` · `ToolCallEnd` · `ToolCallResult` · `ToolCallError`
+  </Accordion>
+
+  <Accordion title="Human-in-the-Loop" icon="user-check">
+    `HitlRequired` · `HitlResolved`
+  </Accordion>
+
+  <Accordion title="Knowledge base and memory" icon="database">
+    `QueryGenerationStart` · `QueryGenerationResult` · `QueryGenerationEnd` · `QueryGenerationError` · `KnowledgeBaseCallStart` · `KnowledgeBaseCallArgs` · `KnowledgeBaseCallResult` · `KnowledgeBaseCallEnd` · `KnowledgeBaseCallError` · `MemoryCallStart` · `MemoryCallResult` · `MemoryCallEnd` · `MemoryCallError`
+  </Accordion>
+
+  <Accordion title="LLM and state" icon="chart-line">
+    `LLMCallStarted` · `LLMCallCompleted` · `LLMCallError` · `StateSnapshot` · `StateDelta` · `MessagesSnapshot` · `ConditionChecked` · `ConditionError` · `Raw` · `Custom`
+  </Accordion>
+</AccordionGroup>
+
+<Tip>
+Treat unknown `payload.type` values as ignorable. New event types are added without a protocol version bump.
+</Tip>
+
+---
+
+## Variables over WebSocket
+
+Variables work exactly as they do over REST — the `inputs` object on `user_message` is the WebSocket equivalent of the REST body's `inputs`. Keys must match variable names declared in the agent's `variables` block.
+
+Given this configuration:
+
+```yaml
+persistent_state: true
+
+variables:
+  current_user_id:
+    type: "str"
+    required: true
+    description: "Provide once; persists via checkpoint"
+
+  current_query:
+    type: "str"
+    require_every_execution: true
+    description: "Must be provided on every execution"
+
+  company_name:
+    type: "str"
+    default: "ACME Corporation"
+```
+
+First turn — supply the session-level variable along with the request-level one:
+
+```json
+{
+  "type": "user_message",
+  "client_type": "api",
+  "session_id": "sess_abc123xyz",
+  "content": "Where is my order?",
+  "inputs": {
+    "current_user_id": "user_123",
+    "current_query": "Where is my order?"
+  }
+}
+```
+
+Later turns — only the request-level variable is needed; `current_user_id` was checkpointed:
+
+```json
+{
+  "type": "user_message",
+  "client_type": "api",
+  "session_id": "sess_abc123xyz",
+  "content": "And the second item?",
+  "inputs": {
+    "current_query": "And the second item?"
+  }
+}
+```
+
+Rules worth repeating:
+
+- `inputs` **overrides** a variable's `default` for that execution.
+- A variable with `required: true` must arrive on the first execution; it then persists while `persistent_state: true`.
+- A variable with `require_every_execution: true` ignores the checkpoint and must be sent every turn.
+- Values are coerced to the declared type: `"70.5"` for a `float` becomes `70.5`. An uncoercible value fails the execution with `'score' expected float, got str`.
+- Keys not declared in `variables` are ignored.
+
+<Card title="Variables System" icon="brackets-curly" href="/documentation/advanced/variables-system">
+  Types, defaults, assignment from structured output, and template syntax
+</Card>
+
+---
+
+## Human-in-the-Loop over WebSocket
+
+WebSocket is the only transport that can answer an approval card. Configure the gate in YAML first — see [Human-in-the-Loop](/documentation/agent_config/human-in-the-loop).
+
+### 1. The run pauses
+
+A `HitlRequired` event arrives and the execution suspends. Nothing further happens until you respond.
+
+```json
+{
+  "type": "event",
+  "client_type": "backend",
+  "message_id": "1738249102400-0",
+  "payload": {
+    "type": "HitlRequired",
+    "session_id": "sess_abc123xyz",
+    "execution_id": "exec_456",
+    "payload": {
+      "kind": "approval",
+      "tool_call_id": "call_8f21",
+      "tool_name": "mail_send_email",
+      "display_name": "Mail: Send Email",
+      "agent_name": "assistant",
+      "display_text": "Send this email?",
+      "session_id": "sess_abc123xyz",
+      "execution_id": "exec_456",
+      "run_id": "run_1",
+      "archetype": "generic"
+    }
+  }
+}
+```
+
+The inner `payload.kind` discriminates the pause:
+
+| `kind` | Meaning | Answer with |
+|---|---|---|
+| `approval` | Approve a tool call before it runs | `accept` / `decline` |
+| `connection_required` | User must finish OAuth for a brokered integration (Outlook, Teams …) | `accept` after the popup completes / `decline` |
+| `uknow_connection_required` | User must connect cloud storage (SharePoint, OneDrive, Google Drive, Confluence) | `accept` with `tool_args.connection_id` / `decline` |
+| `mail_connection_required` | User must connect a mail account | `accept` / `decline` |
+| `api_key_connection_required` | User must type a toolkit API key into a form rather than into chat | `accept` with `tool_args.connection_id` / `decline` |
+| `oauth_integration_required` | User must enter a company OAuth app's client id and secret | `accept` with `tool_args.company_integration_id` / `decline` |
+| `ask_user_question` | The agent asks the user a question | `answer` |
+
+<Note>
+A session holds at most one open pause. Sending a `user_message` while a card is open is rejected with `hitl_session_busy`.
+</Note>
+
+### 2. You respond
+
+```json
+{
+  "type": "hitl_response",
+  "client_type": "api",
+  "session_id": "sess_abc123xyz",
+  "tool_call_id": "call_8f21",
+  "data": { "kind": "accept" }
+}
+```
+
+<ParamField body="tool_call_id" type="string" required>
+  Must match the `tool_call_id` from the open `HitlRequired` payload. A mismatch is rejected with `hitl_tool_call_mismatch` — this is what stops stale and cross-session resumes.
+</ParamField>
+
+<ParamField body="data" type="object" required>
+  The typed response, discriminated by `kind`.
+
+  <Expandable title="data.kind = accept">
+    <ParamField body="tool_args" type="object">
+      Replaces the arguments the model proposed. Re-validated against the tool's own schema; on validation failure the runtime synthesises a decline rather than making a bad call.
+    </ParamField>
+    <ParamField body="scope" type="string" default="once">
+      `once` approves only this call. `session` additionally pre-approves every further call of the same tool for the rest of the session — honoured only for the ratchetable layers (`tool_default`, `instance`) and rejected server-side for a `mandatory` tool or a policy mandate.
+    </ParamField>
+    <ParamField body="pause_kind" type="string">
+      Which pause you are answering. Set it when the same turn can raise both a connect pause and an approval pause, so the two are not confused.
+    </ParamField>
+  </Expandable>
+
+  <Expandable title="data.kind = decline">
+    <ParamField body="feedback" type="string">
+      Why the user declined, or what they wanted instead. Surfaced to the model so it can take another route.
+    </ParamField>
+    <ParamField body="pause_kind" type="string">
+      As above.
+    </ParamField>
+  </Expandable>
+
+  <Expandable title="data.kind = answer">
+    For an `ask_user_question` pause. **At least one** of the two is required.
+    <ParamField body="selected_option" type="string">
+      One of the offered options.
+    </ParamField>
+    <ParamField body="text" type="string">
+      Free-form answer text.
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+Accept with edited arguments:
+
+```json
+{
+  "type": "hitl_response",
+  "client_type": "api",
+  "session_id": "sess_abc123xyz",
+  "tool_call_id": "call_8f21",
+  "data": {
+    "kind": "accept",
+    "tool_args": {
+      "to": ["customer@example.com"],
+      "subject": "Your order #12345",
+      "body": "Reviewed and corrected before sending."
+    },
+    "scope": "once"
+  }
+}
+```
+
+Decline with feedback:
+
+```json
+{
+  "type": "hitl_response",
+  "client_type": "api",
+  "session_id": "sess_abc123xyz",
+  "tool_call_id": "call_8f21",
+  "data": {
+    "kind": "decline",
+    "feedback": "Do not email the customer — open an internal ticket instead."
+  }
+}
+```
+
+### 3. The run resumes
+
+A `HitlResolved` event reports the outcome — `accepted`, `declined`, `validation_failed` or `answered` — and the stream continues.
+
+<Warning>
+Do not retry a `hitl_response` on a timeout. A duplicate is rejected with `hitl_resume_in_progress`; wait for `HitlResolved` instead.
+</Warning>
+
+---
+
+## Error codes
+
+Returned on the `error` message as `error_code`.
+
+| Code | Cause |
+|---|---|
+| `missing_client_type` | `client_type` omitted |
+| `unknown_message_type` | `type` is not a recognised client message |
+| `invalid_message_format` | Payload failed schema validation |
+| `invalid_session` | Session does not exist, or your credentials cannot access it |
+| `not_subscribed` | A message arrived before `connect` |
+| `connect_failed` / `reconnect_failed` / `disconnect_failed` | The corresponding handler failed |
+| `session_id_not_found` | No session could be resolved for the connection |
+| `empty_content` | `user_message.content` carries no usable turn |
+| `missing_ext_token` | Session has an external identity but `ext_token` was not sent |
+| `execution_start_failed` / `execution_error` | The run could not be started, or failed while starting |
+| `execution_cancel_failed` / `execution_cancel_error` | Cancellation failed |
+| `user_message_failed` | The user message could not be handled |
+| `hitl_session_busy` | A `user_message` arrived while an approval card is open |
+| `hitl_no_pending_pause` | No pause is waiting; it was already resolved or the run ended |
+| `hitl_tool_call_mismatch` | `tool_call_id` does not match the open pause |
+| `hitl_resume_in_progress` | A resume for this pause is already being applied |
+| `hitl_forward_failed` / `hitl_response_failed` / `hitl_error` | The resume could not be delivered or applied |
+| `processing_error` / `internal_server_error` | Unexpected server-side failure |
+
+---
+
+## Full example
+
+```python
+import asyncio, json, websockets, requests
+
+API_KEY = "YOUR_API_KEY"
+BASE = "https://api.artaios.ai/api/v1"
+
+# 1. Create a session over REST
+session = requests.get(
+    f"{BASE}/sessions/from-agent/",
+    params={"agent_key": "agent_abc123"},
+    headers={"x-api-key": API_KEY},
+).json()
+session_id = session["session_id"]
+
+
+async def run(prompt: str, inputs: dict):
+    async with websockets.connect(
+        "wss://api.artaios.ai/ws/amas/",
+        additional_headers={"x-api-key": API_KEY},
+    ) as ws:
+        await ws.send(json.dumps({
+            "type": "connect",
+            "client_type": "api",
+            "session_id": session_id,
+            "event_types": ["*"],
+        }))
+
+        await ws.send(json.dumps({
+            "type": "user_message",
+            "client_type": "api",
+            "session_id": session_id,
+            "content": prompt,
+            "inputs": inputs,
+            "correlation_id": "req-1",
+        }))
+
+        async for raw in ws:
+            msg = json.loads(raw)
+
+            if msg["type"] == "error":
+                raise RuntimeError(f"{msg['error_code']}: {msg['message']}")
+
+            if msg["type"] != "event":
+                continue
+
+            event = msg["payload"]
+
+            if event["type"] == "TextMessageContent":
+                print(event["delta"], end="", flush=True)
+
+            elif event["type"] == "HitlRequired":
+                pause = event["payload"]
+                print(f"\n[approval] {pause['display_text']} ({pause['tool_name']})")
+                # Decide however your UI decides; auto-accepting here for brevity.
+                await ws.send(json.dumps({
+                    "type": "hitl_response",
+                    "client_type": "api",
+                    "session_id": session_id,
+                    "tool_call_id": pause["tool_call_id"],
+                    "data": {"kind": "accept"},
+                }))
+
+            elif event["type"] == "ExecutionFinished":
+                print(f"\n[done] {event['finish_reason']}")
+                break
+
+
+asyncio.run(run(
+    "Where is my order?",
+    {"current_user_id": "user_123", "current_query": "Where is my order?"},
+))
+```
+
+---
+
+## Related
+
+<CardGroup cols={2}>
+  <Card title="Human-in-the-Loop" icon="user-check" href="/documentation/agent_config/human-in-the-loop">
+    Configure which tools pause for approval
+  </Card>
+  <Card title="Variables System" icon="brackets-curly" href="/documentation/advanced/variables-system">
+    Declare and populate variables
+  </Card>
+  <Card title="Connecting Your Agent" icon="plug" href="/documentation/getting-started/connecting-your-agent">
+    Sessions, credentials and the REST path
+  </Card>
+  <Card title="Variables in REST API" icon="server" href="/documentation/integration/variables-in-rest-api">
+    The same `inputs` object over HTTP
+  </Card>
+</CardGroup>

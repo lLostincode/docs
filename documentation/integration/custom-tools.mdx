@@ -1,3 +1,8 @@
+---
+title: "MCP Integration"
+description: "Connect an external MCP server and use its tools in your agents"
+---
+
 # MCP Integration Guide
 
 ## Overview
@@ -7,13 +12,17 @@ tools within the AI workflows. This guide walks you through the complete setup p
 
 ## Table of Contents
 
-1. [Prerequisites](#prerequisites)
-2. [Step 1: Create an Integration](#step-1-create-an-integration)
-3. [Step 2: Configure MCP Server](#step-2-configure-mcp-server)
-4. [Step 3: Create a Connection](#step-3-create-a-connection)
-5. [Step 4: Use MCP Tools in YAML](#step-4-use-mcp-tools-in-yaml)
-6. [Provider-Specific Setup](#provider-specific-setup)
-7. [Troubleshooting](#troubleshooting)
+1. [Overview](#overview)
+2. [Prerequisites](#prerequisites)
+3. [Step 1: Create an Integration](#step-1-create-an-integration)
+4. [Step 2: Configure MCP Server](#step-2-configure-mcp-server)
+5. [Step 3: Create a Connection](#step-3-create-a-connection)
+6. [Step 4: Retrieve Tools](#step-4-retrieve-tools)
+7. [Human Approval for MCP Tools](#human-approval-for-mcp-tools)
+8. [Step 5: Use MCP Tools in YAML](#step-5-use-mcp-tools-in-yaml)
+9. [Provider-Specific Setup](#provider-specific-setup)
+10. [Troubleshooting](#troubleshooting)
+11. [Advanced Configuration](#advanced-configuration)
 
 ---
 
@@ -112,13 +121,75 @@ A **Connection** is a user-level link between your account and the external serv
 > company level, but connections are per-user.
 
 ---
-## Step 4: Retrieve tools 
+## Step 4: Retrieve Tools
 
 Once your MCP server is configured, and you have an active connection, you can fetch/refresh tools.
 Afterward you can remove tools which you don't want in the configured MCP.  
 In the end you click **Save Tools* otherwise the MCP will be empty or with the last configured tools.
 
 
+
+## Human Approval for MCP Tools
+
+MCP tools come from a server whose code you do not own, so there is no source-level
+declaration of which ones are dangerous. Artaios therefore maintains a **per-server
+approval set**: every tool in it pauses for human approval before it runs.
+
+### How the set is seeded
+
+When you fetch or refresh the manifest, Artaios classifies each newly-discovered tool:
+
+- A tool the server explicitly marks **read-only** is left ungated.
+- Every other tool — writes, and anything with no hint at all — is **added to the approval set**.
+
+The default is deliberately cautious: an unannotated tool is treated as if it writes.
+
+### How your choices survive a refresh
+
+On a later refresh:
+
+- Tools you removed from the set **stay** removed. A refresh never re-gates them.
+- Tools you added stay added, as long as they still exist in the manifest.
+- Tools that disappeared from the manifest drop out of the set.
+- Only genuinely **new** non-read-only tools are gated automatically.
+
+<Warning>
+Removing a tool from the approval set means an agent can call it with no human in the
+loop. Only do this for tools you have confirmed are safe to run unattended against
+this server.
+</Warning>
+
+<Note>
+You can only gate tools that exist in the server's current manifest — a name that is
+not in it is rejected rather than silently stored.
+</Note>
+
+### Relationship to YAML HITL
+
+The approval set acts as a **policy mandate**, the second-strongest layer of the
+Human-in-the-Loop precedence ladder. An agent author cannot switch it off per
+instance: `disable_human_approval: true` is ignored against it.
+
+To gate an MCP tool from YAML instead — for example a tool referenced directly rather
+than through a configured server — use `mandate_human_approval` on the tool entry:
+
+```yaml
+persistent_state: true          # ← required whenever any tool pauses
+
+agents:
+  - name: "ops"
+    agent_type: "react_agent"
+    tools:
+      - name: "mcp__jira__delete_issue"
+        tool_type: "mcp__jira__delete_issue"
+        hitl_config:
+          mandate_human_approval: true
+          confirmation_prompt: "Delete this issue?"
+```
+
+<Card title="Human-in-the-Loop" icon="user-check" href="/documentation/agent_config/human-in-the-loop">
+  The full precedence ladder, every `hitl_config` option, and how approvals are answered
+</Card>
 
 ## Step 5: Use MCP Tools in YAML
 

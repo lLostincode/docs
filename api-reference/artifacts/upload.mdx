@@ -1,0 +1,132 @@
+---
+title: 'Upload Artifact'
+openapi: 'POST /api/v1/sessions/{session_id}/artifacts/'
+---
+
+Upload a file (image, PDF, DOCX, CSV, XLSX, TXT, MD, HTML, or JSON) as a chat artifact scoped to an existing session. The response returns the artifact's id together with a presigned download URL, its MIME type, and the processing strategy the backend will use to make it available to the agent (vision for images, RAG indexing or structural parsing for documents/data).
+
+<Note>
+Create the session first — see [Create Session](/api-reference/sessions/create) or [From Saved Agent](/api-reference/sessions/from-agent) — then upload artifacts into it.
+</Note>
+
+<ParamField path="session_id" type="string" required>
+  The session ID to attach the artifact to
+</ParamField>
+
+## Request Body
+
+Multipart form data.
+
+<ParamField body="file" type="file" required>
+  The file to upload. Supported extensions: `pdf`, `docx`, `doc`, `txt`, `md`, `html`, `png`, `jpg`, `jpeg`, `webp`, `gif`, `bmp`, `csv`, `xlsx`, `xls`, `json`.
+</ParamField>
+
+<ParamField body="title" type="string">
+  Optional display title for the artifact. Defaults to the original filename if omitted.
+</ParamField>
+
+<ParamField body="skip_extraction" type="boolean">
+  When `true`, the file is stored but not run through text extraction or RAG ingestion — useful when a file is only meant to be carried along (for example, an attachment picked in a Human-in-the-Loop approval card) rather than indexed into the session's knowledge base.
+</ParamField>
+
+<Warning>
+Maximum upload size is 50 MB. Larger files are rejected with `413 Request Entity Too Large`. An unsupported file extension is rejected with `400 Bad Request`.
+</Warning>
+
+<CodeGroup>
+```bash cURL
+curl -X POST https://api.artaios.ai/api/v1/sessions/session_abc123/artifacts/ \
+  -H "x-api-key: YOUR_API_KEY" \
+  -F "file=@/path/to/report.pdf" \
+  -F "title=Q3 Report"
+```
+
+```python Python
+import requests
+
+files = {"file": open("/path/to/report.pdf", "rb")}
+data = {"title": "Q3 Report"}
+
+response = requests.post(
+    "https://api.artaios.ai/api/v1/sessions/session_abc123/artifacts/",
+    headers={"x-api-key": "YOUR_API_KEY"},
+    files=files,
+    data=data,
+)
+artifact = response.json()
+```
+
+```javascript JavaScript
+const formData = new FormData();
+formData.append('file', fileInput.files[0]);
+formData.append('title', 'Q3 Report');
+
+const response = await fetch('https://api.artaios.ai/api/v1/sessions/session_abc123/artifacts/', {
+  method: 'POST',
+  headers: {
+    'x-api-key': 'YOUR_API_KEY'
+  },
+  body: formData
+});
+
+const artifact = await response.json();
+```
+</CodeGroup>
+
+## Response
+
+`201 Created`:
+
+```json
+{
+  "artifact_id": "7b7a6e2a-7c7a-4a2e-9a3e-2e6e7a6e7a6e",
+  "title": "Q3 Report",
+  "display_name": "Q3 Report",
+  "kind": "document",
+  "url": "https://storage.example.com/company/.../report.pdf?X-Amz-Signature=...",
+  "thumbnail_url": null,
+  "mime_type": "application/pdf",
+  "original_filename": "report.pdf",
+  "uuid_filename": "7b7a6e2a-7c7a-4a2e-9a3e-2e6e7a6e7a6e.pdf",
+  "s3_key": "company/<company_id>/user/<user_id>/chat-artifacts/session_abc123/7b7a6e2a-....pdf",
+  "processing_strategy": "document",
+  "processing_status": "pending",
+  "index_status": "pending",
+  "file_size": 48213
+}
+```
+
+<Note>
+`processing_status` starts as `pending` for documents and transitions to `ready` once text extraction finishes, and `index_status` similarly reflects whether the content has been (or needs to be) indexed into the session's RAG store. There is no dedicated status page in this reference, but the same `ChatArtifact` is readable via `GET /api/v1/sessions/{session_id}/artifacts/{artifact_id}/status/` — poll it before relying on extracted content for small/fast uploads this is rarely necessary.
+</Note>
+
+## Referencing the artifact on execute
+
+Once you have an `artifact_id` and `url`, attach the file to a message by building a `file` content block and calling [Execute Message](/api-reference/runtime/execute):
+
+```bash
+curl -X POST https://api.artaios.ai/api/v1/runtime/session_abc123/execute/ \
+  -H "x-api-key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "content": [
+      { "type": "text", "text": "Summarize this document" },
+      {
+        "type": "file",
+        "source": {
+          "type": "url",
+          "media_type": "application/pdf",
+          "filename": "report.pdf",
+          "url": "https://storage.example.com/company/.../report.pdf?X-Amz-Signature=...",
+          "artifact_id": "7b7a6e2a-7c7a-4a2e-9a3e-2e6e7a6e7a6e"
+        }
+      }
+    ]
+  }'
+```
+
+Including `source.artifact_id` alongside `source.url` lets the backend resolve a fresh presigned URL on its own if the one you sent has since expired. See [Get Presigned URL](/api-reference/artifacts/get-url) for the manual refresh pattern when you need a new URL ahead of time.
+
+<Note>
+For images, build an `image` content block instead, with `source.type: "url"` and `source.url` set to the artifact's `url`. Keep the `url` value current — see [Get Presigned URL](/api-reference/artifacts/get-url).
+</Note>

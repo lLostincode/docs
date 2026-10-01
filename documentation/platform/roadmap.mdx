@@ -5,7 +5,7 @@ icon: "map"
 ---
 
 <Info>
-  **Artaios Agents Studio is in closed beta.** Your feedback directly shapes what we build next.
+  **Artaios Agent Studio is in closed beta.** Your feedback directly shapes what we build next.
 </Info>
 
 ## Your Input Shapes This
@@ -328,9 +328,13 @@ Specialized agent template for comprehensive research tasks:
 
 Enable human oversight for critical decisions:
 
+<Check>
+**Shipped**: per-tool approval gates are available now — see [Human-in-the-Loop](/documentation/agent_config/human-in-the-loop).
+</Check>
+
 <AccordionGroup>
   <Accordion title="Approval Workflows" icon="circle-check" defaultOpen>
-    Require human approval for sensitive actions before execution
+    Require human approval for sensitive actions before execution — **available now**. Configure `hitl_config` per tool; reviewers can accept, edit the arguments, or decline with feedback.
   </Accordion>
   
   <Accordion title="Interactive Decision Points" icon="code-branch">

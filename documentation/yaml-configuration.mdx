@@ -88,7 +88,23 @@ entry_point: "agent_name"
 </ParamField>
 
 <ParamField path="memory_config" type="object">
-  Global memory system configuration (applies to all agents unless overridden). Note that `agent` scoped modules are not allowed at the system level.
+  Global memory system configuration, applied to every agent unless an agent overrides it. Accepts `auto_save`, `auto_save_trigger`, `auto_save_interval`, `num_results`, `llm_model` and `modules`; unrecognised keys fail validation.
+  
+  `agent`-scoped modules are **not** allowed here — declare those on the agent instead.
+  
+  ```yaml
+  memory_config:
+    auto_save: true
+    auto_save_trigger: "on_interval_turns"
+    auto_save_interval: 3
+    num_results: 10
+    modules:
+      - name: user_prefs
+        scope: user
+        relevance_prompt: "Extract user preferences and durable facts."
+  ```
+  
+  See [Memory System](/documentation/advanced/memory-system) for scopes, auto-save triggers and relevance prompts.
 </ParamField>
 
 ## Agent Configuration
@@ -111,7 +127,7 @@ agents:
 </ParamField>
 
 <ParamField path="agent_type" type="string" required>
-  Type of agent to instantiate. See [Agent Types](/documentation/agent-types) for available options.
+  Type of agent to instantiate. See [Agent Types](/documentation/agent_config/types_config/agent-types) for available options.
   
   **Common types:**
   - `llm_agent` - Basic LLM-powered conversational agent
@@ -136,7 +152,9 @@ agents:
 </ParamField>
 
 <ParamField path="memory_config" type="object">
-  Agent-specific memory configuration (overrides system-level memory config)
+  Agent-specific memory configuration, overriding the system-level block. Accepts `modules`, `num_results`, `auto_save`, `auto_save_trigger`, `auto_save_interval` and `relevance_prompt`.
+  
+  `agent` scope is only valid here, not at the system level. See [Per-Agent Memory](/documentation/advanced/memory-system#per-agent-memory).
 </ParamField>
 
 ### Prompt Configuration
@@ -309,10 +327,33 @@ agents:
     </ParamField>
     
     <ParamField path="schema" type="object">
-      Dictionary mapping field names to their definitions. Each field definition must include a `type` (e.g., `"str"`, `"int"`, `"list[str]"`) and can optionally include a `description`.
+      Dictionary mapping field names to their definitions. Each field definition must include a `type` (e.g., `"str"`, `"int"`, `"list[str]"`) and can optionally include a `description`. See [Type Notation](/documentation/advanced/type-notation) for every accepted type string.
+      
+      The reserved key `__root__`, used alone, makes the agent return a bare value (typically a list) instead of an object.
     </ParamField>
   </Expandable>
 </ParamField>
+
+Returning a bare list instead of an object:
+
+```yaml
+agents:
+  - name: "topic_extractor"
+    agent_type: "llm_agent"
+    structured_output:
+      schema:
+        __root__:                     # ← must be the only key
+          type: "list[str]"
+          description: "Key topics, most significant first"
+```
+
+<Warning>
+Any field can return `null` regardless of its declared type — every field is optional at the schema-building layer so a missing value cannot crash the run. Handle absent values downstream, and note that a `null` is silently skipped rather than written into a non-nullable variable.
+</Warning>
+
+<Card title="Structured Output" icon="brackets-curly" href="/documentation/advanced/structured-output">
+  Root schemas, nested fields, multi-agent data passing and error handling
+</Card>
 
 ### Variable Assignments
 
@@ -372,6 +413,45 @@ agents:
         - "tavily_search"
         - "calculator"
   ```
+</ParamField>
+
+#### **Tool Objects (per-tool options)**
+
+An entry can be an object instead of a bare string when a tool needs its own options — `config` for tool-specific settings, `hitl_config` for human approval:
+
+```yaml
+persistent_state: true          # ← required when any tool uses HITL
+
+agents:
+  - name: "my_agent"
+    agent_type: "react_agent"
+    tools:
+      - "tavily_search"                   # string form
+      - name: "mail_send_email"           # object form
+        tool_type: "mail_send_email"
+        hitl_config:
+          requires_human_approval: true
+          confirmation_prompt: "Send this email?"
+```
+
+<ParamField path="agents[].tools[].name" type="string" required>
+  Instance name for this tool. Use the registry identifier unless you need to distinguish two instances of the same tool.
+</ParamField>
+
+<ParamField path="agents[].tools[].tool_type" type="string" required>
+  The registry identifier of the tool.
+</ParamField>
+
+<ParamField path="agents[].tools[].enabled" type="boolean" default="true">
+  Set to `false` to keep the entry but withhold the tool from the agent.
+</ParamField>
+
+<ParamField path="agents[].tools[].config" type="object">
+  Tool-specific configuration. Validated against the tool's own config class — tools declared `NON_CONFIG` reject a non-empty `config`, and tools declared `CONFIG_REQUIRED` reject an empty one.
+</ParamField>
+
+<ParamField path="agents[].tools[].hitl_config" type="object">
+  Human-in-the-Loop settings for this tool instance: `requires_human_approval`, `mandate_human_approval`, `disable_human_approval`, `confirmation_prompt`. Requires `persistent_state: true` when a gate ends up active. See [Human-in-the-Loop](/documentation/agent_config/human-in-the-loop).
 </ParamField>
 
 #### **System-Level Tools (Advanced)**

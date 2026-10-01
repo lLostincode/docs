@@ -40,7 +40,7 @@ variables:
 
 | Property | Type | Default | Required | Description |
 |----------|------|---------|----------|-------------|
-| `type` | string | — | Yes | Data type using BAML type notation: `str`, `int`, `float`, `bool`, `list[str]`, `list[int]`, `dict[str, int]`, `str \| None`, etc. |
+| `type` | string | — | Yes | Data type using BAML type notation: `str`, `int`, `float`, `bool`, `list[str]`, `list[int]`, `dict[str, int]`, `str \| None`, etc. See [Type Notation](/documentation/advanced/type-notation) for the full reference. |
 | `default` | any | `null` | No | Default value if not provided. Supports template syntax like `{{ variables.key }}`. |
 | `description` | string | `null` | No | Human-readable description (shown in UI and playground). |
 | `required` | boolean | `true` | No | If `true`, variable must be provided or have a default value. If `false`, a `default` **must** be set — omitting both causes a validation error. |
@@ -103,10 +103,11 @@ Inputs are values provided at runtime that **override variable defaults**. The i
 Send inputs in the request body:
 
 ```bash
-curl -X POST /api/v1/sessions/{session_id}/execute \
+curl -X POST https://api.artaios.ai/api/v1/runtime/{session_id}/execute/ \
+  -H "x-api-key: YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
-    "message": "Help me with my order",
+    "content": "Help me with my order",
     "inputs": {
       "current_user_id": "user_123",
       "current_department": "support",
@@ -116,6 +117,28 @@ curl -X POST /api/v1/sessions/{session_id}/execute \
 ```
 
 The `inputs` object keys correspond directly to variable names defined in your configuration.
+
+See [Using Variables in REST API](/documentation/integration/variables-in-rest-api) for the full walkthrough.
+
+### Via WebSocket
+
+Put the same `inputs` object on the `user_message` frame:
+
+```json
+{
+  "type": "user_message",
+  "client_type": "api",
+  "session_id": "sess_abc123xyz",
+  "content": "Help me with my order",
+  "inputs": {
+    "current_user_id": "user_123",
+    "current_department": "support",
+    "current_query": "Help me with my order"
+  }
+}
+```
+
+Semantics are identical to REST: keys match variable names, values override defaults, and session-level variables only need to be sent on the first execution. See [WebSocket API](/documentation/integration/websocket-api#variables-over-websocket).
 
 ### Via Playground UI
 
@@ -136,7 +159,7 @@ The Variable Inputs panel shows all defined variables with their descriptions an
 
 ## Using Variables in Prompts
 
-Reference variables in agent prompts using Jinja2 syntax:
+Reference variables in agent prompts using `{{ ... }}` template syntax:
 
 ```yaml
 agents:
@@ -473,17 +496,6 @@ variable_assignments:
 
 ### Supported Types
 
-All types supported by the BAML type parser:
+Variables use the same BAML-style type notation as structured output schema fields — scalars (`str`, `int`, `float`, `bool`), collections (`list[str]`, `dict[str, int]`, nested to any depth), nullable forms (`str | None`, `Optional[str]`), and `Any`.
 
-| Type | Description | Example |
-|------|-------------|---------|
-| `str` | Text string | `"hello"` |
-| `int` | Integer | `42` |
-| `float` | Decimal number | `3.14` |
-| `bool` | Boolean | `true` |
-| `list[str]` | List of strings | `["a", "b"]` |
-| `list[int]` | List of integers | `[1, 2, 3]` |
-| `dict[str, int]` | Dictionary | `{"a": 1}` |
-| `str \| None` | Nullable string | `"hello"` or `null` |
-| `Optional[str]` | Nullable string (alternate syntax) | `"hello"` or `null` |
-| `Any` | Any type | — |
+See [Type Notation](/documentation/advanced/type-notation) for the full reference, including the coercion rules applied during variable assignment and the nullability interaction between structured output fields and variables (a non-nullable variable silently keeps its previous value when assigned a `null` field).

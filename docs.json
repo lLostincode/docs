@@ -7,7 +7,7 @@
     "light": "#818CF8",
     "dark": "#4F46E5"
   },
-  "favicon": "/logo/logo_white.svg",
+  "favicon": "/logo/logo_black.svg",
   "css": [
     "styles.css"
   ],
@@ -42,7 +42,9 @@
                 "group": "Agent Capabilities",
                 "pages": [
                   "documentation/agent_config/agent-capabilities",
-                  "documentation/advanced/structured-output"
+                  "documentation/advanced/structured-output",
+                  "documentation/agent_config/human-in-the-loop",
+                  "documentation/advanced/type-notation"
                 ]
               },
               "documentation/agent_config/knowledge-base-setup"
@@ -67,7 +69,7 @@
             ]
           },
           {
-            "group": "Artaios Agents Studio",
+            "group": "Artaios Agent Studio",
             "icon": "window",
             "pages": [
               "documentation/studio/platform-overview",
@@ -77,6 +79,7 @@
               "documentation/studio/my-agents",
               "documentation/studio/knowledge-base",
               "documentation/studio/tools",
+              "documentation/studio/tool-builder",
               "documentation/studio/prompts",
               "documentation/studio/ai-config-generator"
             ]
@@ -96,6 +99,7 @@
             "pages": [
               "documentation/integration/rest-api-tutorial",
               "documentation/integration/variables-in-rest-api",
+              "documentation/integration/websocket-api",
               "documentation/integration/chatbot-integration",
               "documentation/integration/custom-tools"
             ]
@@ -145,8 +149,18 @@
             "pages": [
               "api-reference/runtime/overview",
               "api-reference/runtime/execute",
+              "api-reference/runtime/cancel",
               "api-reference/runtime/messages",
               "api-reference/runtime/status"
+            ]
+          },
+          {
+            "group": "Artifacts",
+            "pages": [
+              "api-reference/artifacts/overview",
+              "api-reference/artifacts/upload",
+              "api-reference/artifacts/get-url",
+              "api-reference/artifacts/remove-from-platform"
             ]
           },
           {

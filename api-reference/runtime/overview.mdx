@@ -30,7 +30,14 @@ All endpoints require authentication using your API key:
   <Card title="Session Status" icon="activity" href="/api-reference/runtime/status">
     Check session health and status
   </Card>
+  <Card title="WebSocket API" icon="bolt" href="/documentation/integration/websocket-api">
+    Streaming transport: live events and HITL approvals
+  </Card>
 </CardGroup>
+
+<Note>
+`/execute` is request/response — it runs the agent to completion and returns the result. For token-by-token streaming, tool-call visibility, or [Human-in-the-Loop](/documentation/agent_config/human-in-the-loop) approvals, use the [WebSocket API](/documentation/integration/websocket-api) instead; approval cards cannot be answered over REST.
+</Note>
 
 ## Message Types
 

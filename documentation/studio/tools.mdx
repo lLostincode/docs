@@ -33,7 +33,10 @@ Use the **Filters** button to toggle between All, Toolkits, or Basic Tools only.
 </Tip>
 
 ### My Tools Tab
-Manage your custom tools and configured tool instances
+
+Manage your custom tools and configured tool instances. Toolkits you built yourself
+with the [Tool Builder](/documentation/studio/tool-builder) appear here, as do tools
+released to your company.
 
 ## Adding Tools to Your YAML
 
@@ -290,6 +293,22 @@ tools: ["wikipedia_search"]
 <Warning>
 Toolkit connections grant access to external services. Only create connections you trust.
 </Warning>
+
+### Human approval on tools
+
+Consequential tools pause for human approval before they run. Where that is configured
+depends on where the tool came from:
+
+| Tool source | Where approval is set |
+|---|---|
+| Built-in tools (Mail, Jira, TwentyCRM, Scheduler, …) | Declared in the tool itself. Many write tools pause by default; some irreversible ones always do. Adjust per agent with `hitl_config` — see [Human-in-the-Loop](/documentation/agent_config/human-in-the-loop). |
+| Tools you built | Classified at authoring time as `never`, `default_on` or `mandatory` — see [Tool Builder](/documentation/studio/tool-builder#classifying-a-tool). |
+| MCP server tools | A per-server approval set, seeded so that anything not marked read-only is gated — see [MCP Integration](/documentation/integration/custom-tools#human-approval-for-mcp-tools). |
+
+<Note>
+Any agent equipping a tool that pauses needs `persistent_state: true` in its
+configuration, otherwise the config will not compile.
+</Note>
 
 <Tip>
 Monitor tool usage in your agent's execution logs and tracing.
