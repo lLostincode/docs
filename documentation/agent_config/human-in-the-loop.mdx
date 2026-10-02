@@ -161,7 +161,7 @@ With every gate removed this way, `persistent_state: true` is no longer required
 
 ### Force a gate onto an MCP tool
 
-MCP server tools have no Artaios source code to declare a requirement. Use the policy mandate:
+MCP server tools have no AMAS source code to declare a requirement. Use the policy mandate:
 
 ```yaml
 persistent_state: true
@@ -177,7 +177,7 @@ agents:
 ```
 
 <Tip>
-For MCP servers added through **Settings → Tools**, Artaios already does this for you: on manifest discovery every newly-found tool that is **not** marked read-only by the server is added to the server's approval set automatically. You only need `mandate_human_approval` for tools defined directly in YAML.
+For MCP servers added through **Settings → Tools**, AMAS already does this for you: on manifest discovery every newly-found tool that is **not** marked read-only by the server is added to the server's approval set automatically. You only need `mandate_human_approval` for tools defined directly in YAML.
 </Tip>
 
 ### Separate instances, separate policies
@@ -242,7 +242,7 @@ Tool authors can annotate parameters to keep the form readable. These are source
 
 A paused run needs someone to answer. Two consequences:
 
-- **Webhook and scheduled triggers**: a tool that always pauses can never complete in a trigger with no human attached. Artaios surfaces a warning on the trigger when the agent equips a `mandatory` HITL tool.
+- **Webhook and scheduled triggers**: a tool that always pauses can never complete in a trigger with no human attached. AMAS surfaces a warning on the trigger when the agent equips a `mandatory` HITL tool.
 - **The `/execute` REST endpoint** is request/response and runs the agent to completion. There is no resume step on it — approvals are answered over the WebSocket connection. See [WebSocket API](/documentation/integration/websocket-api#human-in-the-loop-over-websocket) for the pause and resume messages.
 
 ---

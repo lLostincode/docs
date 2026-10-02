@@ -3,7 +3,7 @@ title: "External Auth Setup"
 description: "Configure how external user tokens are validated so signed-in users can use your public agents"
 ---
 
-External Auth lets you connect your own identity provider (IdP) to ARTAIOS so that **signed-in users** can use your public chatbots. When a user chats, their token (JWT) is validated against the sign-in system you configure here. Each configuration is scoped to your company and can be reused across multiple agents.
+External Auth lets you connect your own identity provider (IdP) to AMAS so that **signed-in users** can use your public chatbots. When a user chats, their token (JWT) is validated against the sign-in system you configure here. Each configuration is scoped to your company and can be reused across multiple agents.
 
 <Frame>
   ![External Auth Config overview](/images/external_auth_overview.png)
@@ -30,7 +30,7 @@ Configurations are **immutable and versioned**:
 ```mermaid
 flowchart LR
   A[User signs in via your IdP] --> B[User token JWT]
-  B --> C[ARTAIOS validates token against active config]
+  B --> C[AMAS validates token against active config]
   C -->|valid| D[User chats and conversations saved]
   C -->|invalid| E[Access denied]
 ```

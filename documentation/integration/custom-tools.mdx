@@ -7,7 +7,7 @@ description: "Connect an external MCP server and use its tools in your agents"
 
 ## Overview
 
-The Model Context Protocol (MCP) integration allows Artaios Agents to connect to external MCP servers and use their
+The Model Context Protocol (MCP) integration allows AMAS agents to connect to external MCP servers and use their
 tools within the AI workflows. This guide walks you through the complete setup process.
 
 ## Table of Contents
@@ -104,7 +104,7 @@ A **Connection** is a user-level link between your account and the external serv
    needed)
 4. You'll be redirected to the provider's OAuth consent screen
 5. Grant the requested permissions
-6. You'll be redirected back to Artaios with an active connection
+6. You'll be redirected back to Agent Studio with an active connection
 
 ### For API Key Providers
 
@@ -115,7 +115,7 @@ A **Connection** is a user-level link between your account and the external serv
 4. You'll be redirected to the provider's consent screen
     - **API Key**: Enter your API key from the provider
 5. Click **"Connect"**
-6. You'll be redirected back to Artaios with an active connection
+6. You'll be redirected back to Agent Studio with an active connection
 
 > **Important**: Each user needs to create their own connection to use MCP tools. The integration is shared at the
 > company level, but connections are per-user.
@@ -132,12 +132,12 @@ In the end you click **Save Tools* otherwise the MCP will be empty or with the l
 ## Human Approval for MCP Tools
 
 MCP tools come from a server whose code you do not own, so there is no source-level
-declaration of which ones are dangerous. Artaios therefore maintains a **per-server
+declaration of which ones are dangerous. AMAS therefore maintains a **per-server
 approval set**: every tool in it pauses for human approval before it runs.
 
 ### How the set is seeded
 
-When you fetch or refresh the manifest, Artaios classifies each newly-discovered tool:
+When you fetch or refresh the manifest, AMAS classifies each newly-discovered tool:
 
 - A tool the server explicitly marks **read-only** is left ungated.
 - Every other tool — writes, and anything with no hint at all — is **added to the approval set**.

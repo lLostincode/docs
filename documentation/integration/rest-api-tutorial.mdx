@@ -9,7 +9,7 @@ This tutorial walks you through the different ways to use the REST API to create
 
 <Steps>
   <Step title="Get API Key">
-    Generate an API key from the <a href="/documentation/studio/settings#settings-sections">Artaios Agent Studio settings</a>
+    Generate an API key from the <a href="/documentation/studio/settings#settings-sections">Agent Studio settings</a>
   </Step>
   
   <Step title="Base URL">
@@ -83,7 +83,7 @@ Response:
 
 ## Option 2: Load Session from Existing Agent
 
-Create a session from an agent already configured in Artaios Agent Studio. Use the agent's unique key:
+Create a session from an agent already configured in Agent Studio. Use the agent's unique key:
 
 ```bash
 curl -X GET "https://api.artaios.ai/api/v1/sessions/from-agent/?agent_key=your-agent-key-here" \
@@ -222,7 +222,7 @@ AMAS officially supports three different methods for sending images to an agent.
 
 ### Method 1: The "Upload First" Method (Highly Recommended)
 
-If you are building an interface where users upload local files, you should upload the image to the Artaios API first. This returns a temporary, secure URL that you then pass to the agent. This method **reduces LLM token consumption by ~95%** compared to Base64 encoding.
+If you are building an interface where users upload local files, you should upload the image to the AMAS API first. This returns a temporary, secure URL that you then pass to the agent. This method **reduces LLM token consumption by ~95%** compared to Base64 encoding.
 
 **Step 1: Upload the Image**
 

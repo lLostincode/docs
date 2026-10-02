@@ -156,17 +156,19 @@ Most settings can only be changed by the **agent owner**. If you have access to 
     </Frame>
 
     **Share with Company**
-    - When enabled, other users in your organization can view and use this agent in AMAS.
+    - When enabled, other users in your organization can view and use this agent in Agent Studio.
     - Only you (the owner) can modify settings or deploy versions.
 
     **Show in Artaios**
-    - When enabled, the agent appears in the Artaios frontend interface.
+    - When enabled, the agent is published to **Artaios**, the end-user chat
+      product — a separate surface from Agent Studio, where non-technical
+      colleagues use finished agents without touching YAML.
     - Works alongside company sharing.
 
     <Info>
     **Access Control Summary**
-    - **AMAS**: Shows your agents + shared company agents.
-    - **Artaios**: Shows your agents + shared company agents that also have "Show in Artaios" enabled.
+    - **Agent Studio**: Shows your agents + shared company agents.
+    - **Artaios** (end-user chat product): Shows your agents + shared company agents that also have "Show in Artaios" enabled.
     - **Public Chatbot**: Configured via Public Access in the General tab.
     </Info>
 
@@ -371,7 +373,7 @@ To share an agent with your organization:
 1. Click **Settings** on the agent card
 2. Go to **Access Control** tab
 3. Enable **Share with Company**
-4. Optionally enable **Show in Artaios** to make it visible in the Artaios interface
+4. Optionally enable **Show in Artaios** to publish it to the Artaios end-user chat product
 
 <Info>
 Shared agents are read-only for other users. Only the owner can modify settings or deploy versions.

@@ -1,0 +1,130 @@
+---
+title: "Concepts & Glossary"
+description: "AMAS, Agent Studio and Artaios — what each name means and which one these docs cover"
+---
+
+Three names appear throughout this documentation. They are not interchangeable.
+Knowing which is which saves a lot of confusion later.
+
+## The three names
+
+<CardGroup cols={3}>
+  <Card title="AMAS" icon="cubes">
+    **Artaios Multi Agent System.** The declarative agent system: the YAML
+    configuration language, the runtime that executes it, and the REST and
+    WebSocket APIs.
+
+    **This is what these docs are about.**
+  </Card>
+  <Card title="Agent Studio" icon="window">
+    AMAS's web interface at [amas.artaios.com](https://amas.artaios.com). Where
+    you write YAML, test in the Playground, build knowledge bases and manage
+    keys.
+  </Card>
+  <Card title="Artaios" icon="comments">
+    The end-user chat product. Not a build surface — a place your finished
+    agents can be *published to* so non-technical colleagues can use them.
+  </Card>
+</CardGroup>
+
+## How they relate
+
+```
+┌─────────────────────────────────────────────────────┐
+│  AMAS — Artaios Multi Agent System                  │
+│  YAML config language + runtime + REST/WS API       │
+│                                                     │
+│  ┌───────────────────────────────────────────────┐  │
+│  │  Agent Studio — AMAS's web UI                 │  │
+│  │  Playground · Knowledge Base · Tools · Keys   │  │
+│  └───────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────┘
+                         │
+                         │  publish / deploy
+                         ▼
+        ┌────────────────┬────────────────┬──────────────┐
+        │  Artaios       │  REST / WS API │  Embedded    │
+        │  (end-user     │  (your own     │  chatbot     │
+        │   chat product)│   backend)     │  (your site) │
+        └────────────────┴────────────────┴──────────────┘
+```
+
+You build in **AMAS** (through **Agent Studio** or straight against the API).
+**Artaios** is one of several places the result can end up.
+
+## Which word to expect where
+
+| When you read… | It means |
+|---|---|
+| "AMAS validates…", "AMAS supports…", "in AMAS" | The system itself — runtime behaviour, YAML schema, API semantics. Applies whether you use the UI or the API. |
+| "In Agent Studio, click…" | A UI action. There is a button or a page involved. |
+| "Show in Artaios", "appears in Artaios" | Publishing to the end-user chat product. A distribution setting, not a build step. |
+
+<Note>
+**Agent Studio is not a separate product from AMAS.** It is AMAS's UI. Anything
+you can do in Agent Studio you can also do over the API — the YAML is the same
+YAML either way.
+</Note>
+
+## Glossary
+
+<AccordionGroup>
+  <Accordion title="Agent" icon="robot">
+    A single configured unit with a model, a prompt, and optionally tools,
+    knowledge and memory. AMAS has two types: **LLM agents** (conversational)
+    and **ReAct agents** (tool-using, reasoning). See
+    [Agent Types](/documentation/agent_config/types_config/agent-types).
+  </Accordion>
+  <Accordion title="Agentic system" icon="diagram-project">
+    One or more agents plus the orchestration between them, defined in a single
+    YAML config. A single-agent config is still an agentic system. See
+    [Multi-Agent Introduction](/documentation/advanced/multi-agent-introduction).
+  </Accordion>
+  <Accordion title="YAML config" icon="file-code">
+    The declarative source of truth for an agentic system. Hand-written,
+    reviewable, version-controllable. This is the primary interface to AMAS —
+    see [YAML Configuration](/documentation/yaml-configuration).
+  </Accordion>
+  <Accordion title="Playground" icon="flask">
+    The Agent Studio page where you edit YAML and run the resulting system
+    interactively. See [Playground](/documentation/studio/playground).
+  </Accordion>
+  <Accordion title="Agent key" icon="key">
+    The identifier for a saved, deployed agent. Used to open a session over the
+    REST or WebSocket API, and to point the embedded chatbot at an agent.
+  </Accordion>
+  <Accordion title="Session" icon="comments">
+    One conversation with an agentic system, holding its message history and
+    state. Created from a YAML config or from a saved agent key.
+  </Accordion>
+  <Accordion title="Knowledge base" icon="database">
+    A set of file collections, indexed for semantic search, that agents retrieve
+    from at runtime. See
+    [Knowledge Base Setup](/documentation/agent_config/knowledge-base-setup).
+  </Accordion>
+  <Accordion title="Toolkit" icon="wrench">
+    A grouped set of tools for one external service (Outlook, Teams, Jira, …),
+    sharing one authorization. See [Tools](/documentation/studio/tools).
+  </Accordion>
+  <Accordion title="HITL (Human-in-the-Loop)" icon="hand">
+    Approval gating: a consequential tool call pauses and waits for a human
+    before it runs. See
+    [Human-in-the-Loop](/documentation/agent_config/human-in-the-loop).
+  </Accordion>
+  <Accordion title="BYOK (Bring Your Own Key)" icon="lock">
+    Using your own LLM provider API keys instead of the pooled ones, for direct
+    control over usage, billing and rate limits. See
+    [Model Selection](/documentation/agent_config/types_config/model-selection).
+  </Accordion>
+</AccordionGroup>
+
+## Next
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/documentation/getting-started/quickstart">
+    Build and run your first agentic system
+  </Card>
+  <Card title="YAML Configuration" icon="file-code" href="/documentation/yaml-configuration">
+    The full config reference
+  </Card>
+</CardGroup>
