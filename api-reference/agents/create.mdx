@@ -56,7 +56,7 @@ Create a new agent configuration. All agent configuration must be provided withi
 </ParamField>
 
 <Note>
-  `is_public` is read-only in this endpoint. A new agent always starts unpublished. Enabling the public chatbot is done in the agent's **Access** tab in the app, not through the API.
+  `is_public` is ignored on create. A new agent always starts unpublished (`is_public: false`). To publish it, send a follow-up `PATCH /api/v1/agent/{id}/` with `{"is_public": true}` (see [Update Agent](/api-reference/agents/update)).
 </Note>
 
 <CodeGroup>

@@ -19,9 +19,9 @@ Update an existing agent configuration. You can modify any part of the agent's s
   Websites allowed to embed this agent as a chat widget (**Embed & external access** in the agent's Access tab). Separate multiple origins with commas, e.g. `https://a.com,https://b.com`. Each entry must be a valid URL. Whitespace is trimmed and empty entries are dropped. Send `null` or an empty string to clear it. Maximum 500 characters.
 </ParamField>
 
-<Note>
-  `is_public` is read-only in this endpoint. Enabling the public chatbot is done in the agent's **Access** tab in the app, not through the API.
-</Note>
+<ParamField body="is_public" type="boolean">
+  Publish the agent (`true`) or take it offline again (`false`). Required for the public chatbot and for embedding it on the websites listed in `origin_url`. Only the **owner** of the agent may change it, and only if your company allows sharing (`company:can:share`). Anyone else, including colleagues with *Can edit* access, gets `403`.
+</ParamField>
 
 <CodeGroup>
 ```bash cURL
@@ -43,6 +43,13 @@ curl -X PATCH https://api.artaios.ai/api/v1/agent/550e8400-e29b-41d4-a716-446655
   -H "x-api-key: YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"origin_url": "https://example.com,https://www.example.com"}'
+```
+
+```bash cURL (enable public access)
+curl -X PATCH https://api.artaios.ai/api/v1/agent/550e8400-e29b-41d4-a716-446655440000/ \
+  -H "x-api-key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"is_public": true, "origin_url": "https://example.com"}'
 ```
 
 ```python Python

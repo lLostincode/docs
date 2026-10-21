@@ -41,6 +41,10 @@ Before embedding your chatbot, configure your agent's public settings.
   </Step>
 </Steps>
 
+<Tip>
+  Partners can do the same through the API: send `PATCH /api/v1/agent/{id}/` with `{"is_public": true, "origin_url": "https://docs.yourcompany.com"}`. The `agent_key` in the response is the Agent Key. Only the agent's owner may enable public access. See [Update Agent](/api-reference/agents/update).
+</Tip>
+
 ## Step 2: Embed the widget
 
 Add the Artaios chatbot to your website using the following code.
