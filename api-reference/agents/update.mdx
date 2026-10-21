@@ -34,22 +34,10 @@ curl -X PATCH https://api.artaios.ai/api/v1/agent/550e8400-e29b-41d4-a716-446655
       "llm_config": {
         "temperature": 0.8
       }
-    }
+    },
+    "is_public": true,
+    "origin_url": "https://example.com,https://www.example.com"
   }'
-```
-
-```bash cURL (origin_url)
-curl -X PATCH https://api.artaios.ai/api/v1/agent/550e8400-e29b-41d4-a716-446655440000/ \
-  -H "x-api-key: YOUR_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"origin_url": "https://example.com,https://www.example.com"}'
-```
-
-```bash cURL (enable public access)
-curl -X PATCH https://api.artaios.ai/api/v1/agent/550e8400-e29b-41d4-a716-446655440000/ \
-  -H "x-api-key: YOUR_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"is_public": true, "origin_url": "https://example.com"}'
 ```
 
 ```python Python
@@ -61,7 +49,9 @@ data = {
         "llm_config": {
             "temperature": 0.8
         }
-    }
+    },
+    "is_public": True,
+    "origin_url": "https://example.com,https://www.example.com"
 }
 
 response = requests.patch(
@@ -78,7 +68,9 @@ const data = {
     llm_config: {
       temperature: 0.8
     }
-  }
+  },
+  is_public: true,
+  origin_url: "https://example.com,https://www.example.com"
 };
 
 const response = await fetch('https://api.artaios.ai/api/v1/agent/550e8400-e29b-41d4-a716-446655440000/', {
