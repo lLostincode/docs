@@ -51,6 +51,14 @@ Create a new agent configuration. All agent configuration must be provided withi
   </Expandable>
 </ParamField>
 
+<ParamField body="origin_url" type="string | null">
+  Websites allowed to embed this agent as a chat widget (**Embed & external access** in the agent's Access tab). Separate multiple origins with commas, e.g. `https://a.com,https://b.com`. Each entry must be a valid URL. Whitespace is trimmed and empty entries are dropped. Maximum 500 characters.
+</ParamField>
+
+<Note>
+  `is_public` is read-only in this endpoint. A new agent always starts unpublished. Enabling the public chatbot is done in the agent's **Access** tab in the app, not through the API.
+</Note>
+
 <CodeGroup>
 ```bash cURL
 curl -X POST https://api.artaios.ai/api/v1/agent/ \
