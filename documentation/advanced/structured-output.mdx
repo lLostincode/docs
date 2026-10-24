@@ -443,6 +443,41 @@ If validation fails, you'll receive a detailed error:
 }
 ```
 
+## Reading structured output over REST
+
+`POST /api/v1/runtime/{session_id}/execute/` has no dedicated field for the validated object. It arrives as **JSON text in `content`** of an `assistant` entry in the top-level `messages` array (there is no `response.content` wrapper). Parse `content` yourself:
+
+```python
+data = response.json()
+msg = next(
+    m for m in reversed(data["messages"])
+    if m["role"] == "assistant" and m.get("agent_name") == "researcher"
+)
+result = json.loads(msg["content"])  # the validated object
+```
+
+Schematic response:
+
+```json
+{
+  "status": "completed",
+  "messages": [
+    {
+      "role": "assistant",
+      "agent_name": "researcher",
+      "content": "{\n  \"field_a\": \"value\",\n  \"field_b\": 42\n}",
+      "metadata": {}
+    }
+  ]
+}
+```
+
+- Same shape inside `architecture: workflow`; every agent's messages land in one flat array, so filter by `agent_name`.
+- A `__root__` schema yields the bare JSON value as the string.
+- `show_output_to_user: false` on the agent removes its output from `messages`. Keep the default `true`.
+- Message `metadata` is empty over REST; do not look for a `structured_output` flag.
+- See [Execute Message](/api-reference/runtime/execute#structured-output).
+
 ## Variable Assignments
 
 Structured output fields can be automatically mapped to system variables using `variable_assignments`. This creates a data pipeline: structured output → variables → downstream prompt substitution.

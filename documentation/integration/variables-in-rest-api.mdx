@@ -223,11 +223,17 @@ curl -X POST https://api.artaios.ai/api/v1/runtime/session_abc123/execute/ \
 Response:
 ```json
 {
-  "success": true,
-  "message_id": "msg_789",
-  "response": {
-    "content": "I sincerely apologize for the duplicate charge. I've located your order and can see the billing error. Let me help you get this resolved immediately..."
-  }
+  "id": "session_abc123",
+  "object": "agent.session",
+  "status": "completed",
+  "messages": [
+    {
+      "id": "msg_789",
+      "role": "assistant",
+      "content": "I sincerely apologize for the duplicate charge. I've located your order and can see the billing error. Let me help you get this resolved immediately...",
+      "agent_name": "responder"
+    }
+  ]
 }
 ```
 
@@ -333,7 +339,7 @@ for message in user_messages:
             }
         }
     )
-    print(response.json()["response"]["content"])
+    print(response.json()["messages"][-1]["content"])
 ```
 
 ### Pattern 2: Configuration + Queries

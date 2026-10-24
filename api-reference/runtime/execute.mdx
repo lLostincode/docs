@@ -91,18 +91,74 @@ const result = await response.json();
 
 ## Response
 
+The response is a session object. Everything the agent produced during the run is in the top-level `messages` array, in order. There is no `response` wrapper and no `response.content` field.
+
 ```json
 {
-  "success": true,
-  "message_id": "msg_789",
-  "response": {
-    "content": "Based on the current weather data, it's sunny and 72°F today.",
-    "tool_calls": []
-  },
-  "correlation_id": "corr_123"
+  "id": "session_abc123",
+  "object": "agent.session",
+  "status": "completed",
+  "created_at": "2026-10-24T09:00:00Z",
+  "completed_at": "2026-10-24T09:00:03Z",
+  "config": {},
+  "messages": [
+    {
+      "id": "msg_789",
+      "role": "assistant",
+      "content": "Based on the current weather data, it's sunny and 72°F today.",
+      "agent_name": "weather_agent",
+      "created_at": "2026-10-24T09:00:02Z",
+      "metadata": {}
+    }
+  ],
+  "execution_time": 2.41,
+  "metadata": {
+    "correlation_id": "corr_123",
+    "event_count": 14,
+    "execution_id": "exec_456",
+    "usage": {}
+  }
 }
 ```
 
+<ResponseField name="messages" type="array">
+  Messages generated during this execution: `assistant` messages, plus `tool` messages (with `tool_call_id`) for tool results. Assistant messages that called tools carry a `tool_calls` array. Each message has `agent_name` set to the agent that produced it.
+</ResponseField>
+
+<ResponseField name="metadata" type="object">
+  `correlation_id`, `event_count`, `execution_id` and `usage` for the run.
+</ResponseField>
+
+### Structured output
+
+An agent with [`structured_output`](/documentation/advanced/structured-output) has no dedicated result field on this endpoint. The validated object comes back as **JSON text in `content`** of an `assistant` message in `messages`, with `agent_name` set to the producing agent. Parse it with `JSON.parse` / `json.loads`.
+
+```json
+{
+  "messages": [
+    {
+      "id": "msg_790",
+      "role": "assistant",
+      "content": "{\n  \"field_a\": \"value\",\n  \"field_b\": 42,\n  \"field_c\": null\n}",
+      "agent_name": "researcher",
+      "metadata": {}
+    }
+  ]
+}
+```
+
+- `content` is always a string, never an already-parsed object. For a `__root__` schema it is the bare JSON value (for example `"[\"a\", \"b\"]"`).
+- The `metadata` on the message is empty over REST. The `structured_output: true` / `output_key` markers exist only in server-side state; do not rely on them to find the message. Select by `role == "assistant"` and `agent_name`, and take the last matching message.
+- Any field can be `null`, see [Structured Output](/documentation/advanced/structured-output#any-field-can-be-null).
+- Inside `architecture: workflow` nothing changes. The wrapper does not add a layer; messages from every agent in the run are appended to the same flat `messages` array. If several agents run, filter on `agent_name`.
+- If the agent sets `streaming_config.show_output_to_user: false`, its output is not published to the request and **does not appear in `messages` at all**. Leave it `true` (the default) on any agent whose structured output you need over REST.
+- Values are not exposed on `{{ agent.output }}`-style paths over REST; those are prompt/variable references only.
+- If validation or generation fails, the call returns an error response instead of a message (see below).
+
 <Note>
-The response includes the agent's generated content and any tool calls that were made during execution.
+Streamed text and the final message are merged for you: `content` is already the concatenated JSON, not deltas.
 </Note>
+
+### Error response
+
+On failure (including a failed structured-output generation) the endpoint returns HTTP 500 with `error.type` `execution_error` and the message, not a partial `messages` array.
