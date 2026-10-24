@@ -1,0 +1,51 @@
+---
+title: "AMAS Overview"
+description: "The Artaios Multi Agent System: the YAML runtime behind every Artaios agent"
+---
+
+**AMAS** — the **Artaios Multi Agent System** — is the execution runtime behind
+every Artaios agent. An agent is described as a YAML configuration (agents,
+models, prompts, tools, knowledge, memory and the connections between them),
+and AMAS runs it.
+
+## Do I need this section?
+
+Most users do not. The Agent Builder in Artaios creates and edits this
+configuration for you, and the integration guides in the main
+[Documentation](/documentation/getting-started/connecting-your-agent) work the
+same way whether or not you ever look at the YAML.
+
+Read on if you want to:
+
+- write or review an agent's YAML by hand
+- build multi-agent systems with the workflow or supervisor pattern
+- use structured output, variables, memory or human-in-the-loop
+- understand exactly how an agent behaves at runtime
+
+## What AMAS provides
+
+- **Two orchestration patterns.** A *workflow* runs agents along defined edges,
+  including conditional routing. A *supervisor* delegates to other agents.
+- **Declarative configuration.** Readable, version-controllable YAML instead
+  of code.
+- **Typed data between agents.** Structured output and variables.
+- **Knowledge, tools and memory.** Knowledge bases, toolkits, MCP servers and a
+  memory system.
+- **Tracing.** Every run is observable.
+
+## Where to go
+
+<CardGroup cols={2}>
+  <Card title="Concepts & Glossary" icon="book" href="/amas/concepts">
+    AMAS vs Agent Builder vs Artaios, and the vocabulary
+  </Card>
+  <Card title="Quickstart" icon="rocket" href="/amas/quickstart">
+    Build and test your first agent
+  </Card>
+  <Card title="YAML Configuration" icon="file-code" href="/amas/yaml-configuration">
+    The complete configuration schema
+  </Card>
+  <Card title="Multi-agent systems" icon="diagram-project" href="/amas/advanced/multi-agent-introduction">
+    Workflow and supervisor patterns
+  </Card>
+</CardGroup>

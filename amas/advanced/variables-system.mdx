@@ -40,7 +40,7 @@ variables:
 
 | Property | Type | Default | Required | Description |
 |----------|------|---------|----------|-------------|
-| `type` | string | — | Yes | Data type using BAML type notation: `str`, `int`, `float`, `bool`, `list[str]`, `list[int]`, `dict[str, int]`, `str \| None`, etc. See [Type Notation](/documentation/advanced/type-notation) for the full reference. |
+| `type` | string | — | Yes | Data type using BAML type notation: `str`, `int`, `float`, `bool`, `list[str]`, `list[int]`, `dict[str, int]`, `str \| None`, etc. See [Type Notation](/amas/advanced/type-notation) for the full reference. |
 | `default` | any | `null` | No | Default value if not provided. Supports template syntax like `{{ variables.key }}`. |
 | `description` | string | `null` | No | Human-readable description (shown in UI and playground). |
 | `required` | boolean | `true` | No | If `true`, variable must be provided or have a default value. If `false`, a `default` **must** be set — omitting both causes a validation error. |
@@ -178,7 +178,7 @@ agents:
 
 ### Template Syntax
 
-Variables are accessed in `system_prompt` using `{{ variables.name }}` syntax. The substitution engine also supports other template variables — see [Prompt Configuration](/documentation/agent_config/types_config/prompt-configuration) for the full list.
+Variables are accessed in `system_prompt` using `{{ variables.name }}` syntax. The substitution engine also supports other template variables — see [Prompt Configuration](/amas/agent_config/types_config/prompt-configuration) for the full list.
 
 | Syntax | Description | Example |
 |--------|-------------|---------|
@@ -498,4 +498,4 @@ variable_assignments:
 
 Variables use the same BAML-style type notation as structured output schema fields — scalars (`str`, `int`, `float`, `bool`), collections (`list[str]`, `dict[str, int]`, nested to any depth), nullable forms (`str | None`, `Optional[str]`), and `Any`.
 
-See [Type Notation](/documentation/advanced/type-notation) for the full reference, including the coercion rules applied during variable assignment and the nullability interaction between structured output fields and variables (a non-nullable variable silently keeps its previous value when assigned a `null` field).
+See [Type Notation](/amas/advanced/type-notation) for the full reference, including the coercion rules applied during variable assignment and the nullability interaction between structured output fields and variables (a non-nullable variable silently keeps its previous value when assigned a `null` field).

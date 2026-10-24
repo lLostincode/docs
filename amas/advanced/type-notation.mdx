@@ -3,7 +3,7 @@ title: "Type Notation"
 description: "The BAML-style type notation shared by structured output schemas and the variables system, including coercion and nullability rules"
 ---
 
-Both [Structured Output](/documentation/advanced/structured-output) schema fields and [Variables](/documentation/advanced/variables-system) share a single type system. A `VariableDefinition` extends the same `SchemaFieldDefinition` base that structured output fields use — that's why a `type` string written for a schema field and a `type` string written for a variable follow identical rules, are parsed by the same type parser, and are coerced by the same logic. This page is the single reference for that notation.
+Both [Structured Output](/amas/advanced/structured-output) schema fields and [Variables](/amas/advanced/variables-system) share a single type system. A `VariableDefinition` extends the same `SchemaFieldDefinition` base that structured output fields use — that's why a `type` string written for a schema field and a `type` string written for a variable follow identical rules, are parsed by the same type parser, and are coerced by the same logic. This page is the single reference for that notation.
 
 <Info>
 Type strings are parsed with Python's `ast` module (no `eval`), then handed to Pydantic for runtime validation. Only the forms documented below are recognized — anything else raises a parse error.
@@ -181,10 +181,10 @@ agents:
 ## Used by
 
 <CardGroup cols={2}>
-  <Card title="Structured Output" icon="database" href="/documentation/advanced/structured-output">
+  <Card title="Structured Output" icon="database" href="/amas/advanced/structured-output">
     Define typed fields the agent must extract.
   </Card>
-  <Card title="Variables" icon="code" href="/documentation/advanced/variables-system">
+  <Card title="Variables" icon="code" href="/amas/advanced/variables-system">
     Define typed values threaded through prompts and assignments.
   </Card>
 </CardGroup>

@@ -41,7 +41,7 @@ Every workflow must have a path from `__start__` to `__end__`.
 The `entry_point` field specifies which agent runs first:
 
 - **Agent name** (e.g., `"assistant"`): An edge from `__start__` to this agent is added automatically. You can still define an explicit `__start__ → agent` edge, but it's not required.
-- **`"START"`**: No automatic edge is created. You must define your own edge from `__start__` (useful for [conditional routing from start](/documentation/advanced/conditional-edges#conditional-routing-from-start)).
+- **`"START"`**: No automatic edge is created. You must define your own edge from `__start__` (useful for [conditional routing from start](/amas/advanced/conditional-edges#conditional-routing-from-start)).
 
 ### Passing Data Between Agents
 
@@ -54,7 +54,7 @@ The previous agent's output is automatically available in the agent's context.
 Define schemas for agent outputs and reference specific fields in subsequent agents.
 
 <Info>
-**Learn more about structured output:** [Structured Output →](/documentation/advanced/structured-output)
+**Learn more about structured output:** [Structured Output →](/amas/advanced/structured-output)
 </Info>
 
 ## Basic Sequential Chain
@@ -265,7 +265,7 @@ The `researcher` agent uses `tavily_search` to gather data and outputs structure
 </Check>
 
 <Info>
-**For dynamic routing**, see [Supervisor Pattern →](/documentation/advanced/supervisor-pattern) or [Conditional Edges →](/documentation/advanced/conditional-edges)
+**For dynamic routing**, see [Supervisor Pattern →](/amas/advanced/supervisor-pattern) or [Conditional Edges →](/amas/advanced/conditional-edges)
 </Info>
 
 ## Best Practices
@@ -299,11 +299,11 @@ Every workflow must have a path from `__start__` to `__end__`. Ensure all agents
 For more complex routing logic:
 
 <CardGroup cols={2}>
-  <Card title="Conditional Edges" icon="code-branch" href="/documentation/advanced/conditional-edges">
+  <Card title="Conditional Edges" icon="code-branch" href="/amas/advanced/conditional-edges">
     Add dynamic routing based on agent output
   </Card>
   
-  <Card title="Supervisor Pattern" icon="users" href="/documentation/advanced/supervisor-pattern">
+  <Card title="Supervisor Pattern" icon="users" href="/amas/advanced/supervisor-pattern">
     Use intelligent task delegation instead of fixed edges
   </Card>
 </CardGroup>
@@ -347,19 +347,19 @@ For more complex routing logic:
 ## Next Steps
 
 <CardGroup cols={2}>
-  <Card title="Conditional Edges" icon="code-branch" href="/documentation/advanced/conditional-edges">
+  <Card title="Conditional Edges" icon="code-branch" href="/amas/advanced/conditional-edges">
     Add dynamic routing to workflows
   </Card>
   
-  <Card title="Supervisor Pattern" icon="users" href="/documentation/advanced/supervisor-pattern">
+  <Card title="Supervisor Pattern" icon="users" href="/amas/advanced/supervisor-pattern">
     Learn about supervisor-based coordination
   </Card>
   
-  <Card title="Agent Types" icon="robot" href="/documentation/agent_config/types_config/agent-types">
+  <Card title="Agent Types" icon="robot" href="/amas/agent_config/types_config/agent-types">
     Understand different agent types for workflows
   </Card>
   
-  <Card title="YAML Configuration" icon="file-code" href="/documentation/yaml-configuration">
+  <Card title="YAML Configuration" icon="file-code" href="/amas/yaml-configuration">
     Complete reference for workflow configuration
   </Card>
 </CardGroup>

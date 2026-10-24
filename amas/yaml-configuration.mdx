@@ -104,7 +104,7 @@ entry_point: "agent_name"
         relevance_prompt: "Extract user preferences and durable facts."
   ```
   
-  See [Memory System](/documentation/advanced/memory-system) for scopes, auto-save triggers and relevance prompts.
+  See [Memory System](/amas/advanced/memory-system) for scopes, auto-save triggers and relevance prompts.
 </ParamField>
 
 ## Agent Configuration
@@ -127,7 +127,7 @@ agents:
 </ParamField>
 
 <ParamField path="agent_type" type="string" required>
-  Type of agent to instantiate. See [Agent Types](/documentation/agent_config/types_config/agent-types) for available options.
+  Type of agent to instantiate. See [Agent Types](/amas/agent_config/types_config/agent-types) for available options.
   
   **Common types:**
   - `llm_agent` - Basic LLM-powered conversational agent
@@ -154,7 +154,7 @@ agents:
 <ParamField path="memory_config" type="object">
   Agent-specific memory configuration, overriding the system-level block. Accepts `modules`, `num_results`, `auto_save`, `auto_save_trigger`, `auto_save_interval` and `relevance_prompt`.
   
-  `agent` scope is only valid here, not at the system level. See [Per-Agent Memory](/documentation/advanced/memory-system#per-agent-memory).
+  `agent` scope is only valid here, not at the system level. See [Per-Agent Memory](/amas/advanced/memory-system#per-agent-memory).
 </ParamField>
 
 ### Prompt Configuration
@@ -327,7 +327,7 @@ agents:
     </ParamField>
     
     <ParamField path="schema" type="object">
-      Dictionary mapping field names to their definitions. Each field definition must include a `type` (e.g., `"str"`, `"int"`, `"list[str]"`) and can optionally include a `description`. See [Type Notation](/documentation/advanced/type-notation) for every accepted type string.
+      Dictionary mapping field names to their definitions. Each field definition must include a `type` (e.g., `"str"`, `"int"`, `"list[str]"`) and can optionally include a `description`. See [Type Notation](/amas/advanced/type-notation) for every accepted type string.
       
       The reserved key `__root__`, used alone, makes the agent return a bare value (typically a list) instead of an object.
     </ParamField>
@@ -351,7 +351,7 @@ agents:
 Any field can return `null` regardless of its declared type — every field is optional at the schema-building layer so a missing value cannot crash the run. Handle absent values downstream, and note that a `null` is silently skipped rather than written into a non-nullable variable.
 </Warning>
 
-<Card title="Structured Output" icon="brackets-curly" href="/documentation/advanced/structured-output">
+<Card title="Structured Output" icon="brackets-curly" href="/amas/advanced/structured-output">
   Root schemas, nested fields, multi-agent data passing and error handling
 </Card>
 
@@ -451,7 +451,7 @@ agents:
 </ParamField>
 
 <ParamField path="agents[].tools[].hitl_config" type="object">
-  Human-in-the-Loop settings for this tool instance: `requires_human_approval`, `mandate_human_approval`, `disable_human_approval`, `confirmation_prompt`. Requires `persistent_state: true` when a gate ends up active. See [Human-in-the-Loop](/documentation/agent_config/human-in-the-loop).
+  Human-in-the-Loop settings for this tool instance: `requires_human_approval`, `mandate_human_approval`, `disable_human_approval`, `confirmation_prompt`. Requires `persistent_state: true` when a gate ends up active. See [Human-in-the-Loop](/amas/agent_config/human-in-the-loop).
 </ParamField>
 
 #### **System-Level Tools (Advanced)**
@@ -789,11 +789,11 @@ Validation errors will be returned with specific field-level details to help you
 ## Next Steps
 
 <CardGroup cols={2}>
-  <Card title="Agent Types" icon="robot" href="/documentation/agent_config/types_config/agent-types">
+  <Card title="Agent Types" icon="robot" href="/amas/agent_config/types_config/agent-types">
     Learn about available agent types and when to use each
   </Card>
   
-  <Card title="Agent Capabilities" icon="wand-magic-sparkles" href="/documentation/agent_config/agent-capabilities">
+  <Card title="Agent Capabilities" icon="wand-magic-sparkles" href="/amas/agent_config/agent-capabilities">
     Explore tools, streaming, and other agent capabilities
   </Card>
 </CardGroup>

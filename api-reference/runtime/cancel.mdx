@@ -63,7 +63,7 @@ const result = await response.json();
 
 ## Cancelling a Human-in-the-Loop pause
 
-A session suspended on an open [Human-in-the-Loop](/documentation/agent_config/human-in-the-loop) approval card has no actively running worker task — the agent graph is parked on a checkpoint, waiting for `hitl_response`. Calling this endpoint while a session is in that state still succeeds: instead of stopping a live task, it **abandons the pending approval**. The backend finalizes the suspended checkpoint with a synthetic "cancelled by user" tool result and frees the session, so the next message is accepted instead of being rejected by the busy-guard that otherwise blocks new input while an approval is outstanding.
+A session suspended on an open [Human-in-the-Loop](/amas/agent_config/human-in-the-loop) approval card has no actively running worker task — the agent graph is parked on a checkpoint, waiting for `hitl_response`. Calling this endpoint while a session is in that state still succeeds: instead of stopping a live task, it **abandons the pending approval**. The backend finalizes the suspended checkpoint with a synthetic "cancelled by user" tool result and frees the session, so the next message is accepted instead of being rejected by the busy-guard that otherwise blocks new input while an approval is outstanding.
 
 <Note>
 Abandoning a HITL pause this way does not "deny" the tool call through the normal approval flow — it ends the turn outright. If you want to formally deny a specific tool call and let the agent continue, respond to the approval card instead; see [Human-in-the-Loop over WebSocket](/documentation/integration/websocket-api#human-in-the-loop-over-websocket).

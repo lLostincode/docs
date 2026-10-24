@@ -227,7 +227,7 @@ agents:
 
 Many write-type integration tools (Mail, TwentyCRM, Jira, Scheduler) already pause by default, and some irreversible ones always do regardless of configuration.
 
-<Card title="Human-in-the-Loop" icon="user-check" href="/documentation/agent_config/human-in-the-loop">
+<Card title="Human-in-the-Loop" icon="user-check" href="/amas/agent_config/human-in-the-loop">
   The precedence rules, every `hitl_config` option, and how approvals are answered
 </Card>
 
@@ -465,7 +465,7 @@ When streaming is enabled, the system emits these event types:
 Agents can access knowledge bases to retrieve domain-specific information and documents. Both **LLM agents** and **ReAct agents** support knowledge base integration.
 
 <Tip>
-For comprehensive knowledge base configuration details, see the [Knowledge Base Setup](/documentation/agent_config/knowledge-base-setup) guide.
+For comprehensive knowledge base configuration details, see the [Knowledge Base Setup](/amas/agent_config/knowledge-base-setup) guide.
 </Tip>
 
 ### Available Knowledge Base Types
@@ -555,7 +555,7 @@ llm_config:
   model: "gpt-4o"  # Provider auto-detected from model name
 ```
 
-**Available models** (see [Available Models](/documentation/agent_config/types_config/model-selection) for the full list):
+**Available models** (see [Available Models](/amas/agent_config/types_config/model-selection) for the full list):
 - `gpt-4o` - Azure OpenAI (text + image)
 - `gemini-2.5-flash` / `gemini-2.5-pro` - Google Gemini (text, image, audio, video + thinking)
 - `gemini-3-flash` / `gemini-3.1-flash-lite` / `gemini-3.1-pro` - Gemini 3 & 3.1 (text, image, audio, video + thinking, 64K output)
@@ -817,11 +817,11 @@ Test agents with minimal tools first, then add more as needed.
 ## Next Steps
 
 <CardGroup cols={2}>
-  <Card title="YAML Configuration" icon="file-code" href="/documentation/yaml-configuration">
+  <Card title="YAML Configuration" icon="file-code" href="/amas/yaml-configuration">
     Complete YAML configuration reference
   </Card>
   
-  <Card title="Agent Types" icon="robot" href="/documentation/agent_config/types_config/agent-types">
+  <Card title="Agent Types" icon="robot" href="/amas/agent_config/types_config/agent-types">
     Learn about different agent types
   </Card>
   

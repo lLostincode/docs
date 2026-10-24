@@ -1,140 +1,75 @@
 ---
 title: "Introduction"
-description: "AMAS — build, test and deploy multi-agent systems from declarative YAML"
+description: "Connect Artaios agents to your applications, websites and systems"
 ---
 
-## What is AMAS?
+## Welcome
 
-**AMAS** — the **Artaios Multi Agent System** — is a declarative system for
-building multi-agent AI systems. You define an agentic system in YAML: agents,
-models, prompts, tools, knowledge, memory and the orchestration between them.
-AMAS runs it, and exposes it over REST and WebSocket.
+Artaios agents are built with the Agent Builder in Artaios, or in Agent Studio
+at [amas.artaios.com](https://amas.artaios.com). Once an agent is deployed, you
+can use it from your own software, embed it on your website, or let colleagues
+chat with it in Artaios.
 
-You work with AMAS two ways, interchangeably:
-
-- **[Agent Studio](https://amas.artaios.com)** — AMAS's web interface. Write
-  YAML, run it in the Playground, build knowledge bases, manage keys.
-- **The API** — REST and WebSocket, taking the same YAML.
-
-<Note>
-**AMAS, Agent Studio and Artaios are three different things.** AMAS is the
-system and the YAML. Agent Studio is AMAS's UI. **Artaios** is the separate
-end-user chat product that finished agents can be *published to* — it is a
-destination, not a build surface. Full breakdown:
-[Concepts & Glossary](/documentation/getting-started/concepts).
-</Note>
-
-## Who is this for?
-
-These docs are written for **hands-on technical builders** — people who would
-rather write a config than click through a wizard, and who want to see and
-control every part of an agentic system.
-
-- **Developers** building AI-powered applications
-- **AI engineers and consultants** deploying custom agent solutions for clients
-- **Technical architects** prototyping multi-agent workflows
-
-<Warning>
-**This is not a no-code product.** There is no drag-and-drop canvas. Every
-agentic system in AMAS is a YAML file you write and maintain yourself.
-
-We assume you are comfortable with:
-
-- **YAML** — nesting, lists, block scalars, anchors
-- **HTTP APIs** — authentication headers, JSON request and response bodies
-- **Prompt engineering** — you will be writing and iterating on system prompts
-- **Reading reference docs** — these pages are a reference, not a course
-
-If you want point-and-click agent building for non-technical users, AMAS is the
-wrong layer. The **Artaios** chat product is where non-technical colleagues
-*consume* what you build here.
-</Warning>
-
-## Core Capabilities
+This documentation covers everything you need to **connect** an agent:
 
 <CardGroup cols={2}>
-  <Card title="Rapid Development" icon="code">
-    Define an agentic system in YAML and run it immediately
+  <Card title="Connect your agent" icon="plug" href="/documentation/getting-started/connecting-your-agent">
+    Credentials, base URLs and the three integration options
   </Card>
-  <Card title="Multi-Agent Orchestration" icon="diagram-project">
-    Supervisor, sequential and conditional patterns out of the box
+  <Card title="REST API" icon="server" href="/documentation/integration/rest-api-tutorial">
+    Server-side integration with request and response
   </Card>
-  <Card title="Staying Ahead of the AI Wave" icon="rocket">
-    New models and multi-agent techniques land as config options, not rewrites
+  <Card title="WebSocket API" icon="bolt" href="/documentation/integration/websocket-api">
+    Real-time streaming for interactive applications
   </Card>
-  <Card title="Bring your Data to Life" icon="database">
-    Upload documents and connect data sources from your existing systems
+  <Card title="Embedded chatbot" icon="message" href="/documentation/integration/chatbot-integration">
+    Drop-in chat widget for your website
   </Card>
-  <Card title="Integrate with External Services" icon="wrench">
-    Toolkits, MCP servers and your own custom tools
+  <Card title="IP addresses for whitelisting" icon="shield-check" href="/documentation/integration/ip-addresses">
+    Allow Artaios through your firewall
   </Card>
-  <Card title="Production Monitoring" icon="chart-line">
-    Built-in tracing and observability on every run
+  <Card title="API Reference" icon="book" href="/api-reference/introduction">
+    Every endpoint, parameter and response
   </Card>
 </CardGroup>
 
-## Architecture
+## Where do I start?
 
-AMAS runs on **German cloud infrastructure** (Open Telekom Cloud) operated by
+<Steps>
+  <Step title="Build and deploy an agent">
+    Create an agent in the Agent Builder or Agent Studio and deploy a version.
+  </Step>
+  <Step title="Create an API key">
+    Generate a key under **Settings** and note your agent's key.
+  </Step>
+  <Step title="Pick an integration">
+    Call the agent over [REST](/documentation/integration/rest-api-tutorial),
+    stream it over [WebSocket](/documentation/integration/websocket-api), or
+    [embed the chatbot](/documentation/integration/chatbot-integration).
+  </Step>
+</Steps>
+
+## Hosting and data
+
+Artaios runs on **German cloud infrastructure** (Open Telekom Cloud) operated by
 arttac solutions, ensuring data sovereignty and compliance with European
 regulations.
 
-Your agentic systems can be:
+## Want to go deeper? AMAS
 
-- **Tested** in the Agent Studio Playground with instant feedback
-- **Deployed** via REST API for server-side integration
-- **Streamed** via WebSocket for real-time applications
-- **Embedded** as public chatbots on your websites
-- **Published** to the Artaios chat product for colleagues to use directly
+Every Artaios agent runs on **AMAS**, the Artaios Multi Agent System: a YAML
+execution runtime that supports workflow and supervisor patterns. You do not
+need to know anything about it to build or integrate agents. If you want full
+control over how an agent is configured, the **AMAS** section documents the
+YAML format, agent types, multi-agent patterns and more.
 
-## Getting Access
+<Card title="Go to AMAS" icon="cubes" href="/amas/overview">
+  Optional: YAML configuration and multi-agent patterns
+</Card>
 
-AMAS is currently in **closed beta**.
+## Getting access
+
+Artaios is currently in **closed beta**.
 
 <Card title="Request Access" href="https://artaios.ai/#register">
 </Card>
-
-Once approved, you'll receive credentials for Agent Studio at
-[amas.artaios.com](https://amas.artaios.com).
-
-## Your Feedback Matters
-
-As an early user, your feedback directly shapes the system. Throughout these
-docs, you'll see prompts to share your thoughts — please do! Your input helps us
-build something genuinely useful.
-
-## Next Steps
-
-<CardGroup cols={2}>
-  <Card title="Concepts & Glossary" icon="book" href="/documentation/getting-started/concepts">
-    AMAS vs Agent Studio vs Artaios, and the vocabulary
-  </Card>
-  <Card title="Quickstart Guide" icon="rocket" href="/documentation/getting-started/quickstart">
-    Build and test your first agent in 10 minutes
-  </Card>
-  <Card title="YAML Configuration" icon="file-code" href="/documentation/yaml-configuration">
-    Learn how to configure agents with YAML
-  </Card>
-  <Card title="Connecting Your Agent" icon="plug" href="/documentation/getting-started/connecting-your-agent">
-    REST, WebSocket and embedded chatbot
-  </Card>
-</CardGroup>
-
----
-
-## What Makes This Different?
-
-Unlike point-and-click AI builders or code-heavy frameworks, AMAS sits in the
-middle:
-
-- **Configuration over Code**: YAML-based setup means readable,
-  version-controllable configs
-- **Built for Multi-Agent**: Design complex workflows with agent coordination
-  out of the box
-- **Observability First**: See what your agents are doing with comprehensive
-  tracing
-- **Integration Ready**: Deploy via API, WebSocket, or embedded chatbot in
-  minutes
-
-If you're building production AI systems and want control without complexity,
-you're in the right place.

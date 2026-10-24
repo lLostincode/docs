@@ -57,7 +57,7 @@ When the agent has External Auth configured, send your own end user's JWT as a h
 X-External-User-Token: <end_user_jwt>
 ```
 
-It is validated against the agent's identity-provider configuration on connect, and must then be repeated on **every** `user_message` as `ext_token` — otherwise the message is rejected with `missing_ext_token`. See [External Authentication](/documentation/studio/external-auth).
+It is validated against the agent's identity-provider configuration on connect, and must then be repeated on **every** `user_message` as `ext_token` — otherwise the message is rejected with `missing_ext_token`. See [External Authentication](/amas/studio/external-auth).
 
 ### Close codes
 
@@ -380,7 +380,7 @@ Rules worth repeating:
 - Values are coerced to the declared type: `"70.5"` for a `float` becomes `70.5`. An uncoercible value fails the execution with `'score' expected float, got str`.
 - Keys not declared in `variables` are ignored.
 
-<Card title="Variables System" icon="brackets-curly" href="/documentation/advanced/variables-system">
+<Card title="Variables System" icon="brackets-curly" href="/amas/advanced/variables-system">
   Types, defaults, assignment from structured output, and template syntax
 </Card>
 
@@ -388,7 +388,7 @@ Rules worth repeating:
 
 ## Human-in-the-Loop over WebSocket
 
-WebSocket is the only transport that can answer an approval card. Configure the gate in YAML first — see [Human-in-the-Loop](/documentation/agent_config/human-in-the-loop).
+WebSocket is the only transport that can answer an approval card. Configure the gate in YAML first — see [Human-in-the-Loop](/amas/agent_config/human-in-the-loop).
 
 ### 1. The run pauses
 
@@ -638,10 +638,10 @@ asyncio.run(run(
 ## Related
 
 <CardGroup cols={2}>
-  <Card title="Human-in-the-Loop" icon="user-check" href="/documentation/agent_config/human-in-the-loop">
+  <Card title="Human-in-the-Loop" icon="user-check" href="/amas/agent_config/human-in-the-loop">
     Configure which tools pause for approval
   </Card>
-  <Card title="Variables System" icon="brackets-curly" href="/documentation/advanced/variables-system">
+  <Card title="Variables System" icon="brackets-curly" href="/amas/advanced/variables-system">
     Declare and populate variables
   </Card>
   <Card title="Connecting Your Agent" icon="plug" href="/documentation/getting-started/connecting-your-agent">

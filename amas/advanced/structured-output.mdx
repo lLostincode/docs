@@ -90,7 +90,7 @@ schema:
     description: "Middle name if available, null otherwise"
 ```
 
-See [Type Notation](/documentation/advanced/type-notation) for the full reference — every supported scalar and collection form, nesting, coercion rules, and the nullability interaction between structured output fields and variables.
+See [Type Notation](/amas/advanced/type-notation) for the full reference — every supported scalar and collection form, nesting, coercion rules, and the nullability interaction between structured output fields and variables.
 
 <Note>
 **Enum types are not currently supported.** Use `str` type with clear descriptions for fields that should have restricted values. Guide the LLM via your system prompt to output specific allowed values.
@@ -102,7 +102,7 @@ See [Type Notation](/documentation/advanced/type-notation) for the full referenc
 Consequences to design for:
 
 - Treat every field as potentially absent in downstream prompts and conditional edges.
-- A `null` is **not** written into a non-nullable variable by `variable_assignments` — the assignment is skipped and the previous value kept. Declare the variable `T | None` if storing `null` is what you want. See [Type Notation](/documentation/advanced/type-notation).
+- A `null` is **not** written into a non-nullable variable by `variable_assignments` — the assignment is skipped and the previous value kept. Declare the variable `T | None` if storing `null` is what you want. See [Type Notation](/amas/advanced/type-notation).
 - Declaring the field itself `T | None` is good practice for documenting intent, but it is not what makes the parse succeed.
 </Warning>
 
@@ -253,7 +253,7 @@ agents:
 - `{{ agent_name.output.field }}` — Access specific field from structured output
 - `{{ agent_name.output.nested.field }}` — Access nested fields (dot-separated path)
 - `{{ agent_name.output }}` — Access entire structured output as JSON string
-- `{{ variables.name }}` — Access custom variables (see [Variables System](/documentation/advanced/variables-system))
+- `{{ variables.name }}` — Access custom variables (see [Variables System](/amas/advanced/variables-system))
 - `{{ user_input }}` — Latest user message
 - `{{ history[N] }}` — Last N messages from conversation (structured output NOT included)
 
@@ -379,7 +379,7 @@ Each field in the schema must have:
 <ParamField path="type" type="string" required>
   Type notation for the field. Common types: `str`, `int`, `float`, `bool`, `list[T]`, `dict[K, V]`, `T | None`, `Optional[T]`, `Any`.
   
-  See [Type Notation](/documentation/advanced/type-notation) for the full reference.
+  See [Type Notation](/amas/advanced/type-notation) for the full reference.
 </ParamField>
 
 <ParamField path="description" type="string">
@@ -422,7 +422,7 @@ The system automatically validates structured output:
 
 | Error | Cause | Solution |
 |-------|-------|----------|
-| `Invalid type notation` | Unsupported type syntax | Check [Type Notation](/documentation/advanced/type-notation) |
+| `Invalid type notation` | Unsupported type syntax | Check [Type Notation](/amas/advanced/type-notation) |
 | `Missing required field` | Agent didn't provide all fields | Improve system prompt to mention all fields |
 | `Type validation failed` | Value doesn't match expected type | Ensure agent outputs correct type for the field |
 | `Type mismatch` | Wrong data type | Ensure agent outputs correct type (e.g., number not string) |
@@ -516,7 +516,7 @@ agents:
         Respond appropriately.
 ```
 
-Variable assignments also support static values and non-structured output. The system applies **automatic type coercion** during variable assignment, converting strings to types like integers, booleans, or JSON arrays to ensure they match the variable's defined `type`. See [Variables System](/documentation/advanced/variables-system) for details.
+Variable assignments also support static values and non-structured output. The system applies **automatic type coercion** during variable assignment, converting strings to types like integers, booleans, or JSON arrays to ensure they match the variable's defined `type`. See [Variables System](/amas/advanced/variables-system) for details.
 
 ## Limitations
 
@@ -532,6 +532,6 @@ Variable assignments also support static values and non-structured output. The s
 
 ## Next Steps
 
-<Card title="Conditional Edges" icon="code-branch" href="/documentation/advanced/conditional-edges">
+<Card title="Conditional Edges" icon="code-branch" href="/amas/advanced/conditional-edges">
   Learn how to route agents based on structured output values
 </Card>

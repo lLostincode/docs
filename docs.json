@@ -1,7 +1,7 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
-  "name": "AMAS Documentation",
+  "name": "Artaios Documentation",
   "colors": {
     "primary": "#6366F1",
     "light": "#818CF8",
@@ -21,76 +21,7 @@
             "icon": "rocket",
             "pages": [
               "index",
-              "documentation/getting-started/concepts",
-              "documentation/getting-started/quickstart",
               "documentation/getting-started/connecting-your-agent"
-            ]
-          },
-          {
-            "group": "Agent Configuration",
-            "icon": "gear",
-            "pages": [
-              "documentation/yaml-configuration",
-              {
-                "group": "Agent Types & Configuration",
-                "pages": [
-                  "documentation/agent_config/types_config/agent-types",
-                  "documentation/agent_config/types_config/model-selection",
-                  "documentation/agent_config/types_config/prompt-configuration"
-                ]
-              },
-              {
-                "group": "Agent Capabilities",
-                "pages": [
-                  "documentation/agent_config/agent-capabilities",
-                  "documentation/advanced/structured-output",
-                  "documentation/agent_config/human-in-the-loop",
-                  "documentation/advanced/type-notation"
-                ]
-              },
-              "documentation/agent_config/knowledge-base-setup"
-            ]
-          },
-          {
-            "group": "Multi Agent Systems",
-            "icon": "brain-circuit",
-            "pages": [
-              "documentation/advanced/multi-agent-introduction",
-              "documentation/advanced/variables-system",
-              "documentation/advanced/sequential-patterns",
-              "documentation/advanced/conditional-edges",
-              "documentation/advanced/supervisor-pattern"
-            ]
-          },
-          {
-            "group": "Advanced Features",
-            "icon": "wand-magic-sparkles",
-            "pages": [
-              "documentation/advanced/memory-system"
-            ]
-          },
-          {
-            "group": "Agent Studio",
-            "icon": "window",
-            "pages": [
-              "documentation/studio/platform-overview",
-              "documentation/studio/settings",
-              "documentation/studio/external-auth",
-              "documentation/studio/playground",
-              "documentation/studio/my-agents",
-              "documentation/studio/knowledge-base",
-              "documentation/studio/tools",
-              "documentation/studio/prompts",
-              "documentation/studio/ai-config-generator"
-            ]
-          },
-          {
-            "group": "Platform",
-            "icon": "cube",
-            "pages": [
-              "documentation/platform/roadmap",
-              "documentation/platform/release-notes",
-              "documentation/platform/known-issues"
             ]
           },
           {
@@ -101,7 +32,17 @@
               "documentation/integration/variables-in-rest-api",
               "documentation/integration/websocket-api",
               "documentation/integration/chatbot-integration",
-              "documentation/integration/custom-tools"
+              "documentation/integration/custom-tools",
+              "documentation/integration/ip-addresses"
+            ]
+          },
+          {
+            "group": "Platform",
+            "icon": "cube",
+            "pages": [
+              "documentation/platform/roadmap",
+              "documentation/platform/release-notes",
+              "documentation/platform/known-issues"
             ]
           }
         ]
@@ -208,6 +149,78 @@
             ]
           }
         ]
+      },
+      {
+        "tab": "AMAS",
+        "groups": [
+          {
+            "group": "Overview",
+            "icon": "cubes",
+            "pages": [
+              "amas/overview",
+              "amas/concepts",
+              "amas/quickstart"
+            ]
+          },
+          {
+            "group": "Agent Configuration",
+            "icon": "gear",
+            "pages": [
+              "amas/yaml-configuration",
+              {
+                "group": "Agent Types & Configuration",
+                "pages": [
+                  "amas/agent_config/types_config/agent-types",
+                  "amas/agent_config/types_config/model-selection",
+                  "amas/agent_config/types_config/prompt-configuration"
+                ]
+              },
+              {
+                "group": "Agent Capabilities",
+                "pages": [
+                  "amas/agent_config/agent-capabilities",
+                  "amas/advanced/structured-output",
+                  "amas/agent_config/human-in-the-loop",
+                  "amas/advanced/type-notation"
+                ]
+              },
+              "amas/agent_config/knowledge-base-setup"
+            ]
+          },
+          {
+            "group": "Multi Agent Systems",
+            "icon": "brain-circuit",
+            "pages": [
+              "amas/advanced/multi-agent-introduction",
+              "amas/advanced/variables-system",
+              "amas/advanced/sequential-patterns",
+              "amas/advanced/conditional-edges",
+              "amas/advanced/supervisor-pattern"
+            ]
+          },
+          {
+            "group": "Advanced Features",
+            "icon": "wand-magic-sparkles",
+            "pages": [
+              "amas/advanced/memory-system"
+            ]
+          },
+          {
+            "group": "Agent Studio",
+            "icon": "window",
+            "pages": [
+              "amas/studio/platform-overview",
+              "amas/studio/settings",
+              "amas/studio/external-auth",
+              "amas/studio/playground",
+              "amas/studio/my-agents",
+              "amas/studio/knowledge-base",
+              "amas/studio/tools",
+              "amas/studio/prompts",
+              "amas/studio/ai-config-generator"
+            ]
+          }
+        ]
       }
     ],
     "global": {
@@ -255,5 +268,31 @@
     "socials": {
       "linkedin": "https://www.linkedin.com/company/arttacsolutions"
     }
-  }
+  },
+  "redirects": [
+    {
+      "source": "/documentation/yaml-configuration",
+      "destination": "/amas/yaml-configuration"
+    },
+    {
+      "source": "/documentation/getting-started/concepts",
+      "destination": "/amas/concepts"
+    },
+    {
+      "source": "/documentation/getting-started/quickstart",
+      "destination": "/amas/quickstart"
+    },
+    {
+      "source": "/documentation/agent_config/:slug*",
+      "destination": "/amas/agent_config/:slug*"
+    },
+    {
+      "source": "/documentation/advanced/:slug*",
+      "destination": "/amas/advanced/:slug*"
+    },
+    {
+      "source": "/documentation/studio/:slug*",
+      "destination": "/amas/studio/:slug*"
+    }
+  ]
 }

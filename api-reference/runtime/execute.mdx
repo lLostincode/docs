@@ -6,7 +6,7 @@ openapi: 'POST /api/v1/runtime/{session_id}/execute/'
 Execute a message in an existing session and get the agent's response. This call runs the agent to completion and returns the result — it is not a streaming endpoint.
 
 <Warning>
-**Human-in-the-Loop is not supported on this endpoint.** There is no way to receive an approval card or send a resume over REST. If the agent equips a tool that pauses for human approval — see [Human-in-the-Loop](/documentation/agent_config/human-in-the-loop) — the run suspends with no way to answer it, and the call cannot complete normally.
+**Human-in-the-Loop is not supported on this endpoint.** There is no way to receive an approval card or send a resume over REST. If the agent equips a tool that pauses for human approval — see [Human-in-the-Loop](/amas/agent_config/human-in-the-loop) — the run suspends with no way to answer it, and the call cannot complete normally.
 
 Either use the [WebSocket API](/documentation/integration/websocket-api#human-in-the-loop-over-websocket), or make sure no tool on the agent is gated: set `disable_human_approval: true` on tools whose source declares `default_on`, and avoid tools declared `mandatory` (those cannot be ungated at all).
 </Warning>
@@ -131,7 +131,7 @@ The response is a session object. Everything the agent produced during the run i
 
 ### Structured output
 
-An agent with [`structured_output`](/documentation/advanced/structured-output) has no dedicated result field on this endpoint. The validated object comes back as **JSON text in `content`** of an `assistant` message in `messages`, with `agent_name` set to the producing agent. Parse it with `JSON.parse` / `json.loads`.
+An agent with [`structured_output`](/amas/advanced/structured-output) has no dedicated result field on this endpoint. The validated object comes back as **JSON text in `content`** of an `assistant` message in `messages`, with `agent_name` set to the producing agent. Parse it with `JSON.parse` / `json.loads`.
 
 ```json
 {
@@ -149,7 +149,7 @@ An agent with [`structured_output`](/documentation/advanced/structured-output) h
 
 - `content` is always a string, never an already-parsed object. For a `__root__` schema it is the bare JSON value (for example `"[\"a\", \"b\"]"`).
 - The `metadata` on the message is empty over REST. The `structured_output: true` / `output_key` markers exist only in server-side state; do not rely on them to find the message. Select by `role == "assistant"` and `agent_name`, and take the last matching message.
-- Any field can be `null`, see [Structured Output](/documentation/advanced/structured-output#any-field-can-be-null).
+- Any field can be `null`, see [Structured Output](/amas/advanced/structured-output#any-field-can-be-null).
 - Inside `architecture: workflow` nothing changes. The wrapper does not add a layer; messages from every agent in the run are appended to the same flat `messages` array. If several agents run, filter on `agent_name`.
 - If the agent sets `streaming_config.show_output_to_user: false`, its output is not published to the request and **does not appear in `messages` at all**. Leave it `true` (the default) on any agent whose structured output you need over REST.
 - Values are not exposed on `{{ agent.output }}`-style paths over REST; those are prompt/variable references only.

@@ -1,0 +1,48 @@
+---
+title: "IP Addresses for Whitelisting"
+description: "The IP addresses Artaios uses, for firewall and allowlist rules"
+---
+
+If your systems sit behind a firewall or allowlist, use the addresses below to
+permit traffic to and from Artaios.
+
+## Outbound: traffic from Artaios to your systems
+
+When an agent calls a system you operate (a tool, an MCP server, a webhook or
+any other HTTP endpoint), the request originates from this address:
+
+| Direction | IP address |
+|---|---|
+| Artaios to your systems | `80.158.5.174` |
+
+Allow this address on the firewall in front of the system Artaios needs to
+reach.
+
+## Inbound: traffic from your systems to Artaios
+
+If your network restricts outbound traffic, allow connections to the Artaios
+API at this address:
+
+| Hostname | IP address |
+|---|---|
+| `api.artaios.ai` | `80.158.91.224` |
+
+Both the REST API (`https://api.artaios.ai/api/v1/`) and the WebSocket
+endpoint (`wss://api.artaios.ai/ws/amas`) are served on port 443.
+
+<Warning>
+Allowlist by **hostname** where your firewall supports it. IP addresses can
+change, for example during infrastructure changes. If you must allowlist by IP
+address, check this page when connections start failing unexpectedly.
+</Warning>
+
+## Related
+
+<CardGroup cols={2}>
+  <Card title="Connect your agent" icon="plug" href="/documentation/getting-started/connecting-your-agent">
+    Base URLs and authentication
+  </Card>
+  <Card title="MCP Integration" icon="wrench" href="/documentation/integration/custom-tools">
+    Connect an external MCP server
+  </Card>
+</CardGroup>
