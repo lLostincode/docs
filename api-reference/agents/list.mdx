@@ -3,7 +3,7 @@ title: 'List Agents'
 openapi: 'GET /api/v1/agent/'
 ---
 
-Retrieve all agent configurations for the authenticated user. This endpoint returns a list of all agents you have access to, including their metadata and configuration details.
+Retrieve all agent configurations for the authenticated user. This endpoint returns a paginated list of the agents you have access to, including their metadata and configuration details.
 
 <CodeGroup>
 ```bash cURL
@@ -18,7 +18,7 @@ response = requests.get(
     "https://api.artaios.ai/api/v1/agent/",
     headers={"x-api-key": "YOUR_API_KEY"}
 )
-agents = response.json()
+agents = response.json()["results"]
 ```
 
 ```javascript JavaScript
@@ -27,42 +27,63 @@ const response = await fetch('https://api.artaios.ai/api/v1/agent/', {
     'x-api-key': 'YOUR_API_KEY'
   }
 });
-const agents = await response.json();
+const { results: agents } = await response.json();
 ```
 </CodeGroup>
 
 ## Response
 
-Returns an array of agent configuration objects:
+Returns a paginated object. The agent configuration objects are in `results`:
 
 ```json
-[
-  {
-    "id": "550e8400-e29b-41d4-a716-446655440000",
-    "agent_key": "customer_support_agent",
-    "name": "Customer Support Agent",
-    "architecture": "llm_agent",
-    "entry_point": "main",
-    "is_public": false,
-    "is_shared": false,
-    "origin_url": null,
-    "owner": "user_123",
-    "company": "company_456",
-    "system_config": {
+{
+  "count": 1,
+  "next": null,
+  "previous": null,
+  "results": [
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440000",
+      "agent_key": "customer_support_agent",
       "name": "Customer Support Agent",
-      "agent_type": "llm_agent",
-      "system_prompt": "You are a helpful customer support agent...",
-      "llm_config": {
-        "model": "gpt-4o",
-        "temperature": 0.7
-      }
-    },
-    "version_number": "1.0.0",
-    "config_hash": "a1b2c3d4e5f6",
-    "created_at": "2025-01-15T10:30:00Z",
-    "updated_at": "2025-01-15T10:30:00Z"
-  }
-]
+      "architecture": "llm_agent",
+      "entry_point": "main",
+      "is_public": false,
+      "is_shared": false,
+      "origin_url": null,
+      "owner": "user_123",
+      "company": "company_456",
+      "system_config": {
+        "name": "Customer Support Agent",
+        "agent_type": "llm_agent",
+        "system_prompt": "You are a helpful customer support agent...",
+        "llm_config": {
+          "model": "gpt-4o",
+          "temperature": 0.7
+        }
+      },
+      "version_number": "1.0.0",
+      "config_hash": "a1b2c3d4e5f6",
+      "created_at": "2025-01-15T10:30:00Z",
+      "updated_at": "2025-01-15T10:30:00Z"
+    }
+  ]
+}
+```
+
+## Pagination
+
+The response is not a bare array. Each page holds up to 20 agents by default.
+
+- `count` - Total number of agents across all pages
+- `next` - URL of the next page, or `null` on the last page
+- `previous` - URL of the previous page, or `null` on the first page
+- `results` - The agents on this page
+
+Use `?page=N` to select a page and `?page_size=N` to change the page size (maximum 100). Follow `next` until it is `null` to retrieve every agent.
+
+```bash
+curl -X GET "https://api.artaios.ai/api/v1/agent/?page=2&page_size=50" \
+  -H "x-api-key: YOUR_API_KEY"
 ```
 
 <Note>
