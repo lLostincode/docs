@@ -64,15 +64,41 @@ const files = await response.json();
 
 ## Response
 
+Returns a plain array of all your files (this endpoint is not paginated):
+
 ```json
 [
   {
-    "id": "file_123",
+    "id": "287fc350-737d-4977-9c05-78ba57f625e6",
+    "name": "",
     "original_filename": "product_manual.pdf",
+    "type": "file-upload",
     "file_type": "document",
-    "size_bytes": 2048576,
+    "mime_type": "application/pdf",
+    "file_size": 2048576,
+    "file_size_formatted": "2.0 MB",
+    "file_hash": "9f86d081884c7d65...",
     "status": "active",
-    "tags": ["manual", "product"],
+    "description": "",
+    "tags": [
+      "manual",
+      "product"
+    ],
+    "is_public": false,
+    "processing_metadata": {},
+    "file_url": "https://...",
+    "uploaded_by_name": "Jane Doe",
+    "company_name": "Acme",
+    "workspace": "b6b180fa-e7b6-4c9b-93a2-da112157139a",
+    "workspace_name": "My Projects",
+    "workspace_kind": "personal",
+    "capabilities": {
+      "files.edit": {
+        "allowed": true,
+        "code": null,
+        "missing": null
+      }
+    },
     "created_at": "2025-01-15T10:30:00Z",
     "updated_at": "2025-01-15T10:30:00Z"
   }

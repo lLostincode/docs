@@ -33,15 +33,20 @@ const sessions = await response.json();
 
 ## Response
 
-Returns an array of session objects:
+Returns a plain array of session objects (this endpoint is not paginated). Sessions without messages are left out unless you pass `has_messages=false`:
 
 ```json
 [
   {
-    "session_id": "session_abc123",
-    "config_hash": "a1b2c3d4e5f6",
+    "session_id": "8b21ead8-caca-4c4e-846f-c8aa3b9d7300",
+    "title": "Create a file",
+    "status": "completed",
     "created_at": "2025-01-15T10:30:00Z",
-    "status": "active"
+    "last_execution": "2025-01-15T10:30:07Z",
+    "message_count": 4,
+    "is_scheduled": false,
+    "schedule_id": null,
+    "is_webhook": false
   }
 ]
 ```

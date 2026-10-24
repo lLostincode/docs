@@ -44,18 +44,40 @@ const collections = await response.json();
 
 ## Response
 
+Returns a paginated object. The collections are in `results`; `count`, `next` and `previous` work as in [List Agents](/api-reference/agents/list#pagination) (default page size 20, maximum 100 via `?page_size=`).
+
 ```json
-[
-  {
-    "id": "coll_123",
-    "name": "Product Documentation",
-    "description": "All product manuals and guides",
-    "status": "completed",
-    "progress": 100,
-    "data_source_count": 15,
-    "total_size": 52428800,
-    "created_at": "2025-01-15T10:30:00Z",
-    "updated_at": "2025-01-15T10:35:00Z"
-  }
-]
+{
+  "count": 1,
+  "next": null,
+  "previous": null,
+  "results": [
+    {
+      "id": "8f191fa3-8534-4980-9624-a33dac8454f2",
+      "name": "Product Documentation",
+      "description": "All product manuals and guides",
+      "status": "completed",
+      "progress": 100,
+      "data_source_count": 15,
+      "total_size": 52428800,
+      "datasources": [],
+      "created_by": "user_123",
+      "created_by_name": "Jane Doe",
+      "company": "company_456",
+      "company_name": "Acme",
+      "workspace": "8cef47c7-561c-4eac-b812-988c16411a58",
+      "workspace_name": "My Projects",
+      "workspace_kind": "personal",
+      "capabilities": {
+        "collections.edit": {
+          "allowed": true,
+          "code": null,
+          "missing": null
+        }
+      },
+      "created_at": "2025-01-15T10:30:00Z",
+      "updated_at": "2025-01-15T10:35:00Z"
+    }
+  ]
+}
 ```
