@@ -3,7 +3,9 @@ title: 'Get Current Version'
 openapi: 'GET /api/v1/agent/{id}/versions/current/'
 ---
 
-Retrieve the current active version's `system_config` formatted for YAML output. This endpoint returns the raw stored config, preserving only explicitly set fields, which is useful when dumping as YAML in the frontend.
+Retrieve the current active version of an agent, including its `system_config` (prompts, LLM settings, knowledge base and tool bindings).
+
+By default the config is tidied for YAML display: keys are put in a canonical order and empty values (`null`, `{}`, `[]`) are dropped. Pass `raw=true` to get the stored version exactly as saved, in the same shape as [Get Version](/api-reference/agents/get-version). Use `raw=true` when you need the effective configuration.
 
 ## Path Parameters
 
@@ -11,26 +13,39 @@ Retrieve the current active version's `system_config` formatted for YAML output.
   The UUID of the agent.
 </ParamField>
 
+## Query Parameters
+
+<ParamField query="raw" type="boolean" default="false">
+  Return the stored version unmodified instead of the YAML-tidied view.
+</ParamField>
+
 <CodeGroup>
 ```bash cURL
-curl -X GET https://api.artaios.ai/api/v1/agent/{id}/versions/current/ \
-  -H "Authorization: Bearer YOUR_TOKEN"
+curl -X GET "https://api.artaios.ai/api/v1/agent/{id}/versions/current/?raw=true" \
+  -H "x-api-key: YOUR_API_KEY"
 ```
 </CodeGroup>
 
 ## Response
 
-Returns the active version's configuration formatted for YAML.
+With `raw=true`:
 
 ```json
 {
-  "id": "550e8400-e29b-41d4-a716-446655440000",
-  "version_number": "1.0.0",
+  "id": "0f6c4c6e-7a53-4f0e-9d4a-6f3a1c2b9e11",
+  "version_number": "v3",
   "system_config": {
     "name": "My Agent",
-    "architecture": "llm_agent"
+    "architecture": "workflow",
+    "entry_point": "START",
+    "agents": []
   },
   "metadata": {},
-  "agent": "550e8400-e29b-41d4-a716-446655440000"
+  "created_by": "user_123",
+  "agent": "550e8400-e29b-41d4-a716-446655440000",
+  "created_at": "2025-01-15T10:30:00Z",
+  "updated_at": "2025-01-15T10:30:00Z"
 }
 ```
+
+Without `raw`, the response contains only `id` (the agent's), `version_number`, `system_config` (tidied), `metadata` and `agent`. It returns `404` if the agent has no active version or an empty config; with `raw=true` only the missing active version returns `404`.

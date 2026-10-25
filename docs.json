@@ -68,6 +68,8 @@
               "api-reference/agents/delete",
               "api-reference/agents/validate",
               "api-reference/agents/current-version",
+              "api-reference/agents/list-versions",
+              "api-reference/agents/get-version",
               "api-reference/agents/import-yaml"
             ]
           },

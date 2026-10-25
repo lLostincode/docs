@@ -1,0 +1,43 @@
+---
+title: 'Get Version'
+openapi: 'GET /api/v1/agent/{id}/versions/{version_id}/'
+---
+
+Retrieve one version of an agent with its stored `system_config`, exactly as saved.
+
+<ParamField path="id" type="string" required>
+  The UUID of the agent.
+</ParamField>
+
+<ParamField path="version_id" type="string" required>
+  The version's UUID (from [List Versions](/api-reference/agents/list-versions)) or its version number, for example `v3`.
+</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl -X GET https://api.artaios.ai/api/v1/agent/{id}/versions/v3/ \
+  -H "x-api-key: YOUR_API_KEY"
+```
+</CodeGroup>
+
+## Response
+
+```json
+{
+  "id": "0f6c4c6e-7a53-4f0e-9d4a-6f3a1c2b9e11",
+  "version_number": "v3",
+  "system_config": {
+    "name": "My Agent",
+    "architecture": "workflow",
+    "entry_point": "START",
+    "agents": []
+  },
+  "metadata": {},
+  "created_by": "user_123",
+  "agent": "550e8400-e29b-41d4-a716-446655440000",
+  "created_at": "2025-01-15T10:30:00Z",
+  "updated_at": "2025-01-15T10:30:00Z"
+}
+```
+
+Returns `404` if the agent has no such version.

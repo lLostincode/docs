@@ -1,0 +1,39 @@
+---
+title: 'List Versions'
+openapi: 'GET /api/v1/agent/{id}/versions/'
+---
+
+List the versions of an agent, newest first. The list holds no configuration; read one with [Get Version](/api-reference/agents/get-version).
+
+<ParamField path="id" type="string" required>
+  The UUID of the agent.
+</ParamField>
+
+<CodeGroup>
+```bash cURL
+curl -X GET https://api.artaios.ai/api/v1/agent/{id}/versions/ \
+  -H "x-api-key: YOUR_API_KEY"
+```
+</CodeGroup>
+
+## Response
+
+```json
+{
+  "count": 2,
+  "results": [
+    {
+      "id": "0f6c4c6e-7a53-4f0e-9d4a-6f3a1c2b9e11",
+      "version_number": "v2",
+      "created_at": "2025-02-01T09:00:00Z",
+      "updated_at": "2025-02-01T09:00:00Z"
+    },
+    {
+      "id": "7d2a9b1c-33de-4b86-8a2e-1c5f0e8d4a77",
+      "version_number": "v1",
+      "created_at": "2025-01-15T10:30:00Z",
+      "updated_at": "2025-01-15T10:30:00Z"
+    }
+  ]
+}
+```

@@ -70,7 +70,7 @@ All agent endpoints return objects with these key fields:
 </ResponseField>
 
 <ResponseField name="system_config" type="object">
-  Complete agent configuration including prompts, LLM settings, tools, and knowledge bases
+  Complete agent configuration including prompts, LLM settings, tools, and knowledge bases. Accepted when you create or update an agent, but **not returned** by the agent endpoints. Read it from the [version endpoints](/api-reference/agents/current-version) instead.
 </ResponseField>
 
 <ResponseField name="version_number" type="string">

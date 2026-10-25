@@ -37,32 +37,24 @@ const agent = await response.json();
 
 ## Response
 
-Returns the complete agent configuration:
+Returns the agent's metadata. The response does **not** include `system_config`, `architecture` or `entry_point`: the configuration is write-only on this endpoint. To read it, use [Get Current Version](/api-reference/agents/current-version) with `?raw=true`, or [Get Version](/api-reference/agents/get-version).
 
 ```json
 {
   "id": "550e8400-e29b-41d4-a716-446655440000",
   "agent_key": "customer_support_agent",
   "name": "Customer Support Agent",
-  "architecture": "llm_agent",
-  "entry_point": "main",
+  "description": "Answers customer questions",
+  "icon": null,
   "is_public": false,
-  "is_shared": false,
   "origin_url": null,
   "owner": "user_123",
+  "owner_name": "Jane Doe",
   "company": "company_456",
-  "system_config": {
-    "name": "Customer Support Agent",
-    "agent_type": "llm_agent",
-    "system_prompt": "You are a helpful customer support agent...",
-    "llm_config": {
-      "model": "gpt-4o",
-      "temperature": 0.7
-    },
-    "tools": ["tavily_search"],
-    "knowledge_bases": [...]
-  },
-  "version_number": "1.0.0",
+  "workspace": "9b1d0c1e-5f55-4c1b-8a39-0d8f2a7f6a10",
+  "workspace_name": "Support",
+  "is_general_agent": false,
+  "version_number": "v3",
   "config_hash": "a1b2c3d4e5f6",
   "created_at": "2025-01-15T10:30:00Z",
   "updated_at": "2025-01-15T10:30:00Z"
