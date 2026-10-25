@@ -1,6 +1,6 @@
 ---
 title: 'Available Models'
-description: 'Learn how to select and configure LLM models in AMAS, including BYOK (Bring Your Own Key) and multimodal capabilities'
+description: 'Learn how to select and configure LLM models in AMAS, including multimodal capabilities'
 ---
 
 ## Overview
@@ -285,32 +285,6 @@ The backend automatically:
   </Accordion>
 </AccordionGroup>
 
-## BYOK (Bring Your Own Key)
-
-Override API keys for specific agents using the `api_key` field in `llm_config`. This allows different agents to use different API keys, enabling multi-tenant isolation:
-
-```yaml
-agents:
-  - name: customer_agent
-    agent_type: llm_agent
-    llm_config:
-      model: mistral-large
-      api_key: your-mistral-api-key  # Direct key
-      temperature: 0.7
-```
-
-You can also reference environment variables using the `${ENV_VAR}` syntax:
-
-```yaml
-llm_config:
-  model: mistral-large
-  api_key: ${TENANT_A_MISTRAL_KEY}  # References an environment variable
-```
-
-<Warning>
-**Security Notes**: API keys provided directly in the YAML configuration are stored in plain text. For production deployments, use environment variable references (`${ENV_VAR}` syntax) instead of hardcoding keys.
-</Warning>
-
 ## Model Configuration Reference
 
 ### LLMConfig Schema
@@ -320,7 +294,6 @@ llm_config:
   model: string              # Model name (required for non-default)
   temperature: float         # 0.0 - 2.0 (default: 0.7)
   max_tokens: int           # Max output tokens (optional)
-  api_key: string           # Optional BYOK override
 ```
 
 ### Field Descriptions
@@ -330,7 +303,6 @@ llm_config:
 | `model` | string | Environment default | Model name or display name |
 | `temperature` | float | 0.7 | Sampling temperature (0.0 = deterministic, 2.0 = creative) |
 | `max_tokens` | int | Model default | Maximum tokens to generate |
-| `api_key` | string | Environment variable | Optional API key override |
 
 ### Temperature Guidelines
 
@@ -396,7 +368,6 @@ The framework automatically validates token limits and will raise errors if exce
   <Accordion title="API Key Management">
     1. **Implement key rotation** for production systems
     2. **Monitor usage and costs** per key
-    3. **Use BYOK** for multi-tenant isolation
   </Accordion>
   
   <Accordion title="Performance Optimization">
@@ -424,7 +395,6 @@ The framework automatically validates token limits and will raise errors if exce
     **Solution**:
     - Verify API key is correct
     - Check environment variables are set
-    - Ensure BYOK key has proper permissions
     - Validate API base URL is correct
   </Accordion>
   
@@ -489,25 +459,6 @@ edges:
     to: deep_analyzer
   - from: deep_analyzer
     to: image_processor
-```
-
-### BYOK Multi-Tenant Example
-
-```yaml
-agents:
-  - name: tenant_a_agent
-    agent_type: llm_agent
-    llm_config:
-      model: mistral-large
-      api_key: ${TENANT_A_MISTRAL_KEY}  # Tenant A's Mistral key
-      temperature: 0.7
-  
-  - name: tenant_b_agent
-    agent_type: llm_agent
-    llm_config:
-      model: Qwen3-30B  # Telekom OTC
-      api_key: ${TENANT_B_TELEKOM_KEY}  # Tenant B's Telekom key
-      temperature: 0.7
 ```
 
 ## Next Steps
