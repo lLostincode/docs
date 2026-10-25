@@ -232,7 +232,7 @@
         },
         {
           "anchor": "Agent Studio",
-          "href": "https://amas.artaios.com",
+          "href": "https://amas.artaios.ai",
           "icon": "window"
         }
       ]
@@ -252,7 +252,7 @@
     "primary": {
       "type": "button",
       "label": "Login",
-      "href": "https://amas.artaios.com"
+      "href": "https://amas.artaios.ai"
     }
   },
   "contextual": {
